@@ -8,6 +8,10 @@ import Modal from "./modals/Modal";
 import UseMenu from "./navbar/UseMenu";
 import Navbar from "./navbar/Navbar";
 import RegisterModal from "./modals/RegisterModal";
+import Heading from "./Heading";
+import Input from "./inputs/input";
+import Button from "./Button";
+import LoginModal from "./modals/LoginModal";
 export {
   Avatar,
   Container,
@@ -19,4 +23,8 @@ export {
   UseMenu,
   Navbar,
   RegisterModal,
+  Heading,
+  Input,
+  Button,
+  LoginModal,
 };

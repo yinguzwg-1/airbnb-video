@@ -141,7 +141,7 @@ const Modal: React.FC<ModalPorps> = ({
                     left-9
                   "
                 >
-                  <IoMdClose size={18} />
+                  <IoMdClose onClick={handleClose} size={18} />
                 </button>
                 <div className="text-lg font-semibold">{title}</div>
               </div>
@@ -172,6 +172,7 @@ const Modal: React.FC<ModalPorps> = ({
                     onClick={handleSubmit}
                   />
                 </div>
+                {footer}
               </div>
             </div>
           </div>
