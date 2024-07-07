@@ -11,10 +11,12 @@ export const authOptions: AuthOptions = {
     GithubProvider({
       clientId: process.env.GITHUB_ID as string,
       clientSecret: process.env.GITHUB_SECRET as string,
+      allowDangerousEmailAccountLinking: true,
     }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: "credentials",
@@ -32,7 +34,6 @@ export const authOptions: AuthOptions = {
             email: credentials.email,
           },
         });
-
         if (!user || !user?.hashedPassword) {
           throw new Error("Invalid Credentials");
         }
@@ -58,5 +59,6 @@ export const authOptions: AuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
+const handler = NextAuth(authOptions);
 
-export default NextAuth(authOptions);
+export { handler as GET, handler as POST };

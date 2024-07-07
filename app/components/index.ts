@@ -9,9 +9,17 @@ import UseMenu from "./navbar/UseMenu";
 import Navbar from "./navbar/Navbar";
 import RegisterModal from "./modals/RegisterModal";
 import Heading from "./Heading";
-import Input from "./inputs/input";
+import Input from "./inputs/Input";
+import CategoryInput from "./inputs/CategoryInput";
 import Button from "./Button";
 import LoginModal from "./modals/LoginModal";
+import Categories from "./navbar/Categories";
+import CategoryBox from "./CategoryBox";
+import RentModal from "./modals/RentModal";
+import CountrySelect from "./inputs/CountrySelect";
+import Map from "./Map";
+import Counter from "./inputs/Counter";
+import ImageUpload from "./inputs/ImageUpload";
 export {
   Avatar,
   Container,
@@ -27,4 +35,12 @@ export {
   Input,
   Button,
   LoginModal,
+  Categories,
+  CategoryBox,
+  RentModal,
+  CategoryInput,
+  CountrySelect,
+  Map,
+  Counter,
+  ImageUpload,
 };

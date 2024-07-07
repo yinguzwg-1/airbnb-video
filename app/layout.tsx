@@ -7,8 +7,10 @@ import {
   Modal,
   Navbar,
   RegisterModal,
+  RentModal,
 } from "./components";
 import ToasterProvider from "./providers/ToasterProvider";
+import getCurrentUser from "./actions/getCurrentUser";
 
 const inter = Nunito({ subsets: ["latin"] });
 
@@ -17,19 +19,22 @@ export const metadata: Metadata = {
   description: "Airbnb clone",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const currentUser = await getCurrentUser();
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning={true}>
       <body className={inter.className}>
         <ClientOnly>
           <ToasterProvider />
+          <RentModal />
           <RegisterModal />
           <LoginModal />
-          <Navbar />
+
+          <Navbar currentUser={currentUser} />
         </ClientOnly>
         {children}
       </body>

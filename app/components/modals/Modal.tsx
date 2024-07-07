@@ -28,7 +28,6 @@ const Modal: React.FC<ModalPorps> = ({
   secondaryActionLabel,
 }) => {
   const [showModal, setShowModal] = useState(isOpen);
-
   useEffect(() => {
     setShowModal(isOpen);
   }, [isOpen]);
@@ -54,6 +53,7 @@ const Modal: React.FC<ModalPorps> = ({
     if (disabled || !secondaryAction) {
       return;
     }
+    secondaryAction();
   }, [disabled, secondaryAction]);
 
   if (!isOpen) {
@@ -160,6 +160,7 @@ const Modal: React.FC<ModalPorps> = ({
                 >
                   {secondaryActionLabel && (
                     <Button
+                      outline={true}
                       disabled={disabled}
                       label={secondaryActionLabel}
                       onClick={handleSecondaryAction}
