@@ -9,7 +9,7 @@ import UseMenu from "./navbar/UseMenu";
 import Navbar from "./navbar/Navbar";
 import RegisterModal from "./modals/RegisterModal";
 import Heading from "./Heading";
-import Input from "./inputs/Input";
+import Input from "./inputs/input";
 import CategoryInput from "./inputs/CategoryInput";
 import Button from "./Button";
 import LoginModal from "./modals/LoginModal";
