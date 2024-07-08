@@ -1,6 +1,18 @@
-import { ClientOnly, Container } from "./components";
-
-export default function Home() {
+import { ClientOnly, Container, EmptyState, ListingCard } from "./components";
+import getListings from "./actions/getListings";
+import getCurrentUser from "./actions/getCurrentUser";
+import { User } from "@prisma/client";
+import { SafeListing, SafeUser } from "./common/type";
+export default async function Home() {
+  const currentUser = await getCurrentUser();
+  const listings = await getListings();
+  if (listings.length === 0) {
+    return (
+      <ClientOnly>
+        <EmptyState showReset />
+      </ClientOnly>
+    );
+  }
   return (
     <ClientOnly>
       <Container>
@@ -17,7 +29,15 @@ export default function Home() {
           gap-8
         "
         >
-          <div>My future listings</div>
+          {listings.map((listing: SafeListing) => {
+            return (
+              <ListingCard
+                key={listing.id}
+                currentUser={currentUser as SafeUser | null}
+                data={listing}
+              />
+            );
+          })}
         </div>
       </Container>
     </ClientOnly>
