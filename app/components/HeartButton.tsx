@@ -22,6 +22,7 @@ const HeartButton: React.FC<HeartButtonProps> = ({
       onClick={toggleFavorite}
       className="
       relative
+      hover:cursor-pointer
     "
     >
       <AiOutlineHeart
