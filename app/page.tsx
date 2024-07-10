@@ -1,7 +1,6 @@
 import { ClientOnly, Container, EmptyState, ListingCard } from "./components";
 import getListings from "./actions/getListings";
 import getCurrentUser from "./actions/getCurrentUser";
-import { User } from "@prisma/client";
 import { SafeListing, SafeUser } from "./common/type";
 export default async function Home() {
   const currentUser = await getCurrentUser();
