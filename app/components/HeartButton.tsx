@@ -6,7 +6,7 @@ import { SafeUser } from "../common/type";
 
 interface HeartButtonProps {
   listingId: string;
-  currentUser?: SafeUser;
+  currentUser?: SafeUser | null;
 }
 
 const HeartButton: React.FC<HeartButtonProps> = ({

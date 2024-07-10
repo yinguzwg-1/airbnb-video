@@ -9,7 +9,7 @@ import { SafeUser } from "../common/type";
 
 interface IUseFavorite {
   listingId: string;
-  currentUser?: SafeUser;
+  currentUser?: SafeUser | null;
 }
 
 const useFavorite = ({ listingId, currentUser }: IUseFavorite) => {

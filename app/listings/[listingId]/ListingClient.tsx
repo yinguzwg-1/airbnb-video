@@ -10,7 +10,7 @@ interface ListingClientProps {
   listing: SafeListing & {
     user: SafeUser;
   };
-  currentUser: SafeUser | undefined;
+  currentUser: SafeUser | null;
 }
 
 const ListingClient: React.FC<ListingClientProps> = ({
