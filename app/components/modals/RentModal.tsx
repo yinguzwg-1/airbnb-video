@@ -2,7 +2,7 @@
 
 import useRentModal from "@/app/hooks/useRentModal";
 import Modal from "./Modal";
-import { STEPS } from "@/app/common/enum";
+import { RENT_STEPS } from "@/app/common/enum";
 import { useMemo, useState } from "react";
 import Heading from "../Heading";
 import { CategoriesList } from "@/app/common/const";
@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 const RentModal = () => {
   const rentModal = useRentModal();
   const router = useRouter();
-  const [step, setStep] = useState(STEPS.CATEGORY);
+  const [step, setStep] = useState(RENT_STEPS.CATEGORY);
   const [isLoading, setIsLoading] = useState(false);
   const {
     register,
@@ -63,7 +63,7 @@ const RentModal = () => {
   };
 
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
-    if (step !== STEPS.PRICE) {
+    if (step !== RENT_STEPS.PRICE) {
       return onNext();
     }
     setIsLoading(true);
@@ -73,6 +73,7 @@ const RentModal = () => {
         toast.success("Listing Created!");
         router.refresh();
         reset();
+        setStep(RENT_STEPS.CATEGORY);
         rentModal.onClose();
       })
       .catch((err) => {
@@ -83,14 +84,14 @@ const RentModal = () => {
       });
   };
   const actionLabel = useMemo(() => {
-    if (step === STEPS.PRICE) {
+    if (step === RENT_STEPS.PRICE) {
       return "Create";
     }
     return "Next";
   }, [step]);
 
   const secondaryActionLabel = useMemo(() => {
-    if (step === STEPS.CATEGORY) {
+    if (step === RENT_STEPS.CATEGORY) {
       return undefined;
     }
     return "Back";
@@ -125,7 +126,7 @@ const RentModal = () => {
       </div>
     </div>
   );
-  if (step === STEPS.LOCATION) {
+  if (step === RENT_STEPS.LOCATION) {
     bodyContent = (
       <div className="flex flex-col gap-8">
         <Heading
@@ -140,7 +141,7 @@ const RentModal = () => {
       </div>
     );
   }
-  if (step === STEPS.INFO) {
+  if (step === RENT_STEPS.INFO) {
     bodyContent = (
       <div className="flex flex-col gap-8">
         <Heading
@@ -170,7 +171,7 @@ const RentModal = () => {
       </div>
     );
   }
-  if (step === STEPS.IMAGES) {
+  if (step === RENT_STEPS.IMAGES) {
     bodyContent = (
       <div className="flex flex-col gap-8">
         <Heading
@@ -184,7 +185,7 @@ const RentModal = () => {
       </div>
     );
   }
-  if (step === STEPS.DESCRIPTION) {
+  if (step === RENT_STEPS.DESCRIPTION) {
     bodyContent = (
       <div className="flex flex-col gap-8">
         <Heading
@@ -212,7 +213,7 @@ const RentModal = () => {
     );
   }
 
-  if (step === STEPS.PRICE) {
+  if (step === RENT_STEPS.PRICE) {
     bodyContent = (
       <div className="flex flex-col gap-8">
         <Heading
@@ -241,7 +242,7 @@ const RentModal = () => {
       actionLabel={actionLabel}
       body={bodyContent}
       secondaryActionLabel={secondaryActionLabel}
-      secondaryAction={step === STEPS.CATEGORY ? undefined : onBack}
+      secondaryAction={step === RENT_STEPS.CATEGORY ? undefined : onBack}
     />
   );
 };

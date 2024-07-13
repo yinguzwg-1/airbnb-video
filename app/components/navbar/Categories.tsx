@@ -23,7 +23,7 @@ const Categories = () => {
         flex-row
         items-center
         justify-between
-        overflow-x-auto
+        overflow-x-hidden
       "
       >
         {CategoriesList.map((item) => (

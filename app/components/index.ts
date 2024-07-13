@@ -28,6 +28,8 @@ import ListingInfo from "./listings/ListingInfo";
 import ListingCategory from "./listings/ListingCategory";
 import ListingReservation from "./listings/ListingReservation";
 import Calendar from './inputs/Calendar';
+import SearchModal from "./modals/SearchModal";
+import Loader from "../components/Loading";
 export {
   Avatar,
   Container,
@@ -58,5 +60,7 @@ export {
   ListingInfo,
   ListingCategory,
   ListingReservation,
-  Calendar
+  Calendar,
+  SearchModal,
+  Loader
 };
