@@ -1,16 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import useCountries from "@/app/hooks/useCountries";
-import { Reservation } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { format } from "date-fns";
 import { Button, HeartButton } from "..";
-import { SafeListing, SafeUser } from "@/app/common/type";
+import { SafeListing, SafeReservation, SafeUser } from "@/app/common/type";
 interface ListingCardProps {
   currentUser?: SafeUser | null;
   data: SafeListing;
-  reservation?: Reservation;
+  reservation?: SafeReservation;
   onAction?: (id: string) => void;
   disabled?: boolean;
   actionLabel?: string;
