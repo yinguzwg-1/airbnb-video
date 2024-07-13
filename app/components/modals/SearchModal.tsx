@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 
 'use client';
 import qs from 'query-string';
@@ -28,8 +29,7 @@ const SearchModal = () => {
   });
 
   const Map = useMemo(() => 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    dynamic(() => import('../Map'), {ssr: false}), [location]);
+    dynamic(async () => await import('../Map'), {ssr: false}), [location]);
 
   const onBack = useCallback(() => {
     setStep((value) => value - 1);

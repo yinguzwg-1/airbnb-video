@@ -17,7 +17,6 @@ import Categories from "./navbar/Categories";
 import CategoryBox from "./CategoryBox";
 import RentModal from "./modals/RentModal";
 import CountrySelect from "./inputs/CountrySelect";
-import Map from "./Map";
 import Counter from "./inputs/Counter";
 import ImageUpload from "./inputs/ImageUpload";
 import EmptyState from "./EmptyState";
@@ -50,7 +49,6 @@ export {
   RentModal,
   CategoryInput,
   CountrySelect,
-  Map,
   Counter,
   ImageUpload,
   EmptyState,

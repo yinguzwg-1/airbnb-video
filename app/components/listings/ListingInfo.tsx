@@ -5,7 +5,7 @@ import useCountries from "@/app/hooks/useCountries";
 import { IconType } from "react-icons";
 import { ListingCategory, Avatar } from "..";
 import dynamic from "next/dynamic";
-const Map = dynamic(() => import("../Map"), { ssr: false });
+import { useMemo } from "react";
 interface ListingInfoProps {
   user: SafeUser;
   description: string;
@@ -33,6 +33,11 @@ const ListingInfo: React.FC<ListingInfoProps> = ({
 }) => {
   const { getByValue } = useCountries();
   const coordinates = getByValue(locationValue)?.latlng;
+  const Map = useMemo(
+    () => dynamic(async () => await import("../Map"), { ssr: false }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [location]
+  );
   return (
     <div className="col-span-4 flex flex-col gap-8">
       <div className="flex flex-col gap-2">

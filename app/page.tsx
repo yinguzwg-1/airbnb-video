@@ -3,12 +3,10 @@ import getListings, { IListingsParams } from "./actions/getListings";
 import getCurrentUser from "./actions/getCurrentUser";
 import { SafeListing, SafeUser } from "./common/type";
 
-interface HomeProps {
-  searchParams: IListingsParams
-}
-const Home = async ({searchParams}: HomeProps) => {
+
+const Home = async () => {
   const currentUser = await getCurrentUser();
-  const listings = await getListings(searchParams);
+  const listings = await getListings({});
   if (listings.length === 0) {
     return (
       <ClientOnly>

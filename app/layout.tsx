@@ -4,7 +4,6 @@ import "./globals.css";
 import {
   LoginModal,
   ClientOnly,
-  Modal,
   Navbar,
   RegisterModal,
   RentModal,

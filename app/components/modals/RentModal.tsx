@@ -44,7 +44,7 @@ const RentModal = () => {
   const bathroomCount = watch("bathroomCount");
   const imageSrc = watch("imageSrc");
   const Map = useMemo(
-    () => dynamic(() => import("../Map"), { ssr: false }),
+    () => dynamic(async () => await import("../Map"), { ssr: false }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [location]
   );
