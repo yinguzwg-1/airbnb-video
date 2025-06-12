@@ -1,22 +1,17 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
-import {
-  LoginModal,
-  ClientOnly,
-  Navbar,
-  RegisterModal,
-  RentModal,
-  SearchModal,
-} from "./components";
-import ToasterProvider from "./providers/ToasterProvider";
-import getCurrentUser from "./actions/getCurrentUser";
 
 const inter = Nunito({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Airbnb",
-  description: "Airbnb clone",
+  title: "Movie Shelter",
+  description: "Movie Shelter - 发现精彩的电影和电视剧",
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16', type: 'image/x-icon' },
+    ],
+  },
 };
 
 export default async function RootLayout({
@@ -24,19 +19,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const currentUser = await getCurrentUser();
   return (
-    <html lang="en" suppressHydrationWarning={true}>
+    <html lang="zh-CN" suppressHydrationWarning={true}>
       <body className={inter.className}>
-        <ClientOnly>
-          <ToasterProvider />
-          <RentModal />
-          <RegisterModal />
-          <LoginModal />
-          <SearchModal />
-          <Navbar currentUser={currentUser} />
-        </ClientOnly>
-        <div className="pb-20 pt-28">{children}</div>
+        {children}
       </body>
     </html>
   );
