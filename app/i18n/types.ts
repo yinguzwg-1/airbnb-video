@@ -152,4 +152,39 @@ export interface TranslationKeys {
     darkDescription: string;
     systemDescription: string;
   };
+
+  // 上传功能
+  upload: {
+    title: string;
+    dragDropText: string;
+    clickToSelect: string;
+    supportedFormats: string;
+    maxFileSize: string;
+    maxFiles: string;
+    files: string;
+    selectFiles: string;
+    uploading: string;
+    uploadSuccess: string;
+    uploadError: string;
+    cancel: string;
+    confirm: string;
+    close: string;
+    removeFile: string;
+    fileRemoved: string;
+    dragActive: string;
+    preview: string;
+    fileName: string;
+    fileSize: string;
+    fileType: string;
+    progress: string;
+    retry: string;
+    errors: {
+      fileTypeNotSupported: string;
+      fileSizeExceeded: string;
+      maxFilesExceeded: string;
+      uploadFailed: string;
+      networkError: string;
+      serverError: string;
+    };
+  };
 } 

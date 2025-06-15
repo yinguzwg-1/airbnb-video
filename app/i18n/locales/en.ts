@@ -20,9 +20,9 @@ export const en: TranslationKeys = {
   home: {
     title: 'Movie Shelter',
     subtitle: 'Discover amazing movies and TV shows',
-    welcomeTitle: 'Movie World',
+    welcomeTitle: 'Movie Shelter',
     welcomeSubtitle: 'Discover amazing content',
-    exploreButton: '🎬 Explore Movie World Now',
+    exploreButton: '🎬 Explore Movie Shelter Now',
     autoRedirect: 'Auto redirect in',
     features: {
       content: {
@@ -47,7 +47,7 @@ export const en: TranslationKeys = {
   },
 
   media: {
-    title: 'Movie World',
+    title: 'Movie Shelter',
     subtitle: 'Discover amazing content',
     searchPlaceholder: 'Search movies, TV shows, actors, directors...',
     filterTitle: 'Filter Options',
@@ -113,9 +113,9 @@ export const en: TranslationKeys = {
   },
 
   footer: {
-    title: '🎬 Movie & TV Website',
+    title: '🎬 Movie Shelter',
     subtitle: 'Discover amazing content, enjoy watching',
-    copyright: '© 2024 Movie & TV Website. Data for demonstration only.',
+    copyright: '© 2024 Movie Shelter. Data for demonstration only.',
     totalContent: 'Total Content',
     movies: 'Movies',
     tvShows: 'TV Shows',
@@ -139,5 +139,39 @@ export const en: TranslationKeys = {
     lightDescription: 'Light theme',
     darkDescription: 'Dark theme',
     systemDescription: 'Follow system setting',
+  },
+
+  upload: {
+    title: 'Upload',
+    dragDropText: 'Drag and drop files here',
+    clickToSelect: 'Click to select files',
+    supportedFormats: 'Supported file formats',
+    maxFileSize: 'Max file size',
+    maxFiles: 'Max files',
+    files: 'Files',
+    selectFiles: 'Select Files',
+    uploading: 'Uploading',
+    uploadSuccess: 'Upload successful',
+    uploadError: 'Upload failed',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    close: 'Close',
+    removeFile: 'Remove file',
+    fileRemoved: 'File removed',
+    dragActive: 'Drop files',
+    preview: 'Preview',
+    fileName: 'File name',
+    fileSize: 'File size',
+    fileType: 'File type',
+    progress: 'Progress',
+    retry: 'Retry',
+    errors: {
+      fileTypeNotSupported: 'File type not supported',
+      fileSizeExceeded: 'File size exceeded',
+      maxFilesExceeded: 'Max files exceeded',
+      uploadFailed: 'Upload failed',
+      networkError: 'Network error',
+      serverError: 'Server error',
+    },
   },
 }; 

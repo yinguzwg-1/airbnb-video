@@ -3,20 +3,24 @@ import { Nunito } from "next/font/google";
 import "../globals.css";
 import { TranslationProvider } from "../contexts/TranslationContext";
 import { ThemeProvider } from "../contexts/ThemeContext";
-import { Language, supportedLanguages } from "../i18n";
+import { Language, supportedLanguages, translations } from "../i18n";
 import { notFound } from "next/navigation";
 
 const inter = Nunito({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Movie Shelter",
-  description: "Movie Shelter - 发现精彩的电影和电视剧",
-  icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: '16x16', type: 'image/x-icon' },
-    ],
-  },
-};
+export async function generateMetadata({ params }: { params: { lang: Language } }): Promise<Metadata> {
+  const t = translations[params.lang];
+  
+  return {
+    title: t.home.title,
+    description: t.home.subtitle,
+    icons: {
+      icon: [
+        { url: '/favicon.svg', sizes: 'any', type: 'image/svg+xml' },
+      ],
+    },
+  };
+}
 
 interface RootLayoutProps {
   children: React.ReactNode;

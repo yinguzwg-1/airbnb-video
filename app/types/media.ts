@@ -4,8 +4,14 @@ export enum MediaType {
   TV = 'tv'
 }
 
+export enum MediaStatus {
+  RELEASED = 'released',
+  ONGOING = 'ongoing',
+  UPCOMING = 'upcoming'
+}
+
 // 电影/电视剧基础接口
-export interface Media {
+export interface BaseMediaItem {
   id: string;
   title: string;
   description: string;
@@ -14,49 +20,46 @@ export interface Media {
   year: number;
   rating: number;
   genres: string[];
+  status: MediaStatus;
   type: MediaType;
-  status: 'released' | 'upcoming' | 'ongoing';
-  createdAt: Date;
-  updatedAt: Date;
+  cast: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 // 电影扩展接口
-export interface Movie extends Media {
+export interface Movie extends BaseMediaItem {
   type: MediaType.MOVIE;
-  duration: number; // 分钟
-  director: string;
-  cast: string[];
+  duration?: number;
+  director?: string;
   boxOffice?: number;
 }
 
 // 电视剧扩展接口
-export interface TVShow extends Media {
+export interface TVShow extends BaseMediaItem {
   type: MediaType.TV;
-  seasons: number;
-  episodes: number;
-  creator: string;
-  cast: string[];
-  network: string;
+  seasons?: number;
+  episodes?: number;
+  creator?: string;
+  network?: string;
 }
 
 // 联合类型
 export type MediaItem = Movie | TVShow;
 
-// 筛选参数
+// 筛选参数接口
 export interface FilterParams {
   type?: MediaType;
-  genre?: string;
   year?: number;
-  rating?: number;
-  status?: string;
-  sortBy?: 'year' | 'rating' | 'title';
-  sortOrder?: 'asc' | 'desc';
+  status?: MediaStatus;
+  sortBy?: 'rating' | 'year';
+  order?: 'ASC' | 'DESC';
 }
 
 // 分页参数
 export interface PaginationParams {
   page: number;
-  limit: number;
+  pageSize: number;
 }
 
 // API响应类型
@@ -64,7 +67,5 @@ export interface MediaResponse {
   data: MediaItem[];
   total: number;
   page: number;
-  totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
+  pageSize: number;
 } 

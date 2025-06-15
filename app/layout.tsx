@@ -5,11 +5,11 @@ import "./globals.css";
 const inter = Nunito({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Movie Shelter",
-  description: "Movie Shelter - 发现精彩的电影和电视剧",
+  title: "电影避难所",
+  description: "电影避难所 - 发现精彩的电影和电视剧",
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: '16x16', type: 'image/x-icon' },
+      { url: '/favicon.svg', sizes: 'any', type: 'image/svg+xml' },
     ],
   },
 };

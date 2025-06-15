@@ -2,25 +2,27 @@
 
 import { useState, useEffect } from "react";
 import { MediaItem, MediaType, FilterParams, MediaResponse } from "@/app/types/media";
-import { allGenres } from "@/app/data/mockData";
+import { mediaService } from "@/app/services/mediaService";
 import Header from "@/app/components/media/Header";
 import FilterBar from "@/app/components/media/FilterBar";
 import MediaGrid from "@/app/components/media/MediaGrid";
 import Pagination from "@/app/components/media/Pagination";
 import LoadingSpinner from "@/app/components/media/LoadingSpinner";
+import { useT } from "@/app/contexts/TranslationContext";
 
 export default function MediaPage() {
   const [mediaData, setMediaData] = useState<MediaResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const t = useT();
   
   // 筛选和分页状态
   const [filters, setFilters] = useState<FilterParams>({
-    sortBy: 'year',
-    sortOrder: 'desc'
+    sortBy: 'rating',
+    order: 'DESC'
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [pageSize, setPageSize] = useState(12);
 
   // 获取媒体数据
   const fetchMediaData = async () => {
@@ -28,34 +30,14 @@ export default function MediaPage() {
       setLoading(true);
       setError(null);
 
-      const params = new URLSearchParams();
+      const response = await mediaService.getMedia(filters, {
+        page: Number(currentPage),
+        pageSize: Number(pageSize)
+      });
       
-      // 添加筛选参数
-      if (filters.type) params.append('type', filters.type);
-      if (filters.genre) params.append('genre', filters.genre);
-      if (filters.year) params.append('year', filters.year.toString());
-      if (filters.rating) params.append('rating', filters.rating.toString());
-      if (filters.status) params.append('status', filters.status);
-      if (filters.sortBy) params.append('sortBy', filters.sortBy);
-      if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
-      
-      // 添加分页参数
-      params.append('page', currentPage.toString());
-      params.append('limit', '12');
-
-      const url = searchQuery 
-        ? `/api/media/search?q=${encodeURIComponent(searchQuery)}&${params.toString()}`
-        : `/api/media?${params.toString()}`;
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('获取数据失败');
-      }
-
-      const data: MediaResponse = await response.json();
-      setMediaData(data);
+      setMediaData(response);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '获取数据失败');
+      setError(err instanceof Error ? err.message : t.common.error);
       console.error('获取媒体数据失败:', err);
     } finally {
       setLoading(false);
@@ -68,39 +50,42 @@ export default function MediaPage() {
     setCurrentPage(1); // 重置到第一页
   };
 
-  // 处理搜索
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  };
-
   // 处理分页
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
+  // 处理每页数量变化
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setCurrentPage(1);
+  };
+
   // 清除筛选
   const handleClearFilters = () => {
     setFilters({
-      sortBy: 'year',
-      sortOrder: 'desc'
+      sortBy: 'rating',
+      order: 'DESC'
     });
-    setSearchQuery("");
     setCurrentPage(1);
+  };
+
+  // 获取可用年份列表
+  const getAvailableYears = () => {
+    if (!mediaData?.data) return [];
+    const years = new Set(mediaData.data.map(item => item.year));
+    return Array.from(years).sort((a, b) => b - a); // 降序排列
   };
 
   // 监听筛选和分页变化
   useEffect(() => {
     fetchMediaData();
-  }, [filters, currentPage, searchQuery]);
+  }, [filters, currentPage, pageSize]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* 顶部导航 */}
-      <Header 
-        onSearch={handleSearch}
-        searchQuery={searchQuery}
-      />
+      <Header />
 
       {/* 主要内容区域 */}
       <main className="container mx-auto px-4 py-8">
@@ -109,9 +94,10 @@ export default function MediaPage() {
           filters={filters}
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
-          genres={allGenres}
           resultCount={mediaData?.total || 0}
           loading={loading}
+          genres={mediaData?.data.map(item => item.genres).flat() || []}
+          availableYears={getAvailableYears()}
         />
 
         {/* 内容区域 */}
@@ -120,12 +106,12 @@ export default function MediaPage() {
             <LoadingSpinner />
           ) : error ? (
             <div className="text-center py-12">
-              <div className="text-red-500 text-lg mb-2">❌ {error}</div>
+              <div className="text-red-500 dark:text-red-400 text-lg mb-2">❌ {error}</div>
               <button
                 onClick={fetchMediaData}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
               >
-                重试
+                {t.common.retry}
               </button>
             </div>
           ) : mediaData && mediaData.data.length > 0 ? (
@@ -134,35 +120,29 @@ export default function MediaPage() {
               <MediaGrid items={mediaData.data} />
               
               {/* 分页组件 */}
-              {mediaData.totalPages > 1 && (
-                <div className="mt-12">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={mediaData.totalPages}
-                    onPageChange={handlePageChange}
-                    hasNext={mediaData.hasNext}
-                    hasPrev={mediaData.hasPrev}
-                  />
-                </div>
-              )}
+              <div className="mt-12">
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={mediaData.total}
+                  pageSize={pageSize}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                />
+              </div>
             </>
           ) : (
             // 无结果提示
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🎬</div>
-              <div className="text-gray-500 text-xl mb-2">没有找到相关内容</div>
-              <div className="text-gray-400 mb-4">
-                {searchQuery ? (
-                  <>没有找到包含 "{searchQuery}" 的内容</>
-                ) : (
-                  <>当前筛选条件下没有结果</>
-                )}
+              <div className="text-gray-500 dark:text-gray-400 text-xl mb-2">{t.noResults.title}</div>
+              <div className="text-gray-400 dark:text-gray-500 mb-4">
+                {t.noResults.filterMessage}
               </div>
               <button
                 onClick={handleClearFilters}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
               >
-                清除所有筛选
+                {t.noResults.clearButton}
               </button>
             </div>
           )}
@@ -170,42 +150,42 @@ export default function MediaPage() {
       </main>
 
       {/* 页脚信息 */}
-      <footer className="bg-gray-800 text-white py-8 mt-16">
+      <footer className="bg-gray-800 dark:bg-gray-950 text-white py-8 mt-16">
         <div className="container mx-auto px-4 text-center">
           <div className="mb-4">
-            <h3 className="text-xl font-bold mb-2">🎬 电影电视剧网站</h3>
-            <p className="text-gray-400">发现精彩内容，享受观影时光</p>
+            <h3 className="text-xl font-bold mb-2">{t.footer.title}</h3>
+            <p className="text-gray-400 dark:text-gray-500">{t.footer.subtitle}</p>
           </div>
           
           {mediaData && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <div className="text-2xl font-bold text-blue-400">{mediaData.total}</div>
-                <div className="text-gray-400">总内容数</div>
+                <div className="text-2xl font-bold text-blue-400 dark:text-blue-300">{mediaData.total}</div>
+                <div className="text-gray-400 dark:text-gray-500">{t.footer.totalContent}</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-green-400">
+                <div className="text-2xl font-bold text-green-400 dark:text-green-300">
                   {mediaData.data.filter(item => item.type === MediaType.MOVIE).length}
                 </div>
-                <div className="text-gray-400">电影</div>
+                <div className="text-gray-400 dark:text-gray-500">{t.footer.movies}</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-purple-400">
+                <div className="text-2xl font-bold text-purple-400 dark:text-purple-300">
                   {mediaData.data.filter(item => item.type === MediaType.TV).length}
                 </div>
-                <div className="text-gray-400">电视剧</div>
+                <div className="text-gray-400 dark:text-gray-500">{t.footer.tvShows}</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-yellow-400">
+                <div className="text-2xl font-bold text-yellow-400 dark:text-yellow-300">
                   {Math.round((mediaData.data.reduce((sum, item) => sum + item.rating, 0) / mediaData.data.length) * 10) / 10}
                 </div>
-                <div className="text-gray-400">平均评分</div>
+                <div className="text-gray-400 dark:text-gray-500">{t.footer.averageRating}</div>
               </div>
             </div>
           )}
           
-          <div className="mt-6 pt-4 border-t border-gray-700 text-gray-400 text-sm">
-            © 2024 电影电视剧网站. 数据仅供展示使用.
+          <div className="mt-6 pt-4 border-t border-gray-700 dark:border-gray-800 text-gray-400 dark:text-gray-500 text-sm">
+            {t.footer.copyright}
           </div>
         </div>
       </footer>
