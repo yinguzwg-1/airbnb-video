@@ -74,6 +74,7 @@ export const en: TranslationKeys = {
     sortBy: 'Sort by',
     ascending: '↑',
     descending: '↓',
+    clear: 'Clear',
   },
 
   mediaTypes: {

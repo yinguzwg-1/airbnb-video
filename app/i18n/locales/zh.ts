@@ -74,6 +74,7 @@ export const zh: TranslationKeys = {
     sortBy: '排序方式',
     ascending: '↑',
     descending: '↓',
+    clear: '清除',
   },
 
   mediaTypes: {

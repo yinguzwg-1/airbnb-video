@@ -78,6 +78,7 @@ export interface TranslationKeys {
     sortBy: string;
     ascending: string;
     descending: string;
+    clear: string;
   };
 
   // 媒体类型

@@ -50,10 +50,15 @@ export type MediaItem = Movie | TVShow;
 // 筛选参数接口
 export interface FilterParams {
   type?: MediaType;
+  genre?: string;
   year?: number;
+  rating?: number;
   status?: MediaStatus;
   sortBy?: 'rating' | 'year';
   order?: 'ASC' | 'DESC';
+  page?: number;
+  pageSize?: number;
+  search?: string;
 }
 
 // 分页参数

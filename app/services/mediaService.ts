@@ -49,16 +49,14 @@ export const mediaService = {
     pagination: PaginationParams = { page: 1, pageSize: 12 }
   ): Promise<MediaResponse> {
     try {
-      console.log('发送搜索请求到:', `${API_BASE}/media/search`);
-      console.log('搜索参数:', { query, pagination });
-      
+
       const params = {
         q: query,
         page: pagination.page,
         pageSize: pagination.pageSize
       };
       
-      const res = await axios.get(`${API_BASE}/media/search`, { params });
+      const res = await axios.get(`${API_BASE}/media`, { params });
       console.log('搜索响应数据:', res.data);
       
       return res.data;
