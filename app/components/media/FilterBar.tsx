@@ -4,7 +4,7 @@ import React from 'react';
 import { MediaType, FilterParams, MediaStatus } from "@/app/types/media";
 import { FiFilter, FiX } from "react-icons/fi";
 import { useState } from "react";
-import { useT } from "@/app/contexts/TranslationContext";
+import { translations, Language } from "@/app/i18n";
 
 interface FilterBarProps {
   filters: FilterParams;
@@ -14,6 +14,7 @@ interface FilterBarProps {
   resultCount: number;
   loading: boolean;
   availableYears: number[];
+  lang: Language;
 }
 
 const FilterBar: React.FC<FilterBarProps> = ({
@@ -23,10 +24,11 @@ const FilterBar: React.FC<FilterBarProps> = ({
   genres,
   resultCount,
   loading,
-  availableYears
+  availableYears,
+  lang
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const t = useT();
+  const t = translations[lang];
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 20 }, (_, i) => currentYear - i);
@@ -76,7 +78,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
       </div>
 
       {/* 筛选选项 */}
-      <div className={`${isExpanded ? 'block' : 'hidden md:block'}`}>
+      <div className={`space-y-4 ${isExpanded ? 'block' : 'hidden md:block'}`}>
         <div className="flex flex-wrap items-center gap-4">
           {/* 类型筛选 */}
           <select
@@ -132,26 +134,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
             <option value="DESC">{t.filters.descending}</option>
             <option value="ASC">{t.filters.ascending}</option>
           </select>
-
-          {/* 清除筛选 */}
-          <button
-            onClick={onClearFilters}
-            className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-1"
-          >
-            <FiX className="w-4 h-4" />
-            {t.filters.clear}
-          </button>
-
-          {/* 结果数量 */}
-          {!loading && resultCount > 0 && (
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {Object.keys(filters).length > 2 ? (
-                <span>{t.media.found} {resultCount} {t.common.results}</span>
-              ) : (
-                <span>{t.common.total} {resultCount} {t.common.results}</span>
-              )}
-            </div>
-          )}
         </div>
 
         {/* 活跃的筛选标签 */}

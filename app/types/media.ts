@@ -69,8 +69,11 @@ export interface PaginationParams {
 
 // API响应类型
 export interface MediaResponse {
-  data: MediaItem[];
-  total: number;
-  page: number;
-  pageSize: number;
+  items: MediaItem[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }
 } 

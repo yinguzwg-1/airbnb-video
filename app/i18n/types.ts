@@ -188,4 +188,16 @@ export interface TranslationKeys {
       serverError: string;
     };
   };
+
+  pagination: {
+    showing: string;
+    of: string;
+    to: string;
+    results: string;
+    previous: string;
+    next: string;
+    first: string;
+    last: string;
+    items: string;
+  };
 } 

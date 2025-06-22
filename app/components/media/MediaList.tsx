@@ -1,8 +1,9 @@
 import React from 'react';
 import { useT } from '@/app/contexts/TranslationContext';
-import MediaCard from './MediaCard';
+import { MediaCard } from './MediaCard';
 import Pagination from './Pagination';
 import type { MediaItem } from '@/app/types/media';
+import { Language } from '@/app/i18n';
 
 interface MediaListProps {
   media: MediaItem[];
@@ -12,6 +13,7 @@ interface MediaListProps {
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
   hasFilters: boolean;
+  lang: Language;
 }
 
 export const MediaList: React.FC<MediaListProps> = ({
@@ -21,7 +23,8 @@ export const MediaList: React.FC<MediaListProps> = ({
   pageSize,
   onPageChange,
   onPageSizeChange,
-  hasFilters
+  hasFilters,
+  lang
 }) => {
   const t = useT();
 
@@ -37,7 +40,7 @@ export const MediaList: React.FC<MediaListProps> = ({
       {/* 媒体列表 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {media.map((item) => (
-          <MediaCard key={item.id} item={item} />
+          <MediaCard key={item.id} item={item} lang={lang} />
         ))}
       </div>
 
@@ -50,6 +53,7 @@ export const MediaList: React.FC<MediaListProps> = ({
             pageSize={pageSize}
             onPageChange={onPageChange}
             onPageSizeChange={onPageSizeChange}
+            lang={lang}
           />
         </div>
       )}

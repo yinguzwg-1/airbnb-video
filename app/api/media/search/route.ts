@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     }
     
     // 执行搜索
-    const result = await mediaService.searchMedia(query.trim(), { page, limit });
+    const result = await mediaService.searchMedia(query.trim(), { page, pageSize: limit });
     
     return NextResponse.json(result);
   } catch (error) {

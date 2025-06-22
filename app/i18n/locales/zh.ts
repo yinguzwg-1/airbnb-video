@@ -175,4 +175,16 @@ export const zh: TranslationKeys = {
       serverError: '服务器错误',
     },
   },
+
+  pagination: {
+    showing: '显示',
+    of: '共',
+    to: '至',
+    results: '条结果',
+    previous: '上一页',
+    next: '下一页',
+    first: '首页',
+    last: '末页',
+    items: '条',
+  },
 }; 

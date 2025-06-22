@@ -1,27 +1,36 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useState } from "react";
-import { FiSearch, FiMenu, FiX, FiUpload } from "react-icons/fi";
+import { FiUpload } from "react-icons/fi";
 import { useT } from "@/app/contexts/TranslationContext";
 import LanguageSwitcher from "../LanguageSwitcher";
 import ThemeSwitcher from "../ThemeSwitcher";
 import MicroUploadController from "../upload/MicroUploadController";
 import { UPLOAD_PRESETS, UploadFile } from "@/app/types/upload";
 import SearchBar from '../SearchBar';
+import { useSearchParams, useRouter } from 'next/navigation';
 
-interface HeaderProps {
-  // 移除搜索相关的属性
-}
-
-const Header: React.FC<HeaderProps> = () => {
+const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isCrawling, setIsCrawling] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const t = useT();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+    // 从localStorage获取上次爬取的页码
+    const lastPage = localStorage.getItem('lastCrawledPage');
+    if (lastPage) {
+      setCurrentPage(parseInt(lastPage, 10) + 1);
+    }
+  }, []);
 
   const handleUploadSuccess = (files: UploadFile[]) => {
     console.log('上传成功:', files);
-    // 这里可以处理上传成功后的逻辑，比如刷新列表等
     alert(`成功上传 ${files.length} 个文件！`);
   };
 
@@ -29,6 +38,74 @@ const Header: React.FC<HeaderProps> = () => {
     console.error('上传失败:', error);
     alert(`上传失败: ${error}`);
   };
+
+  const refreshList = () => {
+    // 刷新当前页面
+    router.refresh();
+  };
+
+  const handleCrawl = async () => {
+    try {
+      setIsCrawling(true);
+      const response = await fetch(`http://localhost:3000/crawler/movies?page=${currentPage}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('爬取失败');
+      }
+
+      const data = await response.json();
+      // 保存当前页码到localStorage
+      localStorage.setItem('lastCrawledPage', currentPage.toString());
+      // 更新下一页的页码
+      setCurrentPage(prev => prev + 1);
+      alert(`爬取成功：第 ${currentPage} 页, ${data.message}`);
+      
+      // 爬取成功后刷新列表
+      refreshList();
+    } catch (error: any) {
+      console.error('爬取错误:', error);
+      alert('爬取失败：' + (error.message || '未知错误'));
+    } finally {
+      setIsCrawling(false);
+    }
+  };
+
+  // 在客户端渲染之前返回一个简化版的 header
+  if (!mounted) {
+    return (
+      <header className="bg-white dark:bg-gray-900 shadow-lg sticky top-0 z-50 transition-colors duration-200">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="flex items-center space-x-2">
+              <span className="text-2xl">🎬</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">
+                Movie Shelter
+              </span>
+            </Link>
+            <div className="flex-1 max-w-2xl mx-8">
+              <div className="relative">
+                <input
+                  type="text"
+                  disabled
+                  className="w-full px-4 py-2 pl-10 pr-10 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg"
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8" />
+              <div className="w-8 h-8" />
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="bg-white dark:bg-gray-900 shadow-lg sticky top-0 z-50 transition-colors duration-200">
@@ -44,7 +121,7 @@ const Header: React.FC<HeaderProps> = () => {
 
           {/* 搜索框 */}
           <div className="flex-1 max-w-2xl mx-8">
-            <SearchBar />
+            <SearchBar initialQuery={searchParams.get('q') || ''} />
           </div>
 
           {/* 导航链接 */}
@@ -69,22 +146,39 @@ const Header: React.FC<HeaderProps> = () => {
             </Link>
           </nav>
 
-          {/* 上传按钮 */}
-          <MicroUploadController
-            config={UPLOAD_PRESETS.MEDIA_MIX}
-            onSuccess={handleUploadSuccess}
-            onError={handleUploadError}
-            trigger={
-              <button className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors">
-                <FiUpload size={16} />
-                <span>上传</span>
-              </button>
-            }
-          />
-          
-          <div className="ml-4 flex items-center space-x-3">
-            <ThemeSwitcher />
-            <LanguageSwitcher />
+          {/* 功能按钮组 */}
+          <div className="flex items-center space-x-6 mx-8">
+            {/* 上传按钮 */}
+            <MicroUploadController
+              config={UPLOAD_PRESETS.MEDIA_MIX}
+              onSuccess={handleUploadSuccess}
+              onError={handleUploadError}
+              trigger={
+                <button className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors">
+                  <FiUpload size={16} />
+                  <span>上传</span>
+                </button>
+              }
+            />
+            
+            {/* 爬取按钮 */}
+            <button
+              onClick={handleCrawl}
+              disabled={isCrawling}
+              className={`px-4 py-2 rounded-md text-white transition-colors ${
+                isCrawling
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
+              }`}
+            >
+              {isCrawling ? '爬取中...' : `爬取第 ${currentPage} 页`}
+            </button>
+
+            {/* 主题和语言切换 */}
+            <div className="flex items-center space-x-3">
+              <ThemeSwitcher />
+              <LanguageSwitcher />
+            </div>
           </div>
 
           {/* 移动端菜单按钮 */}
@@ -135,6 +229,19 @@ const Header: React.FC<HeaderProps> = () => {
                   }
                 />
               </div>
+
+              {/* 移动端爬取按钮 */}
+              <button
+                onClick={handleCrawl}
+                disabled={isCrawling}
+                className={`w-full px-4 py-2 rounded-lg text-white transition-colors ${
+                  isCrawling
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {isCrawling ? '爬取中...' : `爬取第 ${currentPage} 页`}
+              </button>
               
               <div className="pt-3 border-t border-gray-200 dark:border-gray-700 space-y-3">
                 <ThemeSwitcher />

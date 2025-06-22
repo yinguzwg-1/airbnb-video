@@ -9,7 +9,12 @@ import { notFound } from "next/navigation";
 const inter = Nunito({ subsets: ["latin"] });
 
 export async function generateMetadata({ params }: { params: { lang: Language } }): Promise<Metadata> {
-  const t = translations[params.lang];
+  // 验证语言参数
+  if (!supportedLanguages.includes(params.lang as Language)) {
+    notFound();
+  }
+
+  const t = translations[params.lang as Language];
   
   return {
     title: t.home.title,

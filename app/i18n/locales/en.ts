@@ -175,4 +175,16 @@ export const en: TranslationKeys = {
       serverError: 'Server error',
     },
   },
+
+  pagination: {
+    showing: 'Showing',
+    of: 'of',
+    to: 'to',
+    results: 'results',
+    previous: 'Previous',
+    next: 'Next',
+    first: 'First',
+    last: 'Last',
+    items: 'items',
+  },
 }; 

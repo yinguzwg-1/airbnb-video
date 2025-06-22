@@ -12,30 +12,24 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 export const mediaService = {
   // 获取媒体列表
   async getMedia(
-    filters: FilterParams = {},
-    pagination: PaginationParams = { page: 1, pageSize: 12 }
+    {page, pageSize}: {page: number, pageSize: number}
   ): Promise<MediaResponse> {
     try {
-      console.log('发送请求到:', `${API_BASE}/media`);
-      console.log('请求参数:', { filters, pagination });
-      
       // 构建查询参数
       const queryParams = new URLSearchParams();
       
       // 添加筛选参数
-      if (filters.type) queryParams.append('type', filters.type);
-      if (filters.year) queryParams.append('year', filters.year.toString());
-      if (filters.status) queryParams.append('status', filters.status);
-      if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
-      if (filters.order) queryParams.append('order', filters.order);
+      // if (filters.type) queryParams.append('type', filters.type);
+      // if (filters.year) queryParams.append('year', filters.year.toString());
+      // if (filters.status) queryParams.append('status', filters.status);
+      // if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
+      // if (filters.order) queryParams.append('order', filters.order);
       
       // 添加分页参数
-      queryParams.append('page', pagination.page.toString());
-      queryParams.append('pageSize', pagination.pageSize.toString());
-      
-      const res = await axios.get(`${API_BASE}/media?${queryParams.toString()}`);
-      console.log('响应数据:', res.data);
-      
+      queryParams.append('page', page.toString());
+      queryParams.append('limit', pageSize.toString());
+      console.log('queryParams', queryParams.toString());
+      const res = await axios.get(`${API_BASE}/media`, {params: queryParams});
       return res.data;
     } catch (error) {
       console.error('获取媒体列表失败:', error);

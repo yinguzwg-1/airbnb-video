@@ -3,17 +3,17 @@
 import React from 'react';
 import { MediaItem, MediaType, MediaStatus } from "@/app/types/media";
 import { FiStar, FiPlay, FiClock, FiCalendar, FiTv } from "react-icons/fi";
-import { useState } from "react";
-import { useT } from "@/app/contexts/TranslationContext";
 import Link from 'next/link';
+import { useT } from "@/app/contexts/TranslationContext";
+import { Language } from "@/app/i18n";
 
 interface MediaCardProps {
   item: MediaItem;
+  lang: Language;
 }
 
-const MediaCard: React.FC<MediaCardProps> = ({ item }) => {
+export function MediaCard({ item, lang }: MediaCardProps) {
   const t = useT();
-  const [isHovered, setIsHovered] = useState(false);
 
   const getStatusColor = (status: MediaStatus) => {
     switch (status) {
@@ -92,6 +92,4 @@ const MediaCard: React.FC<MediaCardProps> = ({ item }) => {
       </div>
     </Link>
   );
-};
-
-export default MediaCard; 
+} 
