@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from './contexts/ThemeContext';
+import { TranslationProvider } from './contexts/TranslationContext';
 
 const inter = Nunito({ subsets: ["latin"] });
 
@@ -14,15 +16,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="zh-CN" suppressHydrationWarning={true}>
       <body className={inter.className}>
-        {children}
+        <ThemeProvider>
+          <TranslationProvider>
+            {children}
+          </TranslationProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

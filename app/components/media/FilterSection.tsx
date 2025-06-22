@@ -9,7 +9,6 @@ import { Language } from '@/app/i18n';
 interface FilterSectionProps {
   genres: string[];
   resultCount: number;
-  availableYears: number[];
   initialFilters: FilterParams;
   searchQuery?: string;
   lang: Language;
@@ -18,7 +17,6 @@ interface FilterSectionProps {
 export function FilterSection({
   genres,
   resultCount,
-  availableYears,
   initialFilters,
   searchQuery,
   lang
@@ -74,7 +72,6 @@ export function FilterSection({
       genres={genres}
       resultCount={resultCount}
       loading={false}
-      availableYears={availableYears}
       lang={lang}
     />
   );

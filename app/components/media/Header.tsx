@@ -20,14 +20,6 @@ const Header = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  useEffect(() => {
-    setMounted(true);
-    // 从localStorage获取上次爬取的页码
-    const lastPage = localStorage.getItem('lastCrawledPage');
-    if (lastPage) {
-      setCurrentPage(parseInt(lastPage, 10) + 1);
-    }
-  }, []);
 
   const handleUploadSuccess = (files: UploadFile[]) => {
     console.log('上传成功:', files);
@@ -76,37 +68,6 @@ const Header = () => {
     }
   };
 
-  // 在客户端渲染之前返回一个简化版的 header
-  if (!mounted) {
-    return (
-      <header className="bg-white dark:bg-gray-900 shadow-lg sticky top-0 z-50 transition-colors duration-200">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center space-x-2">
-              <span className="text-2xl">🎬</span>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
-                Movie Shelter
-              </span>
-            </Link>
-            <div className="flex-1 max-w-2xl mx-8">
-              <div className="relative">
-                <input
-                  type="text"
-                  disabled
-                  className="w-full px-4 py-2 pl-10 pr-10 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg"
-                />
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="w-8 h-8" />
-              <div className="w-8 h-8" />
-            </div>
-          </div>
-        </div>
-      </header>
-    );
-  }
-
   return (
     <header className="bg-white dark:bg-gray-900 shadow-lg sticky top-0 z-50 transition-colors duration-200">
       <div className="container mx-auto px-4">
@@ -124,32 +85,12 @@ const Header = () => {
             <SearchBar initialQuery={searchParams.get('q') || ''} />
           </div>
 
-          {/* 导航链接 */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link 
-              href="/media" 
-              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
-              {t.nav.movies}
-            </Link>
-            <Link 
-              href="/media?type=movie" 
-              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
-              {t.mediaTypes.movie}
-            </Link>
-            <Link 
-              href="/media?type=tv" 
-              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
-              {t.mediaTypes.tv}
-            </Link>
-          </nav>
+       
 
           {/* 功能按钮组 */}
           <div className="flex items-center space-x-6 mx-8">
             {/* 上传按钮 */}
-            <MicroUploadController
+            {/* <MicroUploadController
               config={UPLOAD_PRESETS.MEDIA_MIX}
               onSuccess={handleUploadSuccess}
               onError={handleUploadError}
@@ -159,7 +100,7 @@ const Header = () => {
                   <span>上传</span>
                 </button>
               }
-            />
+            /> */}
             
             {/* 爬取按钮 */}
             <button

@@ -13,7 +13,6 @@ interface FilterBarProps {
   genres: string[];
   resultCount: number;
   loading: boolean;
-  availableYears: number[];
   lang: Language;
 }
 
@@ -24,7 +23,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
   genres,
   resultCount,
   loading,
-  availableYears,
   lang
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -91,17 +89,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
             <option value={MediaType.TV}>{t.mediaTypes.tv}</option>
           </select>
 
-          {/* 年份筛选 */}
-          <select
-            value={filters.year || ''}
-            onChange={(e) => onFilterChange({ year: e.target.value ? Number(e.target.value) : undefined })}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[100px]"
-          >
-            <option value="">{t.filters.allYears}</option>
-            {(availableYears || []).map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
+         
 
           {/* 状态筛选 */}
           <select

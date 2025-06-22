@@ -4,12 +4,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { FilterParams, MediaType } from '@/app/types/media';
 import FilterBar from './FilterBar';
 import { useCallback } from 'react';
+import { Language } from '@/app/i18n';
 
 interface MediaClientWrapperProps {
   genres: string[];
   resultCount: number;
   availableYears: number[];
   initialFilters: FilterParams;
+  lang: Language;
 }
 
 export default function MediaClientWrapper({
@@ -17,6 +19,7 @@ export default function MediaClientWrapper({
   resultCount,
   availableYears,
   initialFilters,
+  lang,
 }: MediaClientWrapperProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -60,7 +63,8 @@ export default function MediaClientWrapper({
       genres={genres}
       resultCount={resultCount}
       loading={false}
-      availableYears={availableYears}
+     
+      lang={lang}
     />
   );
 } 

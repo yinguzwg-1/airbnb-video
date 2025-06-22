@@ -9,6 +9,8 @@ import { FilterSection } from "@/app/components/media/FilterSection";
 import { PaginationSection } from "@/app/components/media/PaginationSection";
 import LoadingSpinner from "@/app/components/media/LoadingSpinner";
 import { getMediaData } from "@/app/actions/getMediaData";
+import { useStore } from "@/app/stores";
+import { observer } from "mobx-react-lite";
 
 interface MediaContentProps {
   initialData: any;
@@ -30,13 +32,12 @@ interface MediaContentProps {
   t: any;
 }
 
-export default function MediaContent({ initialData, params, searchParams, t }: MediaContentProps) {
-  const [loading, setLoading] = useState(false);
-  const [mediaData, setMediaData] = useState(initialData);
+export default observer(function MediaContent({ initialData, params, searchParams, t }: MediaContentProps) {
+  const { mediaStore } = useStore();
+  const { mediaList, total } = mediaStore;
   const [currentPageState, setCurrentPageState] = useState(Number(searchParams.page) || 1);
   const [pageSizeState, setPageSizeState] = useState(Number(searchParams.pageSize) || 12);
-  const isFirstRender = useMemo(() => currentPageState === 1, [currentPageState]);
-  
+
   // 构建过滤参数
   const filters: FilterParams = useMemo(() => ({
     type: searchParams.type as MediaType | undefined,
@@ -51,33 +52,26 @@ export default function MediaContent({ initialData, params, searchParams, t }: M
 
   const handlePageChange = async (page: number) => {
     setCurrentPageState(page);
-    console.log('page', page);
     const data = await getMediaData({ page: page.toString(), pageSize: pageSizeState.toString(), q: searchParams.q || '' });
-    setMediaData(data);
+    mediaStore.setMediaList(data.items);
   };
 
   const handlePageSizeChange = async (size: number) => {
     setPageSizeState(size);
     setCurrentPageState(1);
     const data = await getMediaData({ page: currentPageState.toString(), pageSize: size.toString(), q: searchParams.q || '' });
-    setMediaData(data);
+    mediaStore.setMediaList(data.items);
   };
-
   useEffect(() => {
-    // 如果是首页，使用服务端数据
-    if (isFirstRender) {
-      setMediaData(initialData);
-      return;
-    }
-  }, [isFirstRender, initialData]);
-
+    mediaStore.setMediaList(initialData.items);
+    mediaStore.setTotal(initialData.meta.total);
+  }, [initialData]);
   return (
     <>
       {/* 筛选栏 */}
       <FilterSection
         genres={allGenres}
-        resultCount={mediaData?.meta?.total || 0}
-        availableYears={mediaData?.availableYears || []}
+        resultCount={total || 0}
         initialFilters={filters}
         searchQuery={searchParams.q}
         lang={params.lang}
@@ -85,18 +79,16 @@ export default function MediaContent({ initialData, params, searchParams, t }: M
 
       {/* 内容区域 */}
       <div className="mt-8">
-        {loading ? (
-          <LoadingSpinner />
-        ) : mediaData && mediaData.items.length > 0 ? (
+        {mediaList && mediaList.length > 0 ? (
           <>
             {/* 媒体网格 */}
-            <MediaGrid items={mediaData.items} lang={params.lang} />
+            <MediaGrid items={mediaList} lang={params.lang} />
 
             {/* 分页组件 */}
             <div className="mt-12">
               <PaginationSection
                 currentPage={currentPageState}
-                totalItems={mediaData.meta.total}
+                totalItems={total}
                 pageSize={pageSizeState}
                 lang={params.lang}
                 onPageChange={handlePageChange}
@@ -117,4 +109,4 @@ export default function MediaContent({ initialData, params, searchParams, t }: M
       </div>
     </>
   );
-} 
+}); 

@@ -51,14 +51,12 @@ export default async function RootLayout({
   const lang = params.lang as Language;
 
   return (
-    <html lang={lang === 'zh' ? 'zh-CN' : 'en'} suppressHydrationWarning={true}>
-      <body className={inter.className}>
-        <ThemeProvider>
-          <TranslationProvider initialLanguage={lang}>
-            {children}
-          </TranslationProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+    <div className={inter.className}>
+      <ThemeProvider>
+        <TranslationProvider initialLanguage={lang}>
+          {children}
+        </TranslationProvider>
+      </ThemeProvider>
+    </div>
   );
 } 

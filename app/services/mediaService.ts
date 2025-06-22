@@ -45,17 +45,15 @@ export const mediaService = {
     try {
 
       const params = {
-        q: query,
+        query,
         page: pagination.page,
         pageSize: pagination.pageSize
       };
       
-      const res = await axios.get(`${API_BASE}/media`, { params });
-      console.log('搜索响应数据:', res.data);
+      const res = await axios.get(`${API_BASE}/media/search`, { params });
       
       return res.data;
     } catch (error) {
-      console.error('搜索媒体失败:', error);
       if (axios.isAxiosError(error)) {
         console.error('错误详情:', {
           status: error.response?.status,

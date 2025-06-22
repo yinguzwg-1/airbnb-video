@@ -3,17 +3,20 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import Pagination from './Pagination';
 import { useCallback } from 'react';
+import { Language } from '@/app/i18n';
 
 interface PaginationClientWrapperProps {
   currentPage: number;
   totalItems: number;
   pageSize: number;
+  lang: Language;
 }
 
 export default function PaginationClientWrapper({
   currentPage,
   totalItems,
   pageSize,
+  lang,
 }: PaginationClientWrapperProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,6 +47,7 @@ export default function PaginationClientWrapper({
       pageSize={pageSize}
       onPageChange={handlePageChange}
       onPageSizeChange={handlePageSizeChange}
+      lang={lang}
     />
   );
 } 
