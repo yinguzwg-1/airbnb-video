@@ -15,7 +15,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isCrawling, setIsCrawling] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(localStorage.getItem('lastCrawledPage') || 1);
   const t = useT();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -55,7 +55,7 @@ const Header = () => {
       // 保存当前页码到localStorage
       localStorage.setItem('lastCrawledPage', currentPage.toString());
       // 更新下一页的页码
-      setCurrentPage(prev => prev + 1);
+      setCurrentPage(Number(currentPage) + 1);
       alert(`爬取成功：第 ${currentPage} 页, ${data.message}`);
       
       // 爬取成功后刷新列表
