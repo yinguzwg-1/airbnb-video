@@ -5,42 +5,15 @@ import { MediaItem, MediaType, MediaStatus } from "@/app/types/media";
 import { FiStar, FiPlay, FiClock, FiCalendar, FiTv } from "react-icons/fi";
 import Link from 'next/link';
 import { useT } from "@/app/contexts/TranslationContext";
-import { Language } from "@/app/i18n";
+import useLang from '@/app/hooks/useLang';
 
 interface MediaCardProps {
   item: MediaItem;
-  lang: Language;
 }
 
-export function MediaCard({ item, lang }: MediaCardProps) {
+export function MediaCard({ item }: MediaCardProps) {
   const t = useT();
-
-  const getStatusColor = (status: MediaStatus) => {
-    switch (status) {
-      case MediaStatus.RELEASED:
-        return 'bg-green-500';
-      case MediaStatus.ONGOING:
-        return 'bg-blue-500';
-      case MediaStatus.UPCOMING:
-        return 'bg-yellow-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
-  const getStatusText = (status: MediaStatus) => {
-    switch (status) {
-      case MediaStatus.RELEASED:
-        return t.status.released;
-      case MediaStatus.ONGOING:
-        return t.status.ongoing;
-      case MediaStatus.UPCOMING:
-        return t.status.upcoming;
-      default:
-        return status;
-    }
-  };
-
+  const isEn = useLang() === 'en';
   return (
     <Link href={`/media/${item.id}`}>
       <div className="group relative bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-900/50 overflow-hidden hover:shadow-xl dark:hover:shadow-gray-900/70 transition-all duration-300">
@@ -73,7 +46,7 @@ export function MediaCard({ item, lang }: MediaCardProps) {
         {/* 内容信息 */}
         <div className="p-4">
           <h3 className="font-semibold text-lg mb-1 line-clamp-1 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-            {item.title}
+            {isEn ? item.title_en : item.title}
           </h3>
           <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 space-x-2">
             <span>{item.year}</span>

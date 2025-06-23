@@ -3,12 +3,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { IoLanguageOutline, IoChevronDownOutline } from 'react-icons/io5';
 import { useTranslation } from '@/app/contexts/TranslationContext';
+import { useSearchParams } from 'next/navigation';
 import { Language, supportedLanguages, getLanguageName, getLanguageFlag } from '@/app/i18n';
 
 export default function LanguageSwitcher() {
   const { language, setLanguage, t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
 
   // 点击外部关闭下拉菜单
   useEffect(() => {
@@ -23,6 +25,10 @@ export default function LanguageSwitcher() {
   }, []);
 
   const handleLanguageChange = (lang: Language) => {
+    // 在切换语言前记录当前的查询参数（用于调试）
+    const currentParams = searchParams.toString();
+    console.log('切换语言前的查询参数:', currentParams);
+    
     setLanguage(lang);
     setIsOpen(false);
   };

@@ -25,6 +25,7 @@ export interface BaseMediaItem {
   cast: string[];
   createdAt: string;
   updatedAt: string;
+  title_en: string;
 }
 
 // 电影扩展接口

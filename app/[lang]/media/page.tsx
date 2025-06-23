@@ -58,7 +58,7 @@ export default async function MediaPage({ params, searchParams }: MediaPageProps
       </main>
 
       {/* 页脚信息 */}
-      <Footer initialData={initialData} />
+      <Footer />
     </div>
   );
 } 

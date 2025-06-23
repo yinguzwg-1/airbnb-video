@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useCallback } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { FiSearch, FiX } from 'react-icons/fi';
 import { useT } from '@/app/contexts/TranslationContext';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../stores';
 import { mediaService } from '../services/mediaService';
+import { MediaItem } from '../types/media';
 
 interface SearchBarProps {
   initialQuery?: string;
@@ -18,6 +19,25 @@ const SearchBar = observer(({ initialQuery = '' }: SearchBarProps) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const t = useT();
+  
+  // 存储首页数据的引用
+  const fullData = useRef<MediaItem[]>([]);
+  const fullTotal = useRef(0);
+  const isInitialized = useRef(false);
+
+  // 初始化首页数据
+  const initializeFullData = useCallback(() => {
+    if (!isInitialized.current && mediaStore.mediaList.length > 0) {
+      fullData.current = [...mediaStore.mediaList];
+      fullTotal.current = mediaStore.total;
+      isInitialized.current = true;
+    }
+  }, [mediaStore.mediaList, mediaStore.total]);
+
+  // 在组件挂载时初始化数据
+  useEffect(() => {
+    initializeFullData();
+  }, [initializeFullData]);
 
   const createQueryString = useCallback(
     (name: string, value: string) => {
@@ -70,8 +90,20 @@ const SearchBar = observer(({ initialQuery = '' }: SearchBarProps) => {
     try {
       // 更新URL
       updateUrl(queryString);
-      // 重置搜索，获取所有媒体
-      await mediaService.getMedia({ page: 1, pageSize: 12 });
+      console.log('fullData.current', fullData.current);
+      // 直接重置回首页数据，不发送网络请求
+      if (fullData.current && fullData.current.length > 0) {
+        mediaStore.setMediaList(fullData.current);
+        mediaStore.setTotal(fullTotal.current);
+      } else {
+        // 如果没有缓存数据，重置为空状态
+        mediaStore.setMediaList([]);
+        mediaStore.setTotal(0);
+      }
+      
+      mediaStore.setCurrentPage(1);
+      mediaStore.setSearchQuery('');
+      mediaStore.setLoading(false);
     } catch (error) {
       console.error('清除搜索失败:', error);
     }

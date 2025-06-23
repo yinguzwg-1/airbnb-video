@@ -2,12 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FiUpload } from "react-icons/fi";
 import { useT } from "@/app/contexts/TranslationContext";
 import LanguageSwitcher from "../LanguageSwitcher";
 import ThemeSwitcher from "../ThemeSwitcher";
-import MicroUploadController from "../upload/MicroUploadController";
-import { UPLOAD_PRESETS, UploadFile } from "@/app/types/upload";
 import SearchBar from '../SearchBar';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -15,21 +12,18 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isCrawling, setIsCrawling] = useState(false);
-  const [currentPage, setCurrentPage] = useState(localStorage.getItem('lastCrawledPage') || 1);
+  const [currentPage, setCurrentPage] = useState(1);
   const t = useT();
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  useEffect(() => {
+    const lastCrawledPage = localStorage.getItem('lastCrawledPage');
+    if (lastCrawledPage) {
+      setCurrentPage(Number(lastCrawledPage));
+    }
+  }, []);
 
-  const handleUploadSuccess = (files: UploadFile[]) => {
-    console.log('上传成功:', files);
-    alert(`成功上传 ${files.length} 个文件！`);
-  };
-
-  const handleUploadError = (error: string) => {
-    console.error('上传失败:', error);
-    alert(`上传失败: ${error}`);
-  };
 
   const refreshList = () => {
     // 刷新当前页面
@@ -53,7 +47,7 @@ const Header = () => {
 
       const data = await response.json();
       // 保存当前页码到localStorage
-      localStorage.setItem('lastCrawledPage', currentPage.toString());
+      localStorage.setItem('lastCrawledPage', (Number(currentPage) + 1).toString());
       // 更新下一页的页码
       setCurrentPage(Number(currentPage) + 1);
       alert(`爬取成功：第 ${currentPage} 页, ${data.message}`);
@@ -155,21 +149,6 @@ const Header = () => {
               >
                 {t.mediaTypes.tv}
               </Link>
-              
-              {/* 移动端上传按钮 */}
-              <div className="pt-2">
-                <MicroUploadController
-                  config={UPLOAD_PRESETS.MEDIA_MIX}
-                  onSuccess={handleUploadSuccess}
-                  onError={handleUploadError}
-                  trigger={
-                    <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                      <FiUpload size={18} />
-                      <span>上传文件</span>
-                    </button>
-                  }
-                />
-              </div>
 
               {/* 移动端爬取按钮 */}
               <button

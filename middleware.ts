@@ -29,7 +29,14 @@ export function middleware(request: NextRequest) {
       ? `/${defaultLanguage}` 
       : `/${defaultLanguage}${pathname}`;
     
-    return NextResponse.redirect(new URL(redirectPath, request.url));
+    // 保留查询参数
+    const url = new URL(redirectPath, request.url);
+    // 将原始URL的查询参数复制到新URL
+    request.nextUrl.searchParams.forEach((value, key) => {
+      url.searchParams.set(key, value);
+    });
+    
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();

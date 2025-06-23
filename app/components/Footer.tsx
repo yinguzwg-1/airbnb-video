@@ -1,10 +1,10 @@
 "use client";
 import { useT } from "@/app/contexts/TranslationContext";
-import { MediaType, MediaItem, MediaResponse } from "../types/media";
+import { MediaType } from "../types/media";
 import { useStore } from "../stores";
 import { observer } from "mobx-react-lite";
 
-const Footer = observer(function Footer({initialData}: {initialData: MediaResponse}) {
+const Footer = observer(function Footer() {
   const t = useT();
   const { mediaStore } = useStore();
   const { mediaList, total } = mediaStore;

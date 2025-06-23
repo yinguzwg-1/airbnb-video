@@ -1,8 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Language, TranslationKeys, translations, defaultLanguage } from '@/app/i18n';
+import { buildLocalizedUrl } from '@/app/utils/urlUtils';
 
 interface TranslationContextType {
   language: Language;
@@ -23,6 +24,7 @@ export function TranslationProvider({ children, initialLanguage }: TranslationPr
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // 从URL参数或localStorage读取保存的语言设置
   useEffect(() => {
@@ -48,17 +50,11 @@ export function TranslationProvider({ children, initialLanguage }: TranslationPr
     // 更新HTML lang属性
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
     
-    // 构建新的URL路径
-    const segments = pathname.split('/').filter(Boolean);
-    // 移除当前语言段（如果存在）
-    if (segments[0] && (segments[0] === 'zh' || segments[0] === 'en')) {
-      segments.shift();
-    }
-    // 添加新语言段
-    const newPath = `/${lang}${segments.length > 0 ? '/' + segments.join('/') : ''}`;
+    // 使用工具函数构建新URL，保留所有查询参数
+    const newUrl = buildLocalizedUrl(pathname, searchParams, lang);
     
     // 导航到新URL
-    router.push(newPath);
+    router.push(newUrl);
   };
 
   // 获取当前语言的翻译对象
