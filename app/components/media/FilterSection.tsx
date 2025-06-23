@@ -1,78 +1,74 @@
 "use client";
 
-import { useRouter, useSearchParams } from 'next/navigation';
 import { FilterParams } from '@/app/types/media';
 import FilterBar from './FilterBar';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Language } from '@/app/i18n';
+import { useStore } from '@/app/stores';
+import { observer } from 'mobx-react-lite';
 
 interface FilterSectionProps {
-  genres: string[];
   resultCount: number;
   initialFilters: FilterParams;
   searchQuery?: string;
   lang: Language;
 }
 
-export function FilterSection({
-  genres,
+export const FilterSection = observer(({
   resultCount,
   initialFilters,
   searchQuery,
   lang
-}: FilterSectionProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+}: FilterSectionProps) => {
+  const { urlStore } = useStore();
 
-  const createQueryString = useCallback(
-    (params: Partial<FilterParams>) => {
-      const current = new URLSearchParams(Array.from(searchParams.entries()));
-      
-      // 保持搜索查询参数
-      if (searchQuery) {
-        current.set('q', searchQuery);
+  const handleFilterChange = useCallback((newFilters: Partial<FilterParams>) => {
+    console.log('Filter changed:', newFilters);
+    
+    // 构建更新参数
+    const updates: Record<string, string | null> = {
+      page: '1', // 重置页码
+    };
+
+    // 添加筛选参数
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value === undefined || value === '') {
+        updates[key] = null; // 删除参数
+      } else {
+        updates[key] = String(value);
       }
-      
-      // 更新或删除参数
-      Object.entries(params).forEach(([key, value]) => {
-        if (value === undefined || value === '') {
-          current.delete(key);
-        } else {
-          current.set(key, String(value));
-        }
-      });
-      
-      return current.toString();
-    },
-    [searchParams, searchQuery]
-  );
-
-  const handleFilterChange = (newFilters: Partial<FilterParams>) => {
-    const queryString = createQueryString({
-      ...newFilters,
-      page: 1, // 重置页码
     });
-    router.push(`?${queryString}`);
-  };
 
-  const handleClearFilters = () => {
-    // 如果有搜索查询，保留搜索查询
+    // 保持搜索查询参数
     if (searchQuery) {
-      router.push(`?q=${searchQuery}`);
-    } else {
-      router.push('');
+      updates.q = searchQuery;
     }
-  };
+    
+    // 更新URL参数
+    urlStore.updateParams(updates);
+  }, [urlStore, searchQuery]);
+
+  // 清除筛选参数
+  const handleClearFilters = useCallback(() => {
+    console.log('Clearing all filters');
+    urlStore.clearFilters();
+  }, [urlStore]);
+
+  // 从store获取当前筛选参数
+  const currentFilters: FilterParams = useMemo(() => ({
+    type: urlStore.getParam('type') as any,
+    sortBy: (urlStore.getParam('sortBy') || 'rating') as 'rating' | 'year',
+    order: (urlStore.getParam('order') || 'DESC') as 'ASC' | 'DESC'
+  }), [urlStore]);
 
   return (
     <FilterBar
-      filters={initialFilters}
+      filters={currentFilters}
       onFilterChange={handleFilterChange}
       onClearFilters={handleClearFilters}
-      genres={genres}
       resultCount={resultCount}
       loading={false}
       lang={lang}
     />
   );
-} 
+}); 

@@ -12,55 +12,28 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 export const mediaService = {
   // 获取媒体列表
   async getMedia(
-    {page, pageSize}: {page: number, pageSize: number}
+    {page, pageSize, search, sortBy, order}: {page: number, pageSize: number, search?: string, sortBy?: string, order?: string}
   ): Promise<MediaResponse> {
     try {
       // 构建查询参数
       const queryParams = new URLSearchParams();
-      
-      // 添加筛选参数
-      // if (filters.type) queryParams.append('type', filters.type);
-      // if (filters.year) queryParams.append('year', filters.year.toString());
-      // if (filters.status) queryParams.append('status', filters.status);
-      // if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
-      // if (filters.order) queryParams.append('order', filters.order);
-      
       // 添加分页参数
       queryParams.append('page', page.toString());
       queryParams.append('limit', pageSize.toString());
+      if (search) {
+        queryParams.append('search', search);
+      }
+      if (sortBy) {
+        queryParams.append('sortBy', sortBy);
+      }
+      if (order) {
+        queryParams.append('orderBy', order);
+      }
       console.log('queryParams', queryParams.toString());
       const res = await axios.get(`${API_BASE}/media`, {params: queryParams});
       return res.data;
     } catch (error) {
       console.error('获取媒体列表失败:', error);
-      throw error;
-    }
-  },
-
-  // 搜索媒体
-  async searchMedia(
-    query: string, 
-    pagination: PaginationParams = { page: 1, pageSize: 12 }
-  ): Promise<MediaResponse> {
-    try {
-
-      const params = {
-        query,
-        page: pagination.page,
-        pageSize: pagination.pageSize
-      };
-      
-      const res = await axios.get(`${API_BASE}/media/search`, { params });
-      
-      return res.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('错误详情:', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data
-        });
-      }
       throw error;
     }
   },

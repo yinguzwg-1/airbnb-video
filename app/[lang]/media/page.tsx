@@ -37,7 +37,9 @@ export default async function MediaPage({ params, searchParams }: MediaPageProps
   const initialData = await getMediaData({
     page: searchParams.page || '1',
     pageSize: searchParams.pageSize || '12',
-    q: searchParams.q || ''
+    q: searchParams.q || '',
+    sortBy: searchParams.sortBy || '',
+    order: searchParams.order || ''
   });
   
   return (

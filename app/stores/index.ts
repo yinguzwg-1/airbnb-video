@@ -1,29 +1,20 @@
 "use client";
 
-import { createContext, useContext } from 'react';
 import { MediaStore } from './mediaStore';
+import { UrlStore } from './urlStore';
 
 class RootStore {
   mediaStore: MediaStore;
+  urlStore: UrlStore;
 
   constructor() {
     this.mediaStore = new MediaStore();
+    this.urlStore = new UrlStore();
   }
 }
 
-// 创建一个全局的 store 实例
-const rootStore = new RootStore();
+export const rootStore = new RootStore();
 
-const StoreContext = createContext<RootStore>(rootStore);
-
-
-export function useStore(): RootStore {
-  const store = useContext(StoreContext);
-  if (!store) {
-    throw new Error('useStore must be used within a StoreProvider');
-  }
-  return store;
-}
-
-export type { RootStore };
-export { rootStore }; 
+export function useStore() {
+  return rootStore;
+} 

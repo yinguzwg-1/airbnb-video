@@ -55,8 +55,8 @@ export interface FilterParams {
   year?: number;
   rating?: number;
   status?: MediaStatus;
-  sortBy?: 'rating' | 'year';
-  order?: 'ASC' | 'DESC';
+  sortBy?: 'rating' | 'year' | null;
+  order?: 'ASC' | 'DESC' | null;
   page?: number;
   pageSize?: number;
   search?: string;

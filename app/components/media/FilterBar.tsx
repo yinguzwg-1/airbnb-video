@@ -5,12 +5,15 @@ import { MediaType, FilterParams, MediaStatus } from "@/app/types/media";
 import { FiFilter, FiX } from "react-icons/fi";
 import { useState } from "react";
 import { translations, Language } from "@/app/i18n";
+import { IoFilterOutline, IoChevronDownOutline } from 'react-icons/io5';
+import { useT } from '@/app/contexts/TranslationContext';
+import { observer } from 'mobx-react-lite';
+import { useStore } from '@/app/stores';
 
 interface FilterBarProps {
   filters: FilterParams;
   onFilterChange: (newFilters: Partial<FilterParams>) => void;
   onClearFilters: () => void;
-  genres: string[];
   resultCount: number;
   loading: boolean;
   lang: Language;
@@ -20,17 +23,13 @@ const FilterBar: React.FC<FilterBarProps> = ({
   filters,
   onFilterChange,
   onClearFilters,
-  genres,
   resultCount,
   loading,
   lang
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
   const t = translations[lang];
-
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 20 }, (_, i) => currentYear - i);
-
+  const [sortBy, setSortBy] = useState(filters.sortBy || 'rating');
+  const [order, setOrder] = useState(filters.order || 'DESC');
   const hasActiveFilters = !!(
     filters.type || 
     filters.status || 
@@ -56,7 +55,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
           )}
         </div>
         
-        <div className="flex items-center space-x-2">
+        {/* <div className="flex items-center space-x-2">
           {hasActiveFilters && (
             <button
               onClick={onClearFilters}
@@ -64,7 +63,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
             >
               <FiX size={16} className="mr-1" />
               {t.media.clearFilters}
-            </button>
           )}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -72,14 +70,14 @@ const FilterBar: React.FC<FilterBarProps> = ({
           >
             {isExpanded ? t.media.collapseFilters : t.media.expandFilters}
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* 筛选选项 */}
-      <div className={`space-y-4 ${isExpanded ? 'block' : 'hidden md:block'}`}>
+      <div className={`space-y-4`}>
         <div className="flex flex-wrap items-center gap-4">
           {/* 类型筛选 */}
-          <select
+          {/* <select
             value={filters.type || ''}
             onChange={(e) => onFilterChange({ type: e.target.value as MediaType || undefined })}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[120px]"
@@ -87,12 +85,12 @@ const FilterBar: React.FC<FilterBarProps> = ({
             <option value="">{t.filters.all}</option>
             <option value={MediaType.MOVIE}>{t.mediaTypes.movie}</option>
             <option value={MediaType.TV}>{t.mediaTypes.tv}</option>
-          </select>
+          </select> */}
 
          
 
           {/* 状态筛选 */}
-          <select
+          {/* <select
             value={filters.status || ''}
             onChange={(e) => onFilterChange({ status: e.target.value as MediaStatus || undefined })}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[120px]"
@@ -101,12 +99,16 @@ const FilterBar: React.FC<FilterBarProps> = ({
             <option value={MediaStatus.RELEASED}>{t.status.released}</option>
             <option value={MediaStatus.UPCOMING}>{t.status.upcoming}</option>
             <option value={MediaStatus.ONGOING}>{t.status.ongoing}</option>
-          </select>
+          </select> */}
 
           {/* 排序方式 */}
           <select
-            value={filters.sortBy || 'rating'}
-            onChange={(e) => onFilterChange({ sortBy: e.target.value as 'rating' | 'year' })}
+            value={sortBy}
+            onChange={(e) => {
+             
+              setSortBy(e.target.value as 'rating' | 'year');
+              onFilterChange({ sortBy: e.target.value as 'rating' | 'year' })
+            }}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[120px]"
           >
             <option value="rating">{t.sortOptions.rating}</option>
@@ -115,56 +117,21 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
           {/* 排序顺序 */}
           <select
-            value={filters.order || 'DESC'}
-            onChange={(e) => onFilterChange({ order: e.target.value as 'ASC' | 'DESC' })}
+            value={order}
+            onChange={(e) => {
+              setOrder(e.target.value as 'ASC' | 'DESC');
+              onFilterChange({ order: e.target.value as 'ASC' | 'DESC' })
+            }}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[100px]"
           >
             <option value="DESC">{t.filters.descending}</option>
             <option value="ASC">{t.filters.ascending}</option>
           </select>
+          <button onClick={onClearFilters} className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[100px]">
+            {t.filters.clear}
+          </button>
         </div>
 
-        {/* 活跃的筛选标签 */}
-        {hasActiveFilters && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {filters.type && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                {filters.type === MediaType.MOVIE ? t.mediaTypes.movie : t.mediaTypes.tv}
-                <button
-                  onClick={() => onFilterChange({ type: undefined })}
-                  className="ml-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
-                >
-                  <FiX size={12} />
-                </button>
-              </span>
-            )}
-            
-            {filters.year && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">
-                {filters.year} {t.filters.year}
-                <button
-                  onClick={() => onFilterChange({ year: undefined })}
-                  className="ml-1 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200"
-                >
-                  <FiX size={12} />
-                </button>
-              </span>
-            )}
-            
-            {filters.status && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
-                {filters.status === MediaStatus.RELEASED ? t.status.released : 
-                 filters.status === MediaStatus.UPCOMING ? t.status.upcoming : t.status.ongoing}
-                <button
-                  onClick={() => onFilterChange({ status: undefined })}
-                  className="ml-1 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
-                >
-                  <FiX size={12} />
-                </button>
-              </span>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

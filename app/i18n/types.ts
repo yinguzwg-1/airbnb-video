@@ -64,21 +64,23 @@ export interface TranslationKeys {
 
   // 筛选选项
   filters: {
+  
+    title: string;
+    more: string;
+    clear: string;
+    active: string;
+    results: string;
     type: string;
-    genre: string;
-    year: string;
-    rating: string;
-    status: string;
-    sort: string;
-    all: string;
-    allGenres: string;
-    allYears: string;
-    minRating: string;
-    allStatus: string;
+    allTypes: string;
+    movies: string;
+    tvShows: string;
     sortBy: string;
+    ratingHigh: string;
+    ratingLow: string;
+    yearNew: string;
+    yearOld: string;
     ascending: string;
     descending: string;
-    clear: string;
   };
 
   // 媒体类型

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useSearchParams, usePathname } from 'next/navigation';
 import { FiSearch, FiX } from 'react-icons/fi';
 import { useT } from '@/app/contexts/TranslationContext';
 import { observer } from 'mobx-react-lite';
@@ -15,9 +14,7 @@ interface SearchBarProps {
 
 const SearchBar = observer(({ initialQuery = '' }: SearchBarProps) => {
   const [query, setQuery] = useState(initialQuery);
-  const { mediaStore } = useStore();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const { mediaStore, urlStore } = useStore();
   const t = useT();
   
   // 存储首页数据的引用
@@ -39,39 +36,21 @@ const SearchBar = observer(({ initialQuery = '' }: SearchBarProps) => {
     initializeFullData();
   }, [initializeFullData]);
 
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) {
-        params.set(name, value);
-      } else {
-        params.delete(name);
-      }
-      // 重置页码
-      params.set('page', '1');
-      return params.toString();
-    },
-    [searchParams]
-  );
-
-  // 更新URL但不触发导航
-  const updateUrl = useCallback((queryString: string) => {
-    const newUrl = `${pathname}?${queryString}`;
-    window.history.pushState({}, '', newUrl);
-  }, [pathname]);
-
   const handleSearch = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (mediaStore.isLoading) return;
 
     const trimmedQuery = query.trim();
-    const queryString = createQueryString('q', trimmedQuery);
     
     try { 
-      // 更新URL
-      updateUrl(queryString);
+      // 更新URL参数
+      urlStore.updateParams({ 
+        q: trimmedQuery || null,
+        page: '1' // 重置页码
+      });
+      
       // 发起搜索请求
-      const res = trimmedQuery ? await mediaService.searchMedia(trimmedQuery): await mediaService.getMedia({ page: 1, pageSize: 12 });
+      const res = await mediaService.getMedia({ page: 1, pageSize: 12, search: trimmedQuery});
       mediaStore.setMediaList(res.items);
       mediaStore.setTotal(res.meta.total);
       mediaStore.setCurrentPage(1);
@@ -79,18 +58,20 @@ const SearchBar = observer(({ initialQuery = '' }: SearchBarProps) => {
     } catch (error) {
       console.error('搜索失败:', error);
     }
-  }, [query, createQueryString, updateUrl, mediaStore]);
+  }, [query, urlStore, mediaStore]);
 
   const handleClear = useCallback(async () => {
     if (mediaStore.isLoading) return;
     
     setQuery('');
-    const queryString = createQueryString('q', '');
     
     try {
-      // 更新URL
-      updateUrl(queryString);
-      console.log('fullData.current', fullData.current);
+      // 更新URL参数
+      urlStore.updateParams({ 
+        q: null,
+        page: '1'
+      });
+      
       // 直接重置回首页数据，不发送网络请求
       if (fullData.current && fullData.current.length > 0) {
         mediaStore.setMediaList(fullData.current);
@@ -107,7 +88,7 @@ const SearchBar = observer(({ initialQuery = '' }: SearchBarProps) => {
     } catch (error) {
       console.error('清除搜索失败:', error);
     }
-  }, [createQueryString, updateUrl, mediaStore]);
+  }, [urlStore, mediaStore]);
 
   return (
     <form onSubmit={handleSearch} className="relative">
