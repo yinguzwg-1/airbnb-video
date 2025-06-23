@@ -49,7 +49,6 @@ export default observer(function MediaContent({ initialData, params, searchParam
   const fetchData = useCallback(async (params: Record<string, string>) => {
     setIsLoading(true);
     try {
-      console.log('Fetching data with params:', params);
 
       const data = await getMediaData({ 
         page: params.page || '1', 
@@ -61,7 +60,6 @@ export default observer(function MediaContent({ initialData, params, searchParam
       
       mediaStore.setMediaList(data.items);
       mediaStore.setTotal(data.meta.total);
-      console.log('Data fetched successfully:', data.items.length, 'items');
     } catch (error) {
       console.error('获取数据失败:', error);
     } finally {
@@ -75,7 +73,6 @@ export default observer(function MediaContent({ initialData, params, searchParam
       mediaStore.setMediaList(initialData.items);
       mediaStore.setTotal(initialData.meta.total);
       setIsInitialized(true);
-      console.log('Initialized with initial data:', initialData.items.length, 'items');
     }
   }, [initialData, mediaStore, isInitialized]);
 

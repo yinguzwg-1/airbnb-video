@@ -5,10 +5,12 @@ import { IoLanguageOutline, IoChevronDownOutline } from 'react-icons/io5';
 import { useTranslation } from '@/app/contexts/TranslationContext';
 import { useSearchParams } from 'next/navigation';
 import { Language, supportedLanguages, getLanguageName, getLanguageFlag } from '@/app/i18n';
+import { useStore } from '../stores';
 
 export default function LanguageSwitcher() {
   const { language, setLanguage, t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const { urlStore } = useStore();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
 
@@ -27,9 +29,18 @@ export default function LanguageSwitcher() {
   const handleLanguageChange = (lang: Language) => {
     // 在切换语言前记录当前的查询参数（用于调试）
     const currentParams = searchParams.toString();
-    console.log('切换语言前的查询参数:', currentParams);
     
+    // 更新语言参数
+    urlStore.updateParams({ lang: lang });
+    
+    // 设置语言（这会触发路由导航）
     setLanguage(lang);
+    
+    // 延迟更新pathname，确保路由导航完成
+    setTimeout(() => {
+      urlStore.updatePathname();
+    }, 100);
+    
     setIsOpen(false);
   };
 

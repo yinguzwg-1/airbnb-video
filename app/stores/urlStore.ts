@@ -18,8 +18,18 @@ export class UrlStore {
       
       // 监听浏览器前进后退
       window.addEventListener('popstate', () => {
+        this.updatePathname();
         this.parseUrlParams();
         this.notifyUrlChange();
+      });
+    }
+  }
+
+  // 新增：更新pathname的方法
+  updatePathname() {
+    if (typeof window !== 'undefined') {
+      runInAction(() => {
+        this.pathname = window.location.pathname;
       });
     }
   }

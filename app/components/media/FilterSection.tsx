@@ -23,7 +23,6 @@ export const FilterSection = observer(({
   const { urlStore } = useStore();
 
   const handleFilterChange = useCallback((newFilters: Partial<FilterParams>) => {
-    console.log('Filter changed:', newFilters);
     
     // 构建更新参数
     const updates: Record<string, string | null> = {
@@ -50,7 +49,6 @@ export const FilterSection = observer(({
 
   // 清除筛选参数
   const handleClearFilters = useCallback(() => {
-    console.log('Clearing all filters');
     urlStore.clearFilters();
   }, [urlStore]);
 

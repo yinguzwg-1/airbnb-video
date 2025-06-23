@@ -29,7 +29,6 @@ export const mediaService = {
       if (order) {
         queryParams.append('orderBy', order);
       }
-      console.log('queryParams', queryParams.toString());
       const res = await axios.get(`${API_BASE}/media`, {params: queryParams});
       return res.data;
     } catch (error) {
