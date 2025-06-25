@@ -7,7 +7,7 @@ import {
   MediaResponse 
 } from '@/app/types/media';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE = process.env.NEXT_PUBLIC_LOCAL_HOST
 
 export const mediaService = {
   // 获取媒体列表

@@ -27,6 +27,14 @@ export default function LanguageSwitcher() {
   }, []);
 
   const handleLanguageChange = (lang: Language) => {
+    // 添加语言切换埋点
+    window.tracker?.track('language_change', {
+      old_language: language,
+      new_language: lang,
+      page_url: window.location.href,
+      user_agent: navigator.userAgent,
+    });
+    
     // 在切换语言前记录当前的查询参数（用于调试）
     const currentParams = searchParams.toString();
     

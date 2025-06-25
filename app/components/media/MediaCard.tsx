@@ -14,8 +14,20 @@ interface MediaCardProps {
 export function MediaCard({ item }: MediaCardProps) {
   const t = useT();
   const isEn = useLang() === 'en';
+
+  const handleCardClick = () => {
+    window.tracker?.track('media_card_click', {
+      media_id: item.id,
+      media_title: isEn ? item.title_en : item.title,
+      media_type: item.type,
+      media_year: item.year,
+      media_rating: item.rating,
+      page_url: window.location.href,
+    });
+  };
+
   return (
-    <Link href={`/media/${item.id}`}>
+    <Link href={`/media/${item.id}`} onClick={handleCardClick}>
       <div className="group relative bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-900/50 overflow-hidden hover:shadow-xl dark:hover:shadow-gray-900/70 transition-all duration-300">
         {/* 封面图片容器 */}
         <div className="relative aspect-[2/3] overflow-hidden">

@@ -3,6 +3,7 @@ import { Nunito } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from './contexts/ThemeContext';
 import { TranslationProvider } from './contexts/TranslationContext';
+import { TrackerInitializer } from "./components/BurryPoint/ClientTrackerProvider";
 
 const inter = Nunito({ subsets: ["latin"] });
 
@@ -16,17 +17,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const userId = '1234567890';
+
   return (
     <html lang="zh-CN" suppressHydrationWarning={true}>
       <body className={inter.className}>
         <ThemeProvider>
           <TranslationProvider>
-            {children}
+            <TrackerInitializer userId={userId}>
+              {children}
+            </TrackerInitializer>
           </TranslationProvider>
         </ThemeProvider>
       </body>

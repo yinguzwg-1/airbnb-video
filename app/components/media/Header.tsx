@@ -23,16 +23,19 @@ const Header = () => {
     }
   }, []);
 
-
+  
   const refreshList = () => {
     // 刷新当前页面
     router.refresh();
   };
 
   const handleCrawl = async () => {
+    window.tracker?.track('crawl_click',{
+      page: currentPage,
+    });
     try {
       setIsCrawling(true);
-      const response = await fetch(`http://localhost:3000/crawler/movies?page=${currentPage}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_HOST}/crawler/movies?page=${currentPage}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -82,18 +85,6 @@ const Header = () => {
 
           {/* 功能按钮组 */}
           <div className="flex items-center space-x-6 mx-8">
-            {/* 上传按钮 */}
-            {/* <MicroUploadController
-              config={UPLOAD_PRESETS.MEDIA_MIX}
-              onSuccess={handleUploadSuccess}
-              onError={handleUploadError}
-              trigger={
-                <button className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors">
-                  <FiUpload size={16} />
-                  <span>上传</span>
-                </button>
-              }
-            /> */}
             
             {/* 爬取按钮 */}
             <button

@@ -26,6 +26,29 @@ export default function Pagination({
 
   if (totalPages <= 1) return null;
 
+  const handlePageChange = (page: number) => {
+    window.tracker?.track('pagination_click', {
+      current_page: currentPage,
+      target_page: page,
+      total_pages: totalPages,
+      page_size: pageSize,
+      total_items: totalItems,
+      page_url: window.location.href,
+    });
+    onPageChange(page);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    window.tracker?.track('page_size_change', {
+      old_page_size: pageSize,
+      new_page_size: size,
+      current_page: currentPage,
+      total_items: totalItems,
+      page_url: window.location.href,
+    });
+    onPageSizeChange(size);
+  };
+
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
@@ -66,8 +89,8 @@ export default function Pagination({
         </span>
         <select
           value={pageSize}
-          onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          className="ml-2 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+          onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+          className="ml-2 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
         >
           <option value="12">12</option>
           <option value="24">24</option>
@@ -78,9 +101,9 @@ export default function Pagination({
 
       <div className="flex items-center space-x-2">
         <button
-          onClick={() => onPageChange(currentPage - 1)}
+          onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
         >
           <FiChevronLeft className="w-5 h-5" />
         </button>
@@ -90,27 +113,27 @@ export default function Pagination({
             typeof page === 'number' ? (
               <button
                 key={index}
-                onClick={() => onPageChange(page)}
-                className={`px-3 py-1 rounded-md text-sm font-medium ${
+                onClick={() => handlePageChange(page)}
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${
                   currentPage === page
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-blue-600 text-white border border-blue-600'
+                    : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
                 {page}
               </button>
             ) : (
               <span key={index} className="px-2">
-                <FiMoreHorizontal className="w-5 h-5 text-gray-400" />
+                <FiMoreHorizontal className="w-5 h-5 text-gray-400 dark:text-gray-500" />
               </span>
             )
           ))}
         </div>
 
         <button
-          onClick={() => onPageChange(currentPage + 1)}
+          onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="p-2 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
         >
           <FiChevronRight className="w-5 h-5" />
         </button>

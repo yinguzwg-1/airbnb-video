@@ -66,6 +66,14 @@ export default function ThemeSwitcher() {
   }, []);
 
   const handleThemeChange = (option: ThemeOption) => {
+    // 添加主题切换埋点
+    window.tracker?.track('theme_change', {
+      old_theme: selectedOption,
+      new_theme: option,
+      page_url: window.location.href,
+      user_agent: navigator.userAgent,
+    });
+    
     setSelectedOption(option);
     
     if (option === 'system') {

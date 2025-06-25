@@ -42,6 +42,15 @@ const SearchBar = observer(({ initialQuery = '' }: SearchBarProps) => {
 
     const trimmedQuery = query.trim();
     
+    // 添加搜索埋点
+    window.tracker?.track('search_submit', {
+      search_query: trimmedQuery,
+      search_type: 'media',
+      current_page: mediaStore.currentPage,
+      total_items: mediaStore.total,
+      page_url: window.location.href,
+    });
+    
     try { 
       // 更新URL参数
       urlStore.updateParams({ 
@@ -62,6 +71,14 @@ const SearchBar = observer(({ initialQuery = '' }: SearchBarProps) => {
 
   const handleClear = useCallback(async () => {
     if (mediaStore.isLoading) return;
+    
+    // 添加清除搜索埋点
+    window.tracker?.track('search_clear', {
+      previous_query: query,
+      current_page: mediaStore.currentPage,
+      total_items: mediaStore.total,
+      page_url: window.location.href,
+    });
     
     setQuery('');
     
@@ -88,7 +105,7 @@ const SearchBar = observer(({ initialQuery = '' }: SearchBarProps) => {
     } catch (error) {
       console.error('清除搜索失败:', error);
     }
-  }, [urlStore, mediaStore]);
+  }, [urlStore, mediaStore, query]);
 
   return (
     <form onSubmit={handleSearch} className="relative">

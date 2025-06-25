@@ -37,6 +37,39 @@ const FilterBar: React.FC<FilterBarProps> = ({
     filters.status
   );
 
+  const handleSortByChange = (newSortBy: 'rating' | 'year') => {
+    window.tracker?.track('filter_sort_by_change', {
+      old_sort_by: sortBy,
+      new_sort_by: newSortBy,
+      current_order: order,
+      result_count: resultCount,
+      page_url: window.location.href,
+    });
+    setSortBy(newSortBy);
+    onFilterChange({ sortBy: newSortBy });
+  };
+
+  const handleOrderChange = (newOrder: 'ASC' | 'DESC') => {
+    window.tracker?.track('filter_order_change', {
+      sort_by: sortBy,
+      old_order: order,
+      new_order: newOrder,
+      result_count: resultCount,
+      page_url: window.location.href,
+    });
+    setOrder(newOrder);
+    onFilterChange({ order: newOrder });
+  };
+
+  const handleClearFilters = () => {
+    window.tracker?.track('filter_clear', {
+      current_filters: filters,
+      result_count: resultCount,
+      page_url: window.location.href,
+    });
+    onClearFilters();
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-900/50 p-4">
       {/* 顶部信息栏 */}
@@ -104,11 +137,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
           {/* 排序方式 */}
           <select
             value={sortBy}
-            onChange={(e) => {
-             
-              setSortBy(e.target.value as 'rating' | 'year');
-              onFilterChange({ sortBy: e.target.value as 'rating' | 'year' })
-            }}
+            onChange={(e) => handleSortByChange(e.target.value as 'rating' | 'year')}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[120px]"
           >
             <option value="rating">{t.sortOptions.rating}</option>
@@ -118,16 +147,16 @@ const FilterBar: React.FC<FilterBarProps> = ({
           {/* 排序顺序 */}
           <select
             value={order}
-            onChange={(e) => {
-              setOrder(e.target.value as 'ASC' | 'DESC');
-              onFilterChange({ order: e.target.value as 'ASC' | 'DESC' })
-            }}
+            onChange={(e) => handleOrderChange(e.target.value as 'ASC' | 'DESC')}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[100px]"
           >
             <option value="DESC">{t.filters.descending}</option>
             <option value="ASC">{t.filters.ascending}</option>
           </select>
-          <button onClick={onClearFilters} className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[100px]">
+          <button 
+            onClick={handleClearFilters} 
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[100px]"
+          >
             {t.filters.clear}
           </button>
         </div>
