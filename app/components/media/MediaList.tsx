@@ -40,7 +40,7 @@ export const MediaList: React.FC<MediaListProps> = ({
       {/* 媒体列表 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {media.map((item) => (
-          <MediaCard key={item.id} item={item} lang={lang} />
+          <MediaCard key={item.id} item={item} />
         ))}
       </div>
 
