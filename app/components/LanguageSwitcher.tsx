@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { IoLanguageOutline, IoChevronDownOutline } from 'react-icons/io5';
 import { useTranslation } from '@/app/contexts/TranslationContext';
 import { useSearchParams } from 'next/navigation';
 import { Language, supportedLanguages, getLanguageName, getLanguageFlag } from '@/app/i18n';
 import { useStore } from '../stores';
+import { ComponentLoading } from './LoadingSpinner';
 
-export default function LanguageSwitcher() {
+// 内部组件，处理 useSearchParams
+function LanguageSwitcherInner() {
   const { language, setLanguage, t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const { urlStore } = useStore();
@@ -92,5 +94,14 @@ export default function LanguageSwitcher() {
         </div>
       )}
     </div>
+  );
+}
+
+// 包装组件，提供 Suspense 边界
+export default function LanguageSwitcher() {
+  return (
+    <Suspense fallback={<ComponentLoading />}>
+      <LanguageSwitcherInner />
+    </Suspense>
   );
 } 

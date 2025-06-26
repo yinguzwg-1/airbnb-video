@@ -5,6 +5,8 @@ import { TranslationProvider } from "../contexts/TranslationContext";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { Language, supportedLanguages, translations } from "../i18n";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { ComponentLoading } from "../components/LoadingSpinner";
 
 const inter = Nunito({ subsets: ["latin"] });
 
@@ -53,9 +55,11 @@ export default async function RootLayout({
   return (
     <div className={inter.className}>
       <ThemeProvider>
-        <TranslationProvider initialLanguage={lang}>
-          {children}
-        </TranslationProvider>
+        <Suspense fallback={<ComponentLoading />}>
+          <TranslationProvider initialLanguage={lang}>
+            {children}
+          </TranslationProvider>
+        </Suspense>
       </ThemeProvider>
     </div>
   );

@@ -1,9 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, Suspense } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Language, TranslationKeys, translations, defaultLanguage } from '@/app/i18n';
 import { buildLocalizedUrl } from '@/app/utils/urlUtils';
+import { ComponentLoading } from '@/app/components/LoadingSpinner';
 
 interface TranslationContextType {
   language: Language;
@@ -19,7 +20,8 @@ interface TranslationProviderProps {
   initialLanguage?: Language;
 }
 
-export function TranslationProvider({ children, initialLanguage }: TranslationProviderProps) {
+// 内部组件，处理 useSearchParams
+function TranslationProviderInner({ children, initialLanguage }: TranslationProviderProps) {
   const [language, setLanguageState] = useState<Language>(initialLanguage || defaultLanguage);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -71,6 +73,17 @@ export function TranslationProvider({ children, initialLanguage }: TranslationPr
     <TranslationContext.Provider value={value}>
       {children}
     </TranslationContext.Provider>
+  );
+}
+
+// 包装组件，提供 Suspense 边界
+export function TranslationProvider({ children, initialLanguage }: TranslationProviderProps) {
+  return (
+    <Suspense fallback={<ComponentLoading />}>
+      <TranslationProviderInner initialLanguage={initialLanguage}>
+        {children}
+      </TranslationProviderInner>
+    </Suspense>
   );
 }
 

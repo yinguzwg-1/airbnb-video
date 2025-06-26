@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useT } from "@/app/contexts/TranslationContext";
 import LanguageSwitcher from "../LanguageSwitcher";
 import ThemeSwitcher from "../ThemeSwitcher";
 import SearchBar from '../SearchBar';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { ComponentLoading } from '../LoadingSpinner';
 
-const Header = () => {
+// 内部组件，处理 useSearchParams
+function HeaderInner() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCrawling, setIsCrawling] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -162,6 +164,15 @@ const Header = () => {
         )}
       </div>
     </header>
+  );
+}
+
+// 包装组件，提供 Suspense 边界
+const Header = () => {
+  return (
+    <Suspense fallback={<ComponentLoading />}>
+      <HeaderInner />
+    </Suspense>
   );
 };
 

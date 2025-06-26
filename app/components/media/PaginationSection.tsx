@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback } from 'react';
+import { useCallback, Suspense } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Pagination from './Pagination';
 import { Language } from '@/app/i18n';
+import { ComponentLoading } from '../LoadingSpinner';
 
 interface PaginationSectionProps {
   currentPage: number;
@@ -14,7 +15,8 @@ interface PaginationSectionProps {
   onPageSizeChange: (size: number) => void;
 }
 
-export function PaginationSection({
+// 内部组件，处理 useSearchParams
+function PaginationSectionInner({
   currentPage,
   totalItems,
   pageSize,
@@ -80,5 +82,14 @@ export function PaginationSection({
       onPageSizeChange={handlePageSizeChange}
       lang={lang}
     />
+  );
+}
+
+// 包装组件，提供 Suspense 边界
+export function PaginationSection(props: PaginationSectionProps) {
+  return (
+    <Suspense fallback={<ComponentLoading />}>
+      <PaginationSectionInner {...props} />
+    </Suspense>
   );
 } 
