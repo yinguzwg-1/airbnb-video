@@ -38,6 +38,14 @@ jobs:
     - name: Build Next.js application
       run: npm run build
 
+    - name: Debug - List files after build
+      run: |
+        echo "Current directory: $(pwd)"
+        echo "Files in current directory:"
+        ls -la
+        echo "Files in .next directory:"
+        ls -la .next || echo ".next directory not found"
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -61,6 +69,14 @@ jobs:
       with:
         name: nextjs-build-${{ github.run_id }}
         path: ./.next
+
+    - name: Debug - Verify downloaded artifacts
+      run: |
+        echo "Current directory: $(pwd)"
+        echo "Files in current directory:"
+        ls -la
+        echo "Files in .next directory:"
+        ls -la .next || echo ".next directory not found"
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
