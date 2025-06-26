@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import AdvancedTracker from '../components/BurryPoint/advancedTracker';
+import AdvancedTracker from '../components/BurryPoint/AdvancedTracker';
 
 declare global {
   interface Window {
