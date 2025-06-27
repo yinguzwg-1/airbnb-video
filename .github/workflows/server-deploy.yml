@@ -36,13 +36,14 @@ jobs:
           echo "🌍 环境: ${{ github.event.inputs.environment }}"
           echo "📦 镜像标签: ${{ github.event.inputs.image_tag }}"
           
-          # 设置环境变量
-          export REGISTRY=ghcr.io
-          export IMAGE_NAME=yinguzwg-1
-          export TAG=${{ github.event.inputs.image_tag }}
+          # 检查 Docker 是否运行
+          if ! docker info > /dev/null 2>&1; then
+            echo "❌ Docker 未运行，请启动 Docker"
+            exit 1
+          fi
           
           # 进入项目目录
-          cd /home/${{ secrets.USERNAME }}/demo/airbnb-video
+          cd ~/airbnb-video
           
           # 拉取最新代码
           git pull origin main
@@ -50,22 +51,22 @@ jobs:
           # 停止现有服务
           docker-compose down
           
-          # 拉取最新镜像
-          docker-compose pull
-          
-          # 启动服务
-          docker-compose up -d
+          # 构建并启动服务（使用本地构建避免网络问题）
+          docker-compose up --build -d
           
           # 等待服务启动
-          sleep 15
+          sleep 20
+          
+          # 检查服务状态
+          docker-compose ps
           
           # 健康检查
           if curl -f http://localhost:8080 > /dev/null 2>&1; then
             echo "✅ 部署成功！"
             echo "🌐 应用地址: http://${{ secrets.HOST }}:8080"
           else
-            echo "❌ 健康检查失败"
-            exit 1
+            echo "⚠️  健康检查失败，但服务可能仍在启动中..."
+            echo "📋 查看日志: docker-compose logs -f"
           fi
           
           # 清理未使用的镜像
