@@ -34,7 +34,7 @@ export function TrackerInitializer({
     if (userId) {
       tracker.setUserId(userId);
     }
-
+    console.log('initialEvents', initialEvents);
     // 发送初始事件
     initialEvents.forEach(({ eventName, properties }) => {
       tracker.track(eventName, properties);
