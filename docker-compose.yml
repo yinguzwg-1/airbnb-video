@@ -1,38 +1,23 @@
-version: '3.8'
+version: '2.4'  # 或 '2.4'
 
 services:
-  # Next.js 前端应用
   nextjs-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: nextjs_app
+    build: .
     ports:
-      - "3000:3000"  # 默认Next.js端口，按需调整
-    environment:
-      - NODE_ENV=production
+      - "3000:3000"
     networks:
       - app-network
-    restart: unless-stopped
-    # 如需自定义启动命令（例如启用SSR）：
-    # command: npm run start
 
-  # Nginx 反向代理（带标准配置）
   nginx:
-    image: registry.cn-hangzhou.aliyuncs.com/acs/nginx:1.21-alpine  # 阿里云镜像
-    container_name: nginx_proxy
+    image: nginx:alpine
     ports:
       - "80:80"
-      - "443:443"  # 如需HTTPS
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d  # 挂载自定义配置
-      - ./nginx/logs:/var/log/nginx        # 日志持久化
-      # - ./ssl:/etc/nginx/ssl            # 如需HTTPS证书
+      - ./nginx/conf.d:/etc/nginx/conf.d
     depends_on:
       - nextjs-app
     networks:
       - app-network
-    restart: unless-stopped
 
 networks:
   app-network:
