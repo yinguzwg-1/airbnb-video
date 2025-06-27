@@ -1,0 +1,206 @@
+name: 🚀 Auto Build and Deploy
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '部署环境'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # 构建和推送镜像
+  build-and-push:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: './package-lock.json'
+
+    - name: 📦 Install dependencies
+      run: npm ci
+
+    - name: 🔍 Run linting
+      run: npm run lint
+
+    - name: 🏗️ Build Next.js application
+      run: npm run build
+
+    - name: ✅ Verify build output
+      run: |
+        echo "✅ Build completed successfully"
+        echo "📁 Current directory: $(pwd)"
+        echo "📁 .next directory contents:"
+        ls -la .next/
+        echo "📁 Total .next size:"
+        du -sh .next/
+
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: 🔐 Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 🐳 Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./
+        file: ./Dockerfile
+        push: true
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:${{ github.sha }}
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: ✅ Build Summary
+      run: |
+        echo "🎉 Docker 镜像构建和推送完成！"
+        echo "📦 镜像地址: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:${{ github.sha }}"
+        echo "📦 最新标签: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest"
+
+  # 部署到服务器
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🚀 Deploy to server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.PORT }}
+        script: |
+          echo "🚀 开始自动化部署 Next.js 应用..."
+          echo "🌍 环境: ${{ github.event.inputs.environment || 'production' }}"
+          echo "📦 提交: ${{ github.sha }}"
+          
+          # 进入项目目录
+          cd ~/airbnb-video
+          
+          # 拉取最新代码
+          git pull origin main
+          
+          # 检查 Node.js 是否安装
+          if ! command -v node &> /dev/null; then
+            echo "📦 安装 Node.js..."
+            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+          fi
+          
+          # 检查 PM2 是否安装
+          if ! command -v pm2 &> /dev/null; then
+            echo "📦 安装 PM2..."
+            sudo npm install -g pm2
+          fi
+          
+          # 停止现有服务
+          echo "🛑 停止现有服务..."
+          pm2 stop airbnb-video 2>/dev/null || true
+          pm2 delete airbnb-video 2>/dev/null || true
+          
+          # 清理并重新安装
+          echo "🧹 清理并重新安装..."
+          rm -rf node_modules package-lock.json .next
+          npm cache clean --force
+          
+          # 安装依赖
+          echo "📦 安装依赖..."
+          npm install
+          
+          # 构建应用
+          echo "🔨 构建 Next.js 应用..."
+          npm run build
+          
+          # 检查构建结果
+          if [ ! -d ".next" ]; then
+            echo "❌ 构建失败"
+            exit 1
+          fi
+          
+          echo "✅ 构建成功！"
+          
+          # 创建 PM2 配置文件
+          echo "📝 创建 PM2 配置..."
+          cat > ecosystem.config.js << 'EOF'
+          module.exports = {
+            apps: [{
+              name: 'airbnb-video',
+              script: 'npm',
+              args: 'start',
+              cwd: __dirname,
+              instances: 1,
+              autorestart: true,
+              watch: false,
+              max_memory_restart: '1G',
+              env: {
+                NODE_ENV: 'production',
+                PORT: 8080
+              },
+              error_file: './logs/err.log',
+              out_file: './logs/out.log',
+              log_file: './logs/combined.log',
+              time: true
+            }]
+          }
+          EOF
+          
+          # 创建日志目录
+          mkdir -p logs
+          
+          # 启动 PM2 服务
+          echo "🚀 启动 PM2 服务..."
+          pm2 start ecosystem.config.js
+          
+          # 保存 PM2 配置
+          pm2 save
+          
+          # 等待服务启动
+          sleep 15
+          
+          # 检查服务状态
+          pm2 status
+          
+          # 健康检查
+          if curl -f http://localhost:8080 > /dev/null 2>&1; then
+            echo "✅ 部署成功！"
+            echo "🌐 应用地址: http://${{ secrets.HOST }}:8080"
+            echo "📦 部署版本: ${{ github.sha }}"
+          else
+            echo "⚠️  健康检查失败，但服务可能仍在启动中..."
+            echo "📋 查看日志: pm2 logs airbnb-video"
+          fi
+          
+          echo "🎉 自动化部署完成！" 
