@@ -95,6 +95,24 @@ jobs:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
 
+    - name: 🔍 Test server connectivity
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.PORT }}
+        command_timeout: "30s"
+        script: |
+          echo "🔍 测试服务器连接..."
+          echo "服务器信息:"
+          uname -a
+          echo "SSH 服务状态:"
+          systemctl status ssh --no-pager
+          echo "网络连接:"
+          netstat -tlnp | grep :22 || echo "SSH 端口未监听"
+          echo "✅ 连接测试完成"
+
     - name: 🚀 Deploy to server
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -102,6 +120,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.PORT }}
+        command_timeout: "300s"
         script: |
           echo "🚀 开始自动化部署 Next.js 应用..."
           echo "🌍 环境: ${{ github.event.inputs.environment || 'production' }}"
