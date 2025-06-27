@@ -1,103 +1,28 @@
 version: '2.4'
 
 services:
-  # MySQL 主数据库
-  mysql-master:
-    image: mysql:8.0
-    container_name: mysql_master
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: nest_db
-      MYSQL_USER: root
-      MYSQL_PASSWORD: qq123456
-    ports:
-      - "3306:3306"
-    volumes:
-      - ./mysql/master/data:/var/lib/mysql
-      - ./mysql/master/conf/my.cnf:/etc/mysql/my.cnf
-    networks:
-      - app-network
-    restart: unless-stopped
-
-  # MySQL 从数据库
-  mysql-slave:
-    image: mysql:8.0
-    container_name: mysql_slave
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: nest_db
-      MYSQL_USER: root
-      MYSQL_PASSWORD: qq123456
-    ports:
-      - "3307:3306"
-    volumes:
-      - ./mysql/slave/data:/var/lib/mysql
-      - ./mysql/slave/conf/my.cnf:/etc/mysql/my.cnf
-    networks:
-      - app-network
-    depends_on:
-      - mysql-master
-    restart: unless-stopped
-
-  # Nest.js API 服务
-  nestjs-api:
-    image: ${REGISTRY:-ghcr.io}/${IMAGE_NAME:-yinguzwg-1}/nestjs:${TAG:-latest}
-    container_name: nestjs_api
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - DB_HOST=mysql-master
-      - DB_PORT=3306
-      - DB_USERNAME=root
-      - DB_PASSWORD=qq123456
-      - DB_DATABASE=nest_db
-    networks:
-      - app-network
-    depends_on:
-      - mysql-master
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   # Next.js 前端应用
   nextjs-app:
-    image: ${REGISTRY:-ghcr.io}/${IMAGE_NAME:-yinguzwg-1}/airbnb-video:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: nextjs_app
     ports:
       - "8080:8080"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://nestjs-api:3000
-    networks:
-      - app-network
-    depends_on:
-      - nestjs-api
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
-  # Nginx 反向代理
+  # Nginx 反向代理（可选）
   nginx:
     image: nginx:alpine
     container_name: nginx_proxy
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
-    networks:
-      - app-network
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - nextjs-app
-      - nestjs-api
     restart: unless-stopped
 
 networks:
