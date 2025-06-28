@@ -120,7 +120,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.PORT }}
-        command_timeout: "300s"
+        command_timeout: "600s"
         script: |
           echo "🚀 开始自动化部署 Next.js 应用..."
           echo "🌍 环境: ${{ github.event.inputs.environment || 'production' }}"
@@ -162,7 +162,7 @@ jobs:
           # 创建 docker-compose.yml 文件
           echo "📝 创建 docker-compose.yml 文件..."
           cat > docker-compose.yml << 'EOF'
-          version: '3.8'
+          version: '3.3'
           
           services:
             # Next.js 前端应用
