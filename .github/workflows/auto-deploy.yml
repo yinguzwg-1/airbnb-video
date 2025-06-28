@@ -1,4 +1,4 @@
-name: 🚀 Auto Build and Deploy
+name: 🚀 Next.js Auto Build and Deploy
 
 on:
   push:
@@ -126,91 +126,99 @@ jobs:
           echo "🌍 环境: ${{ github.event.inputs.environment || 'production' }}"
           echo "📦 提交: ${{ github.sha }}"
           
-          # 进入项目目录
-          cd ~/airbnb-video
+          # 检查并创建项目目录
+          PROJECT_DIR="$HOME/airbnb-video"
+          echo "📁 项目目录: $PROJECT_DIR"
           
-          # 拉取最新代码
-          git pull origin main
-          
-          # 检查 Node.js 是否安装
-          if ! command -v node &> /dev/null; then
-            echo "📦 安装 Node.js..."
-            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-            sudo apt-get install -y nodejs
+          # 如果目录不存在，克隆项目
+          if [ ! -d "$PROJECT_DIR" ]; then
+            echo "📥 克隆项目到服务器..."
+            mkdir -p "$PROJECT_DIR"
+            cd "$PROJECT_DIR"
+            git clone https://github.com/${{ github.repository }}.git .
+          else
+            cd "$PROJECT_DIR"
+            echo "📥 拉取最新代码..."
+            git pull origin main
           fi
           
-          # 检查 PM2 是否安装
-          if ! command -v pm2 &> /dev/null; then
-            echo "📦 安装 PM2..."
-            sudo npm install -g pm2
+          # 检查 Docker 是否安装
+          if ! command -v docker &> /dev/null; then
+            echo "📦 安装 Docker..."
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sh get-docker.sh
+            sudo usermod -aG docker $USER
+            sudo systemctl start docker
+            sudo systemctl enable docker
           fi
           
-          # 停止现有服务
-          echo "🛑 停止现有服务..."
-          pm2 stop airbnb-video 2>/dev/null || true
-          pm2 delete airbnb-video 2>/dev/null || true
-          
-          # 清理并重新安装
-          echo "🧹 清理并重新安装..."
-          rm -rf node_modules package-lock.json .next
-          npm cache clean --force
-          
-          # 安装依赖
-          echo "📦 安装依赖..."
-          npm install
-          
-          # 构建应用
-          echo "🔨 构建 Next.js 应用..."
-          npm run build
-          
-          # 检查构建结果
-          if [ ! -d ".next" ]; then
-            echo "❌ 构建失败"
-            exit 1
+          # 检查 Docker Compose 是否安装
+          if ! command -v docker-compose &> /dev/null; then
+            echo "📦 安装 Docker Compose..."
+            sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
           fi
           
-          echo "✅ 构建成功！"
+          # 创建 docker-compose.yml 文件
+          echo "📝 创建 docker-compose.yml 文件..."
+          cat > docker-compose.yml << 'EOF'
+          version: '3.8'
           
-          # 创建 PM2 配置文件
-          echo "📝 创建 PM2 配置..."
-          cat > ecosystem.config.js << 'EOF'
-          module.exports = {
-            apps: [{
-              name: 'airbnb-video',
-              script: 'npm',
-              args: 'start',
-              cwd: __dirname,
-              instances: 1,
-              autorestart: true,
-              watch: false,
-              max_memory_restart: '1G',
-              env: {
-                NODE_ENV: 'production',
+          services:
+            # Next.js 前端应用
+            nextjs-app:
+              image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest
+              container_name: airbnb_nextjs_app
+              restart: unless-stopped
+              ports:
+                - "8080:8080"
+              environment:
+                NODE_ENV: production
                 PORT: 8080
-              },
-              error_file: './logs/err.log',
-              out_file: './logs/out.log',
-              log_file: './logs/combined.log',
-              time: true
-            }]
-          }
+                NEXT_PUBLIC_API_URL: http://localhost:3001
+              volumes:
+                - nextjs_logs:/app/logs
+              networks:
+                - app-network
+              healthcheck:
+                test: ["CMD", "curl", "-f", "http://localhost:8080"]
+                interval: 30s
+                timeout: 10s
+                retries: 3
+                start_period: 40s
+          
+          volumes:
+            nextjs_logs:
+              driver: local
+          
+          networks:
+            app-network:
+              driver: bridge
           EOF
           
-          # 创建日志目录
-          mkdir -p logs
+          # 登录到 GitHub Container Registry
+          echo "🔐 登录到 GitHub Container Registry..."
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
-          # 启动 PM2 服务
-          echo "🚀 启动 PM2 服务..."
-          pm2 start ecosystem.config.js
+          # 拉取最新镜像
+          echo "📥 拉取最新 Docker 镜像..."
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest
           
-          # 保存 PM2 配置
-          pm2 save
+          # 停止并删除现有容器
+          echo "🛑 停止现有容器..."
+          docker-compose down || true
+          
+          # 启动服务
+          echo "🚀 启动 Docker 服务..."
+          docker-compose up -d
           
           # 等待服务启动
-          sleep 15
+          echo "⏳ 等待服务启动..."
+          sleep 30
           
           # 检查服务状态
-          pm2 status
+          echo "📋 检查服务状态..."
+          docker-compose ps
           
           # 健康检查
           if curl -f http://localhost:8080 > /dev/null 2>&1; then
@@ -219,7 +227,7 @@ jobs:
             echo "📦 部署版本: ${{ github.sha }}"
           else
             echo "⚠️  健康检查失败，但服务可能仍在启动中..."
-            echo "📋 查看日志: pm2 logs airbnb-video"
+            echo "📋 查看日志: docker-compose logs nextjs-app"
           fi
           
           echo "🎉 自动化部署完成！" 
