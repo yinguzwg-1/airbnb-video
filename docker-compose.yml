@@ -11,6 +11,8 @@ nextjs-app:
     NODE_ENV: production
     PORT: 8080
     NEXT_PUBLIC_API_URL: http://localhost:3001
+    NEXT_PUBLIC_LOCAL_HOST: http://localhost:3001
+    NEXT_PUBLIC_APP_ID: 9527
   volumes:
     - nextjs_logs:/app/logs
   networks:

@@ -19,10 +19,8 @@ export interface BaseMediaItem {
   backdrop: string;
   year: number;
   rating: number;
-  genres: string[];
   status: MediaStatus;
   type: MediaType;
-  cast: string[];
   createdAt: string;
   updatedAt: string;
   title_en: string;
