@@ -15,7 +15,7 @@ interface Props {
 
 const config: TrackerConfig = {
   endpoint: `${process.env.NEXT_PUBLIC_LOCAL_HOST}/events`,
-  appId: process.env.NEXT_PUBLIC_APP_ID!,
+  appId: process.env.NEXT_PUBLIC_APP_ID! || '9527',
   batchSize: 5,
   flushInterval: 15000,
 };
