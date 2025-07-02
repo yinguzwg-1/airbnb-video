@@ -49,7 +49,7 @@ export default observer(function MediaContent({ initialData, params, searchParam
   const fetchData = useCallback(async (params: Record<string, string>) => {
     setIsLoading(true);
     try {
-
+      console.log('fetchData ----- 1', params);
       const data = await getMediaData({ 
         page: params.page || '1', 
         pageSize: params.pageSize || '12', 
@@ -57,7 +57,7 @@ export default observer(function MediaContent({ initialData, params, searchParam
         sortBy: params.sortBy || '',
         order: params.order || ''
       });
-      
+      console.log('fetchData ----- 2', data);
       mediaStore.setMediaList(data.items);
       mediaStore.setTotal(data.meta.total);
     } catch (error) {
@@ -104,6 +104,7 @@ export default observer(function MediaContent({ initialData, params, searchParam
 
   // 分页处理函数
   const handlePageChange = useCallback((page: number) => {
+    console.log('handlePageChange ----- 3', page);
     urlStore.updateParams({ page: page.toString() });
   }, [urlStore]);
 

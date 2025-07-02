@@ -4,6 +4,7 @@ export async function getMediaData({page, pageSize, q, sortBy, order}: {page: st
 
   // 获取媒体数据
   const data = await mediaService.getMedia({ page: Number(page), pageSize: Number(pageSize), search: q, sortBy: sortBy, order: order});
+  console.log(data);
   // 获取可用年份列表
   const availableYears = data?.items 
     ? Array.from(new Set(data.items.map(item => item.year))).sort((a, b) => b - a)
