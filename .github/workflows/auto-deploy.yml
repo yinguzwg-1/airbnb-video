@@ -207,18 +207,13 @@ jobs:
               environment:
                 NODE_ENV: production
                 PORT: 8080
-                NEXT_PUBLIC_API_URL: http://localhost:3001
+                NEXT_PUBLIC_API_URL: http://223.4.248.176:3001
+                NEXT_PUBLIC_LOCAL_HOST: http://223.4.248.176:3001
+                NEXT_PUBLIC_APP_ID: 9527
               volumes:
                 - nextjs_logs:/app/logs
               networks:
                 - app-network
-              healthcheck:
-                test: ["CMD", "curl", "-f", "http://localhost:8080"]
-                interval: 30s
-                timeout: 10s
-                retries: 3
-                start_period: 40s
-          
           volumes:
             nextjs_logs:
               driver: local
