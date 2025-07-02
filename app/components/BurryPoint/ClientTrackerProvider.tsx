@@ -4,6 +4,7 @@
 import { useEffect } from 'react';
 import AdvancedTracker, { type TrackerConfig } from './AdvancedTracker';
 import { SafeClientWrapper } from '../SafeClientWrapper';
+import { config as configApi } from '@/app/config';
 
 interface Props {
   children: React.ReactNode;
@@ -15,8 +16,8 @@ interface Props {
 }
 
 const config: TrackerConfig = {
-  endpoint: `${process.env.NEXT_PUBLIC_LOCAL_HOST}/events`,
-  appId: process.env.NEXT_PUBLIC_APP_ID! || '9527',
+  endpoint: `${configApi.NEXT_PUBLIC_LOCAL_HOST}/events`,
+  appId: configApi.NEXT_PUBLIC_APP_ID! || '9527',
   batchSize: 5,
   flushInterval: 15000,
 };
@@ -32,11 +33,6 @@ function TrackerInitializerContent({
       return;
     }
 
-    // 检查必要的环境变量
-    if (!process.env.NEXT_PUBLIC_LOCAL_HOST) {
-      console.warn('NEXT_PUBLIC_LOCAL_HOST not configured, tracker disabled');
-      return;
-    }
 
     try {
       // 初始化跟踪器

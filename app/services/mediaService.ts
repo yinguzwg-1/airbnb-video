@@ -6,8 +6,7 @@ import {
   PaginationParams, 
   MediaResponse 
 } from '@/app/types/media';
-
-const API_BASE = process.env.NEXT_PUBLIC_LOCAL_HOST
+import { config as configApi } from '@/app/config';
 
 // 默认的空响应
 const defaultResponse: MediaResponse = {
@@ -19,18 +18,13 @@ const defaultResponse: MediaResponse = {
     totalPages: 0
   }
 };
-
+const API_BASE = configApi.NEXT_PUBLIC_LOCAL_HOST;
 export const mediaService = {
   // 获取媒体列表
   async getMedia(
     {page, pageSize, search, sortBy, order}: {page: number, pageSize: number, search?: string, sortBy?: string, order?: string}
   ): Promise<MediaResponse> {
     try {
-      // 检查API基础URL是否配置
-      if (!API_BASE) {
-        console.warn('API_BASE not configured, returning default response');
-        return defaultResponse;
-      }
 
       // 构建查询参数
       const queryParams = new URLSearchParams();

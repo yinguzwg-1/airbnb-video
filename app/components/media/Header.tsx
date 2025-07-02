@@ -8,6 +8,7 @@ import ThemeSwitcher from "../ThemeSwitcher";
 import SearchBar from '../SearchBar';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ComponentLoading } from '../LoadingSpinner';
+import { config as configApi } from '@/app/config';
 
 // 内部组件，处理 useSearchParams
 function HeaderInner() {
@@ -37,7 +38,7 @@ function HeaderInner() {
     });
     try {
       setIsCrawling(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_HOST}/crawler/movies?page=${currentPage}`, {
+      const response = await fetch(`${configApi.NEXT_PUBLIC_LOCAL_HOST}/crawler/movies?page=${currentPage}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
