@@ -1,15 +1,8 @@
 import { Suspense } from "react";
-import { MediaType, FilterParams, MediaStatus } from "@/app/types/media";
-import { allGenres } from "@/app/data/mockData";
-import Header from "@/app/components/media/Header";
-import { MediaGrid } from "@/app/components/media/MediaGrid";
 import { Language, translations } from "@/app/i18n";
-import { FilterSection } from "@/app/components/media/FilterSection";
-import { PaginationSection } from "@/app/components/media/PaginationSection";
-import LoadingSpinner from "@/app/components/media/LoadingSpinner";
 import { getMediaData } from "@/app/actions/getMediaData";
 import MediaContent from "./MediaContent";
-import Footer from "@/app/components/Footer";
+import { Footer, Header, LoadingSpinner } from "@/app/components";
 
 interface MediaPageProps {
   params: {

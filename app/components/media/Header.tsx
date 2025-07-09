@@ -3,11 +3,8 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useT } from "@/app/contexts/TranslationContext";
-import LanguageSwitcher from "../LanguageSwitcher";
-import ThemeSwitcher from "../ThemeSwitcher";
-import SearchBar from '../SearchBar';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { ComponentLoading } from '../LoadingSpinner';
+import { LanguageSwitcher, ThemeSwitcher, SearchBar, ComponentLoading } from "@/app/components";
+import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { config as configApi } from '@/app/config';
 
 // 内部组件，处理 useSearchParams
@@ -18,6 +15,8 @@ function HeaderInner() {
   const t = useT();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const params = useParams();
+  const currentLang = params?.lang as string || 'zh';
 
   useEffect(() => {
     const lastCrawledPage = localStorage.getItem('lastCrawledPage');
@@ -72,7 +71,7 @@ function HeaderInner() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href={`/${currentLang}`} className="flex items-center space-x-2">
             <span className="text-2xl">🎬</span>
             <span className="text-xl font-bold text-gray-900 dark:text-white">
               {t.home.title}
@@ -125,19 +124,19 @@ function HeaderInner() {
           <div className="md:hidden pb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
             <nav className="flex flex-col space-y-3">
               <Link 
-                href="/media" 
+                href={`/${currentLang}/media`} 
                 className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
                 {t.nav.movies}
               </Link>
               <Link 
-                href="/media?type=movie" 
+                href={`/${currentLang}/media?type=movie`} 
                 className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
                 {t.mediaTypes.movie}
               </Link>
               <Link 
-                href="/media?type=tv" 
+                href={`/${currentLang}/media?type=tv`} 
                 className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
                 {t.mediaTypes.tv}

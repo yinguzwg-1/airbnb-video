@@ -1,14 +1,11 @@
 "use client";
 
 import React from 'react';
-import { MediaType, FilterParams, MediaStatus } from "@/app/types/media";
-import { FiFilter, FiX } from "react-icons/fi";
+import { FilterParams } from "@/app/types/media";
+import { FiFilter } from "react-icons/fi";
 import { useState } from "react";
 import { translations, Language } from "@/app/i18n";
-import { IoFilterOutline, IoChevronDownOutline } from 'react-icons/io5';
-import { useT } from '@/app/contexts/TranslationContext';
-import { observer } from 'mobx-react-lite';
-import { useStore } from '@/app/stores';
+
 
 interface FilterBarProps {
   filters: FilterParams;

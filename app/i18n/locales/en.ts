@@ -188,4 +188,7 @@ export const en: TranslationKeys = {
     last: 'Last',
     items: 'items',
   },
+
+  mediaDetail: 'Media Detail',
+  comingSoon: 'Detail page is under development, stay tuned...',
 }; 

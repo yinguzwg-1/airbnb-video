@@ -6,7 +6,7 @@ import { ThemeProvider } from "../contexts/ThemeContext";
 import { Language, supportedLanguages, translations } from "../i18n";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ComponentLoading } from "../components/LoadingSpinner";
+import { ComponentLoading } from "@/app/components";
 
 const inter = Nunito({ subsets: ["latin"] });
 

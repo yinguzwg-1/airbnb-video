@@ -30,6 +30,7 @@
     "react-select": "^5.8.0",
     "react-spinners": "^0.14.1",
     "world-countries": "^5.0.0",
+    "xgplayer": "^3.0.22",
     "zustand": "^4.5.4"
   },
   "devDependencies": {

@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import AdvancedTracker, { type TrackerConfig } from './AdvancedTracker';
-import { SafeClientWrapper } from '../SafeClientWrapper';
+import { SafeClientWrapper } from '@/app/components';
 import { config as configApi } from '@/app/config';
 
 interface Props {

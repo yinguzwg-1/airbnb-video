@@ -188,4 +188,7 @@ export const zh: TranslationKeys = {
     last: '末页',
     items: '条',
   },
+
+  mediaDetail: '媒体详情',
+  comingSoon: '详情页面开发中，敬请期待...',
 }; 

@@ -5,8 +5,8 @@ import { IoLanguageOutline, IoChevronDownOutline } from 'react-icons/io5';
 import { useTranslation } from '@/app/contexts/TranslationContext';
 import { useSearchParams } from 'next/navigation';
 import { Language, supportedLanguages, getLanguageName, getLanguageFlag } from '@/app/i18n';
-import { useStore } from '../stores';
-import { ComponentLoading } from './LoadingSpinner';
+import { useStore } from '@/app/stores';
+import { ComponentLoading } from '@/app/components';
 
 // 内部组件，处理 useSearchParams
 function LanguageSwitcherInner() {
@@ -36,20 +36,9 @@ function LanguageSwitcherInner() {
       page_url: window.location.href,
       user_agent: navigator.userAgent,
     });
-    
-    // 在切换语言前记录当前的查询参数（用于调试）
-    const currentParams = searchParams.toString();
-    
-    // 更新语言参数
-    urlStore.updateParams({ lang: lang });
-    
+
     // 设置语言（这会触发路由导航）
     setLanguage(lang);
-    
-    // 延迟更新pathname，确保路由导航完成
-    setTimeout(() => {
-      urlStore.updatePathname();
-    }, 100);
     
     setIsOpen(false);
   };

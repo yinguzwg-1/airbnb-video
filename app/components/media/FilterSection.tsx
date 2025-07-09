@@ -1,7 +1,7 @@
 "use client";
 
 import { FilterParams } from '@/app/types/media';
-import FilterBar from './FilterBar';
+import { FilterBar } from '@/app/components';
 import { useCallback, useMemo } from 'react';
 import { Language } from '@/app/i18n';
 import { useStore } from '@/app/stores';

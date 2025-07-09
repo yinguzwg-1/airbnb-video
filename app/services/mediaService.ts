@@ -54,20 +54,21 @@ export const mediaService = {
   },
 
   // 获取单个媒体详情
-  async getMediaById(id: string): Promise<MediaItem | null> {
+  async getMediaById(id: string): Promise<MediaItem | undefined> {
     try {
       if (!API_BASE) {
         console.warn('API_BASE not configured, returning null');
-        return null;
+        return ;
       }
       
       const res = await axios.get(`${API_BASE}/media/${id}`, {
         timeout: 5000
       });
+      console.log('---kkkkkk--', res.data);
       return res.data;
     } catch (error) {
       console.error('获取媒体详情失败:', error);
-      return null;
+      return ;
     }
   },
 

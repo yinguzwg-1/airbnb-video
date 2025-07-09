@@ -21,8 +21,15 @@ export function buildLocalizedUrl(
   // 构建新路径
   const newPath = `/${newLang}${segments.length > 0 ? '/' + segments.join('/') : ''}`;
   
-  // 保留所有查询参数
-  const currentSearchParams = searchParams.toString();
+  // 保留所有查询参数，但排除 lang 参数
+  const newSearchParams = new URLSearchParams();
+  searchParams.forEach((value, key) => {
+    if (key !== 'lang') {
+      newSearchParams.set(key, value);
+    }
+  });
+  
+  const currentSearchParams = newSearchParams.toString();
   return currentSearchParams ? `${newPath}?${currentSearchParams}` : newPath;
 }
 

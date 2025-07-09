@@ -1,7 +1,7 @@
 "use client";
 import { useT } from "@/app/contexts/TranslationContext";
-import { MediaType } from "../types/media";
-import { useStore } from "../stores";
+import { MediaType } from "@/app/types/media";
+import { useStore } from "@/app/stores";
 import { observer } from "mobx-react-lite";
 
 const Footer = observer(function Footer() {

@@ -3,11 +3,11 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { MediaType, FilterParams, MediaStatus } from "@/app/types/media";
 import { allGenres } from "@/app/data/mockData";
-import { MediaGrid } from "@/app/components/media/MediaGrid";
+import { MediaGrid } from "@/app/components/Media/MediaGrid";
 import { Language } from "@/app/i18n";
-import { FilterSection } from "@/app/components/media/FilterSection";
-import { PaginationSection } from "@/app/components/media/PaginationSection";
-import LoadingSpinner from "@/app/components/media/LoadingSpinner";
+import { FilterSection } from "@/app/components/Media/FilterSection";
+import { PaginationSection } from "@/app/components/Media/PaginationSection";
+import LoadingSpinner from "@/app/components/Media/LoadingSpinner";
 import { getMediaData } from "@/app/actions/getMediaData";
 import { useStore } from "@/app/stores";
 import { observer } from "mobx-react-lite";
@@ -49,7 +49,6 @@ export default observer(function MediaContent({ initialData, params, searchParam
   const fetchData = useCallback(async (params: Record<string, string>) => {
     setIsLoading(true);
     try {
-      console.log('fetchData ----- 1', params);
       const data = await getMediaData({ 
         page: params.page || '1', 
         pageSize: params.pageSize || '12', 
@@ -57,7 +56,6 @@ export default observer(function MediaContent({ initialData, params, searchParam
         sortBy: params.sortBy || '',
         order: params.order || ''
       });
-      console.log('fetchData ----- 2', data);
       mediaStore.setMediaList(data.items);
       mediaStore.setTotal(data.meta.total);
     } catch (error) {
@@ -82,7 +80,6 @@ export default observer(function MediaContent({ initialData, params, searchParam
     
     const handleUrlChange = () => {
       const urlState = urlStore.getAllParams();
-      console.log('urlState', urlState);
       fetchData(urlState);
     };
 
@@ -104,7 +101,6 @@ export default observer(function MediaContent({ initialData, params, searchParam
 
   // 分页处理函数
   const handlePageChange = useCallback((page: number) => {
-    console.log('handlePageChange ----- 3', page);
     urlStore.updateParams({ page: page.toString() });
   }, [urlStore]);
 

@@ -4,9 +4,9 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { FiSearch, FiX } from 'react-icons/fi';
 import { useT } from '@/app/contexts/TranslationContext';
 import { observer } from 'mobx-react-lite';
-import { useStore } from '../stores';
-import { mediaService } from '../services/mediaService';
-import { MediaItem } from '../types/media';
+import { useStore } from '@/app/stores';
+import { mediaService } from '@/app/services/mediaService';
+import { MediaItem } from '@/app/types/media';
 
 interface SearchBarProps {
   initialQuery?: string;

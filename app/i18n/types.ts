@@ -202,4 +202,8 @@ export interface TranslationKeys {
     last: string;
     items: string;
   };
+
+  // 媒体详情页面
+  mediaDetail: string;
+  comingSoon: string;
 } 

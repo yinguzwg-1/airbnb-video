@@ -13,7 +13,7 @@ interface PaginationProps {
   lang: Language;
 }
 
-export default function Pagination({
+ function Pagination({
   currentPage,
   totalItems,
   pageSize,
@@ -27,7 +27,6 @@ export default function Pagination({
   if (totalPages <= 1) return null;
 
   const handlePageChange = (page: number) => {
-    console.log('handlePageChange ----- 1', page);
     window.tracker?.track('pagination_click', {
       current_page: currentPage,
       target_page: page,
@@ -36,7 +35,6 @@ export default function Pagination({
       total_items: totalItems,
       page_url: window.location.href,
     });
-    console.log('handlePageChange ----- 2',page);
     onPageChange(page);
   };
 
@@ -143,3 +141,5 @@ export default function Pagination({
     </div>
   );
 } 
+
+export { Pagination };
