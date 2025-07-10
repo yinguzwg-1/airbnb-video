@@ -68,28 +68,28 @@ function HeaderInner() {
 
   return (
     <header className="bg-white dark:bg-gray-900 shadow-lg sticky top-0 z-50 transition-colors duration-200">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className="container mx-auto px-responsive">
+        <div className="flex items-center justify-between h-14 md:h-16">
           {/* Logo */}
-          <Link href={`/${currentLang}`} className="flex items-center space-x-2">
-            <span className="text-2xl">🎬</span>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
+          <Link href={`/${currentLang}`} className="flex items-center space-x-2 flex-shrink-0">
+            <span className="text-xl md:text-2xl">🎬</span>
+            <span className="text-lg md:text-xl font-bold text-gray-900 dark:text-white text-nowrap">
               {t.home.title}
             </span>
           </Link>
 
           {/* 搜索框 */}
-          <div className="flex-1 max-w-2xl mx-8">
+          <div className="flex-1 max-w-lg md:max-w-2xl mx-3 md:mx-8 hidden sm:block">
             <SearchBar initialQuery={searchParams.get('q') || ''} />
           </div>
 
        
 
           {/* 功能按钮组 */}
-          <div className="flex items-center space-x-6 mx-8">
+          <div className="flex items-center space-x-3 md:space-x-6 mx-3 md:mx-8">
             
             {/* 爬取按钮 */}
-            <button
+            {/* <button
               onClick={handleCrawl}
               disabled={isCrawling}
               className={`px-4 py-2 rounded-md text-white transition-colors ${
@@ -99,10 +99,10 @@ function HeaderInner() {
               }`}
             >
               {isCrawling ? '爬取中...' : `爬取第 ${currentPage} 页`}
-            </button>
+            </button> */}
 
             {/* 主题和语言切换 */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 md:space-x-3">
               <ThemeSwitcher />
               <LanguageSwitcher />
             </div>
@@ -111,39 +111,44 @@ function HeaderInner() {
           {/* 移动端菜单按钮 */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            className="sm:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
           >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
         </div>
 
+        {/* 移动端搜索框 */}
+        <div className="sm:hidden pb-3">
+          <SearchBar initialQuery={searchParams.get('q') || ''} />
+        </div>
+
         {/* 移动端导航菜单 */}
         {isMenuOpen && (
-          <div className="md:hidden pb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+          <div className="sm:hidden pb-4 border-t border-gray-200 dark:border-gray-700 pt-3">
             <nav className="flex flex-col space-y-3">
               <Link 
                 href={`/${currentLang}/media`} 
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 {t.nav.movies}
               </Link>
               <Link 
                 href={`/${currentLang}/media?type=movie`} 
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 {t.mediaTypes.movie}
               </Link>
               <Link 
                 href={`/${currentLang}/media?type=tv`} 
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 {t.mediaTypes.tv}
               </Link>
 
               {/* 移动端爬取按钮 */}
-              <button
+              {/* <button
                 onClick={handleCrawl}
                 disabled={isCrawling}
                 className={`w-full px-4 py-2 rounded-lg text-white transition-colors ${
@@ -154,10 +159,16 @@ function HeaderInner() {
               >
                 {isCrawling ? '爬取中...' : `爬取第 ${currentPage} 页`}
               </button>
-              
-              <div className="pt-3 border-t border-gray-200 dark:border-gray-700 space-y-3">
-                <ThemeSwitcher />
-                <LanguageSwitcher />
+               */}
+              <div className="pt-3 border-t border-gray-200 dark:border-gray-700 space-y-3 px-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">主题</span>
+                  <ThemeSwitcher />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">语言</span>
+                  <LanguageSwitcher />
+                </div>
               </div>
             </nav>
           </div>

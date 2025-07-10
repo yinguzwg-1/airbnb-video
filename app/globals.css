@@ -6,6 +6,9 @@ html,
 body,
 :root {
   height: 100%;
+  /* 防止移动端缩放 */
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
 }
 
 * {
@@ -14,12 +17,42 @@ body,
   margin: 0;
 }
 
+/* 基础排版优化 */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+  
+  /* 防止水平滚动 */
+  body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  /* 移动端容器优化 */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
 /* 文本截断样式 */
 .line-clamp-1 {
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
+  word-break: break-word;
+  word-wrap: break-word;
 }
 
 .line-clamp-2 {
@@ -27,6 +60,8 @@ body,
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  word-break: break-word;
+  word-wrap: break-word;
 }
 
 .line-clamp-3 {
@@ -34,6 +69,244 @@ body,
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+  word-break: break-word;
+  word-wrap: break-word;
+}
+
+/* 文字不换行 */
+.text-nowrap {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 响应式文字大小 */
+.text-responsive {
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.text-responsive-lg {
+  font-size: clamp(1.125rem, 3vw, 1.5rem);
+}
+
+.text-responsive-xl {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+
+/* 移动端按钮优化 */
+@media (max-width: 768px) {
+  .btn-mobile {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    touch-action: manipulation;
+  }
+  
+  /* 移动端输入框优化 */
+  input, textarea, select {
+    font-size: 16px !important; /* 防止iOS缩放 */
+  }
+}
+
+/* 卡片样式优化 */
+.card-mobile {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm;
+  @apply border border-gray-200 dark:border-gray-700;
+}
+
+/* 网格布局优化 */
+.grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .grid-responsive {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+/* 弹性布局优化 */
+.flex-responsive {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .flex-responsive {
+    flex-direction: column;
+  }
+}
+
+/* 间距优化 */
+.space-responsive {
+  @apply space-y-4;
+}
+
+@media (max-width: 768px) {
+  .space-responsive {
+    @apply space-y-3;
+  }
+}
+
+/* 图片优化 */
+.img-responsive {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* 聊天消息优化 */
+.chat-message {
+  word-break: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .chat-message {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+}
+
+/* 播放器容器优化 */
+.player-container {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .player-container {
+    border-radius: 0.375rem;
+  }
+}
+
+/* 头部信息栏优化 */
+.header-info {
+  @apply bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700;
+  @apply sticky top-0 z-40;
+}
+
+@media (max-width: 768px) {
+  .header-info {
+    @apply px-3 py-3;
+  }
+  
+  .header-info .title {
+    @apply text-lg font-semibold;
+    @apply line-clamp-2;
+  }
+  
+  .header-info .meta {
+    @apply flex flex-wrap gap-2 text-xs;
+  }
+}
+
+/* 聊天室优化 */
+.chat-container {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm;
+  @apply flex flex-col;
+  height: 60vh;
+  min-height: 400px;
+}
+
+@media (max-width: 768px) {
+  .chat-container {
+    height: 50vh;
+    min-height: 300px;
+  }
+}
+
+/* 输入框优化 */
+.input-mobile {
+  @apply w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg;
+  @apply focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  @apply dark:bg-gray-600 dark:text-white;
+  @apply resize-none;
+  min-height: 44px;
+  font-size: 16px;
+}
+
+/* 按钮组优化 */
+.button-group {
+  @apply flex items-center gap-2;
+}
+
+@media (max-width: 768px) {
+  .button-group {
+    @apply gap-1;
+  }
+  
+  .button-group button {
+    @apply p-2;
+  }
+}
+
+/* 响应式间距 */
+.p-responsive {
+  @apply p-4;
+}
+
+@media (max-width: 768px) {
+  .p-responsive {
+    @apply p-3;
+  }
+}
+
+.px-responsive {
+  @apply px-4;
+}
+
+@media (max-width: 768px) {
+  .px-responsive {
+    @apply px-3;
+  }
+}
+
+.py-responsive {
+  @apply py-4;
+}
+
+@media (max-width: 768px) {
+  .py-responsive {
+    @apply py-3;
+  }
+}
+
+/* 滚动条优化 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
+
+/* 暗色模式滚动条 */
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 85, 99, 0.8);
 }
 
 .leaflet-bottom,

@@ -28,7 +28,6 @@ export default function MediaDetail({ media }: MediaDetailProps) {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
   const playerInstanceRef = useRef<Player | null>(null);
-  console.log(media);
   
   // 从路由参数中获取语言设置
   const currentLang = params?.lang as string || 'zh';
@@ -86,10 +85,10 @@ export default function MediaDetail({ media }: MediaDetailProps) {
   // 如果没有媒体数据，显示加载状态
   if (!currentMedia) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-responsive">
         <div className="text-center">
           <FiLoader className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">加载中...</p>
+          <p className="text-gray-600 dark:text-gray-400 text-responsive">加载中...</p>
         </div>
       </div>
     );
@@ -205,7 +204,6 @@ export default function MediaDetail({ media }: MediaDetailProps) {
     }
   };
 
-
   // 格式化聊天时间
   const formatChatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -234,10 +232,10 @@ export default function MediaDetail({ media }: MediaDetailProps) {
   // 如果没有媒体数据，显示加载状态
   if (!currentMedia) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-responsive">
         <div className="text-center">
           <FiLoader className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">加载中...</p>
+          <p className="text-gray-600 dark:text-gray-400 text-responsive">加载中...</p>
         </div>
       </div>
     );
@@ -246,50 +244,50 @@ export default function MediaDetail({ media }: MediaDetailProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* 顶部信息栏 */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="container mx-auto px-4 py-4">
+      <div className="header-info">
+        <div className="container mx-auto px-responsive py-responsive">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 md:space-x-4 flex-1 min-w-0">
               {currentMedia.poster && (
                 <img 
                   src={currentMedia.poster} 
                   alt={currentMedia.title}
-                  className="w-16 h-24 object-cover rounded-lg shadow-md"
+                  className="w-12 h-16 md:w-16 md:h-24 object-cover rounded-lg shadow-md flex-shrink-0"
                 />
               )}
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <div className="flex-1 min-w-0">
+                <h1 className="title text-responsive-xl font-bold text-gray-900 dark:text-white line-clamp-2">
                   {isEn ? currentMedia.title_en : currentMedia.title}
                 </h1>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 mt-1">
+                <div className="meta flex items-center space-x-2 md:space-x-4 text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {currentMedia.rating && (
-                    <span className="flex items-center">
-                      <FiStar className="w-4 h-4 text-yellow-500 mr-1" />
-                      {currentMedia.rating}
+                    <span className="flex items-center text-nowrap">
+                      <FiStar className="w-3 h-3 md:w-4 md:h-4 text-yellow-500 mr-1 flex-shrink-0" />
+                      <span className="text-nowrap">{currentMedia.rating}</span>
                     </span>
                   )}
                   {currentMedia.year && (
-                    <span className="flex items-center">
-                      <FiCalendar className="w-4 h-4 mr-1" />
-                      {currentMedia.year}
+                    <span className="flex items-center text-nowrap">
+                      <FiCalendar className="w-3 h-3 md:w-4 md:h-4 mr-1 flex-shrink-0" />
+                      <span className="text-nowrap">{currentMedia.year}</span>
                     </span>
                   )}
                   {currentMedia.type === MediaType.MOVIE && 'duration' in currentMedia && currentMedia.duration && (
-                    <span className="flex items-center">
-                      <FiFilm className="w-4 h-4 mr-1" />
-                      {currentMedia.duration}分钟
+                    <span className="flex items-center text-nowrap">
+                      <FiFilm className="w-3 h-3 md:w-4 md:h-4 mr-1 flex-shrink-0" />
+                      <span className="text-nowrap">{currentMedia.duration}分钟</span>
                     </span>
                   )}
                   {currentMedia.type === MediaType.TV && 'seasons' in currentMedia && currentMedia.seasons && (
-                    <span className="flex items-center">
-                      <FiTv className="w-4 h-4 mr-1" />
-                      {currentMedia.seasons}季
+                    <span className="flex items-center text-nowrap">
+                      <FiTv className="w-3 h-3 md:w-4 md:h-4 mr-1 flex-shrink-0" />
+                      <span className="text-nowrap">{currentMedia.seasons}季</span>
                     </span>
                   )}
                 </div>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="button-group flex-shrink-0">
               <button
                 onClick={toggleLike}
                 className={`p-2 rounded-full transition-colors ${
@@ -298,10 +296,10 @@ export default function MediaDetail({ media }: MediaDetailProps) {
                     : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
                 }`}
               >
-                <FiHeart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+                <FiHeart className={`w-4 h-4 md:w-5 md:h-5 ${isLiked ? 'fill-current' : ''}`} />
               </button>
               <button className="p-2 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                <FiShare2 className="w-5 h-5" />
+                <FiShare2 className="w-4 h-4 md:w-5 md:h-5" />
               </button>
             </div>
           </div>
@@ -309,29 +307,29 @@ export default function MediaDetail({ media }: MediaDetailProps) {
       </div>
 
       {/* 主要内容区域 */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="container mx-auto px-responsive py-responsive">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* 左侧播放器区域 */}
           <div className="lg:col-span-2">
-            <div className="bg-black rounded-lg overflow-hidden shadow-lg">
+            <div className="player-container">
               {/* 西瓜播放器 */}
               <div className="relative aspect-video bg-gray-900">
                 {isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
                     <div className="text-center text-white">
                       <FiLoader className="w-8 h-8 animate-spin mx-auto mb-2" />
-                      <p>视频加载中...</p>
+                      <p className="text-responsive">视频加载中...</p>
                     </div>
                   </div>
                 )}
                 
                 {playerError && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
-                    <div className="text-center text-white">
-                      <p className="mb-2">{playerError}</p>
+                    <div className="text-center text-white p-responsive">
+                      <p className="mb-2 text-responsive">{playerError}</p>
                       <button 
                         onClick={() => window.location.reload()}
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        className="btn-mobile px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                       >
                         重新加载
                       </button>
@@ -342,28 +340,27 @@ export default function MediaDetail({ media }: MediaDetailProps) {
                 <div ref={playerRef} className="w-full h-full" />
               </div>
             </div>
-
           </div>
 
           {/* 右侧聊天室 */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm flex flex-col">
+            <div className="chat-container">
               {/* 聊天室头部 */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
+              <div className="p-responsive border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                      <FiMessageCircle className="w-5 h-5" />
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <FiMessageCircle className="w-4 h-4 md:w-5 md:h-5" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold">观影聊天室</h3>
-                      <div className="flex items-center space-x-2 text-sm text-blue-100">
-                        <FiUsers className="w-4 h-4" />
-                        <span>{onlineUsers} 人在线</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-responsive">观影聊天室</h3>
+                      <div className="flex items-center space-x-2 text-xs md:text-sm text-blue-100">
+                        <FiUsers className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                        <span className="text-nowrap">{onlineUsers} 人在线</span>
                       </div>
                     </div>
                   </div>
-                  <button className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors">
+                  <button className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors flex-shrink-0">
                     <FiMoreVertical className="w-4 h-4" />
                   </button>
                 </div>
@@ -372,27 +369,27 @@ export default function MediaDetail({ media }: MediaDetailProps) {
               {/* 聊天消息区域 */}
               <div 
                 ref={chatContainerRef}
-                className="flex-1 overflow-y-auto p-4 space-y-4"
+                className="flex-1 overflow-y-auto p-responsive space-y-3 md:space-y-4"
               >
                 {messages.map((message) => (
                   <div key={message.id} className={`flex ${message.isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`flex ${message.isCurrentUser ? 'flex-row-reverse' : 'flex-row'} items-end space-x-2 max-w-[80%]`}>
+                    <div className={`flex ${message.isCurrentUser ? 'flex-row-reverse' : 'flex-row'} items-end space-x-2 max-w-[85%] md:max-w-[80%]`}>
                       {!message.isCurrentUser && message.type !== 'system' && (
                         <img
                           src={message.avatar}
                           alt={message.username}
-                          className="w-8 h-8 rounded-full flex-shrink-0"
+                          className="w-6 h-6 md:w-8 md:h-8 rounded-full flex-shrink-0"
                         />
                       )}
                       
-                      <div className={`flex flex-col ${message.isCurrentUser ? 'items-end' : 'items-start'}`}>
+                      <div className={`flex flex-col ${message.isCurrentUser ? 'items-end' : 'items-start'} flex-1 min-w-0`}>
                         {message.type !== 'system' && !message.isCurrentUser && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mb-1 text-nowrap">
                             {message.username}
                           </span>
                         )}
                         
-                        <div className={`px-3 py-2 rounded-lg text-sm ${
+                        <div className={`px-3 py-2 rounded-lg text-sm chat-message ${
                           message.type === 'system' 
                             ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-center'
                             : message.isCurrentUser
@@ -402,7 +399,7 @@ export default function MediaDetail({ media }: MediaDetailProps) {
                           {message.content}
                         </div>
                         
-                        <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        <span className="text-xs text-gray-400 dark:text-gray-500 mt-1 text-nowrap">
                           {formatChatTime(message.timestamp)}
                         </span>
                       </div>
@@ -425,7 +422,7 @@ export default function MediaDetail({ media }: MediaDetailProps) {
               </div>
 
               {/* 输入区域 */}
-              <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 rounded-b-lg">
+              <div className="p-responsive border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 rounded-b-lg">
                 <div className="flex items-end space-x-2">
                   <div className="flex-1 relative">
                     <textarea
@@ -433,7 +430,7 @@ export default function MediaDetail({ media }: MediaDetailProps) {
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="发送消息..."
-                      className="w-full p-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-600 dark:text-white text-sm"
+                      className="input-mobile"
                       rows={1}
                       style={{ minHeight: '44px', maxHeight: '120px' }}
                     />
@@ -459,7 +456,7 @@ export default function MediaDetail({ media }: MediaDetailProps) {
                   <button
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim()}
-                    className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                    className="btn-mobile p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                   >
                     <FiSend className="w-4 h-4" />
                   </button>

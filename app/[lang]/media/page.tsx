@@ -41,7 +41,7 @@ export default async function MediaPage({ params, searchParams }: MediaPageProps
       <Header />
 
       {/* 主要内容区域 */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-responsive py-responsive">
         <Suspense fallback={<LoadingSpinner />}>
           <MediaContent 
             initialData={initialData}

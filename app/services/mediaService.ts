@@ -64,7 +64,6 @@ export const mediaService = {
       const res = await axios.get(`${API_BASE}/media/${id}`, {
         timeout: 5000
       });
-      console.log('---kkkkkk--', res.data);
       return res.data;
     } catch (error) {
       console.error('获取媒体详情失败:', error);

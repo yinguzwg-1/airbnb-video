@@ -114,11 +114,11 @@ const SearchBar = observer(({ initialQuery = '' }: SearchBarProps) => {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={t.media.searchPlaceholder}
-        className="w-full px-4 py-2 pl-10 pr-10 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
+        className="w-full px-3 md:px-4 py-2 md:py-2.5 pl-9 md:pl-10 pr-9 md:pr-10 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors text-sm md:text-base font-size-16"
         disabled={mediaStore.isLoading}
       />
       <FiSearch 
-        className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
+        className={`absolute left-2.5 md:left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 ${
           mediaStore.isLoading ? 'text-blue-500 animate-pulse' : 'text-gray-400 dark:text-gray-500'
         }`}
       />
@@ -127,9 +127,9 @@ const SearchBar = observer(({ initialQuery = '' }: SearchBarProps) => {
           type="button"
           onClick={handleClear}
           disabled={mediaStore.isLoading}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50"
+          className="absolute right-2.5 md:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
         >
-          <FiX />
+          <FiX className="w-4 h-4 md:w-5 md:h-5" />
         </button>
       )}
     </form>

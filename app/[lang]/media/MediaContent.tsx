@@ -122,7 +122,7 @@ export default observer(function MediaContent({ initialData, params, searchParam
       />
 
       {/* 内容区域 */}
-      <div className="mt-8">
+      <div className="mt-6 md:mt-8">
         {isLoading ? (
           <LoadingSpinner />
         ) : mediaList && mediaList.length > 0 ? (
@@ -131,7 +131,7 @@ export default observer(function MediaContent({ initialData, params, searchParam
             <MediaGrid items={mediaList} lang={params.lang} />
 
             {/* 分页组件 */}
-            <div className="mt-12">
+            <div className="mt-8 md:mt-12">
               <PaginationSection
                 currentPage={Number(urlStore.getParam('page')) || 1}
                 totalItems={total}
@@ -144,10 +144,10 @@ export default observer(function MediaContent({ initialData, params, searchParam
           </>
         ) : (
           // 无结果提示
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🎬</div>
-            <div className="text-gray-500 dark:text-gray-400 text-xl mb-2">{t.noResults.title}</div>
-            <div className="text-gray-500 dark:text-gray-500 mb-4">
+          <div className="text-center py-8 md:py-12">
+            <div className="text-4xl md:text-6xl mb-4">🎬</div>
+            <div className="text-gray-500 dark:text-gray-400 text-lg md:text-xl mb-2">{t.noResults.title}</div>
+            <div className="text-gray-500 dark:text-gray-500 mb-4 text-responsive">
               {t.noResults.filterMessage}
             </div>
           </div>
