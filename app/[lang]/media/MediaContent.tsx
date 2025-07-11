@@ -1,13 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { MediaType, FilterParams, MediaStatus } from "@/app/types/media";
-import { allGenres } from "@/app/data/mockData";
-import { MediaGrid } from "@/app/components/Media/MediaGrid";
+import { MediaType, FilterParams } from "@/app/types/media";
 import { Language } from "@/app/i18n";
-import { FilterSection } from "@/app/components/Media/FilterSection";
-import { PaginationSection } from "@/app/components/Media/PaginationSection";
-import LoadingSpinner from "@/app/components/Media/LoadingSpinner";
+import { FilterSection, MediaGrid, PaginationSection, LoadingSpinner } from "@/app/components";
 import { getMediaData } from "@/app/actions/getMediaData";
 import { useStore } from "@/app/stores";
 import { observer } from "mobx-react-lite";
