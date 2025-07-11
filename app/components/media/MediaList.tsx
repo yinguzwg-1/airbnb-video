@@ -1,7 +1,6 @@
 import React from 'react';
 import { useT } from '@/app/contexts/TranslationContext';
-import { MediaCard } from '@/app/components';
-import { Pagination } from '@/app/components/Media/Pagination';
+import { MediaCard, Pagination } from '@/app/components';
 import type { MediaItem } from '@/app/types/media';
 import { Language } from '@/app/i18n';
 

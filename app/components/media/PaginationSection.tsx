@@ -2,9 +2,8 @@
 
 import { useCallback, Suspense } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { Pagination } from '@/app/components/Media/Pagination';
+import { Pagination, ComponentLoading } from '@/app/components';
 import { Language } from '@/app/i18n';
-import { ComponentLoading } from '@/app/components';
 
 interface PaginationSectionProps {
   currentPage: number;

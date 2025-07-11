@@ -13,6 +13,7 @@ export { default as MediaCard } from './Media/MediaCard';
 export { default as MediaList } from './Media/MediaList';
 export { default as PaginationSection } from './Media/PaginationSection';
 export { default as FilterSection } from './Media/FilterSection';
+export { Pagination } from './Media/Pagination';
 export { ComponentLoading, PageLoading } from './Common/LoadingSpinner';
 // MediaDetail Components
 export { default as MediaDetail } from './MediaDetail';
