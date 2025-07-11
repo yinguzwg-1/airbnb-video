@@ -13,13 +13,10 @@ export { MediaCard } from './Media/MediaCard';
 export { MediaList } from './Media/MediaList';
 export { PaginationSection } from './Media/PaginationSection';
 export { FilterSection } from './Media/FilterSection';
-export { ComponentLoading } from './Common/LoadingSpinner';
+export { ComponentLoading, PageLoading } from './Common/LoadingSpinner';
 // MediaDetail Components
 export { default as MediaDetail } from './MediaDetail';
 // BurryPoint Components
 export { TrackerInitializer as ClientTrackerProvider } from './BurryPoint/ClientTrackerProvider';
 export { default as AdvancedTracker } from './BurryPoint/AdvancedTracker';
 
-// 常用组件的简化别名
-export { MediaCard as Card } from './Media/MediaCard';
-export { MediaGrid as Grid } from './Media/MediaGrid';
