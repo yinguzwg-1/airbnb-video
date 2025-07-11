@@ -31,40 +31,40 @@ function HeaderInner() {
     router.refresh();
   };
 
-  const handleCrawl = async () => {
-    window.tracker?.track('crawl_click',{
-      page: currentPage,
-    });
-    try {
-      setIsCrawling(true);
-      const response = await fetch(`${configApi.NEXT_PUBLIC_LOCAL_HOST}/crawler/movies?page=${currentPage}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
+  // const handleCrawl = async () => {
+  //   window.tracker?.track('crawl_click',{
+  //     page: currentPage,
+  //   });
+  //   try {
+  //     setIsCrawling(true);
+  //     const response = await fetch(`${configApi.NEXT_PUBLIC_API_URL}/crawler/movies?page=${currentPage}`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       credentials: 'include',
+  //     });
       
-      if (!response.ok) {
-        throw new Error('爬取失败');
-      }
+  //     if (!response.ok) {
+  //       throw new Error('爬取失败');
+  //     }
 
-      const data = await response.json();
-      // 保存当前页码到localStorage
-      localStorage.setItem('lastCrawledPage', (Number(currentPage) + 1).toString());
-      // 更新下一页的页码
-      setCurrentPage(Number(currentPage) + 1);
-      alert(`爬取成功：第 ${currentPage} 页, ${data.message}`);
+  //     const data = await response.json();
+  //     // 保存当前页码到localStorage
+  //     localStorage.setItem('lastCrawledPage', (Number(currentPage) + 1).toString());
+  //     // 更新下一页的页码
+  //     setCurrentPage(Number(currentPage) + 1);
+  //     alert(`爬取成功：第 ${currentPage} 页, ${data.message}`);
       
-      // 爬取成功后刷新列表
-      refreshList();
-    } catch (error: any) {
-      console.error('爬取错误:', error);
-      alert('爬取失败：' + (error.message || '未知错误'));
-    } finally {
-      setIsCrawling(false);
-    }
-  };
+  //     // 爬取成功后刷新列表
+  //     refreshList();
+  //   } catch (error: any) {
+  //     console.error('爬取错误:', error);
+  //     alert('爬取失败：' + (error.message || '未知错误'));
+  //   } finally {
+  //     setIsCrawling(false);
+  //   }
+  // };
 
   return (
     <header className="bg-white dark:bg-gray-900 shadow-lg sticky top-0 z-50 transition-colors duration-200">
