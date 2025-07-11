@@ -1,8 +1,7 @@
 import { Suspense } from "react";
 import { Language, translations } from "@/app/i18n";
 import { getMediaData } from "@/app/actions/getMediaData";
-import MediaContent from "./MediaContent";
-import { Footer, Header, LoadingSpinner } from "@/app/components";
+import { Footer, Header, LoadingSpinner, MediaContent } from "@/app/components";
 
 interface MediaPageProps {
   params: {

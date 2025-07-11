@@ -21,3 +21,4 @@ export { default as MediaDetail } from './MediaDetail';
 export { TrackerInitializer as ClientTrackerProvider } from './BurryPoint/ClientTrackerProvider';
 export { default as AdvancedTracker } from './BurryPoint/AdvancedTracker';
 
+export { default as MediaContent } from './Media/MediaContent';
