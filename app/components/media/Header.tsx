@@ -179,12 +179,10 @@ function HeaderInner() {
 }
 
 // 包装组件，提供 Suspense 边界
-const Header = () => {
+export default function Header() {
   return (
     <Suspense fallback={<ComponentLoading />}>
       <HeaderInner />
     </Suspense>
   );
 };
-
-export default Header; 

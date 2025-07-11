@@ -14,12 +14,12 @@ interface FilterSectionProps {
   lang: Language;
 }
 
-export const FilterSection = observer(({
+export default function FilterSection({
   resultCount,
   initialFilters,
   searchQuery,
   lang
-}: FilterSectionProps) => {
+}: FilterSectionProps) {
   const { urlStore } = useStore();
 
   const handleFilterChange = useCallback((newFilters: Partial<FilterParams>) => {
@@ -69,4 +69,4 @@ export const FilterSection = observer(({
       lang={lang}
     />
   );
-}); 
+} 

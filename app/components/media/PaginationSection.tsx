@@ -86,7 +86,7 @@ function PaginationSectionInner({
 }
 
 // 包装组件，提供 Suspense 边界
-export function PaginationSection(props: PaginationSectionProps) {
+export default function PaginationSection(props: PaginationSectionProps) {
   return (
     <Suspense fallback={<ComponentLoading />}>
       <PaginationSectionInner {...props} />

@@ -12,7 +12,7 @@ interface MediaCardProps {
   item: MediaItem;
 }
 
-export function MediaCard({ item }: MediaCardProps) {
+export default function MediaCard({ item }: MediaCardProps) {
   const t = useT();
   const isEn = useLang() === 'en';
   const params = useParams();

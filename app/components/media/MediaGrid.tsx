@@ -7,7 +7,7 @@ interface MediaGridProps {
   lang: Language;
 }
 
-export function MediaGrid({ items, lang }: MediaGridProps) {
+export default function MediaGrid({ items, lang }: MediaGridProps) {
   if (!items || items.length === 0) {
     return (
       <div className="text-center py-8 md:py-12">

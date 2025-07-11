@@ -8,12 +8,12 @@ export { default as SearchBar } from './Common/SearchBar';
 export { default as FilterBar } from './Media/FilterBar';
 export { default as Header } from './Media/Header';
 // Media Components
-export { MediaGrid } from './Media/MediaGrid';
-export { MediaCard } from './Media/MediaCard';
-export { MediaList } from './Media/MediaList';
-export { PaginationSection } from './Media/PaginationSection';
-export { FilterSection } from './Media/FilterSection';
-export { ComponentLoading, PageLoading } from './Common/LoadingSpinner';
+export { default as MediaGrid } from './Media/MediaGrid';
+export { default as MediaCard } from './Media/MediaCard';
+export { default as MediaList } from './Media/MediaList';
+export { default as PaginationSection } from './Media/PaginationSection';
+export { default as FilterSection } from './Media/FilterSection';
+export { default as ComponentLoading, default as PageLoading } from './Common/LoadingSpinner';
 // MediaDetail Components
 export { default as MediaDetail } from './MediaDetail';
 // BurryPoint Components

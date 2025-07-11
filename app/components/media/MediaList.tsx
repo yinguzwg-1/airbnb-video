@@ -16,7 +16,7 @@ interface MediaListProps {
   lang: Language;
 }
 
-export const MediaList: React.FC<MediaListProps> = ({
+export default function MediaList({
   media,
   totalItems,
   currentPage,
@@ -25,7 +25,7 @@ export const MediaList: React.FC<MediaListProps> = ({
   onPageSizeChange,
   hasFilters,
   lang
-}) => {
+}: MediaListProps) {
   const t = useT();
 
   return (
