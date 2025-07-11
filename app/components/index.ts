@@ -13,7 +13,7 @@ export { default as MediaCard } from './Media/MediaCard';
 export { default as MediaList } from './Media/MediaList';
 export { default as PaginationSection } from './Media/PaginationSection';
 export { default as FilterSection } from './Media/FilterSection';
-export { default as ComponentLoading, default as PageLoading } from './Common/LoadingSpinner';
+export { ComponentLoading, PageLoading } from './Common/LoadingSpinner';
 // MediaDetail Components
 export { default as MediaDetail } from './MediaDetail';
 // BurryPoint Components
