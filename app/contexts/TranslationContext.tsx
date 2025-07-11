@@ -4,7 +4,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, Suspe
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Language, TranslationKeys, translations, defaultLanguage } from '@/app/i18n';
 import { buildLocalizedUrl } from '@/app/utils/urlUtils';
-import { ComponentLoading } from '@/app/components';
+import { ComponentLoading } from '../components';
+
 
 interface TranslationContextType {
   language: Language;
