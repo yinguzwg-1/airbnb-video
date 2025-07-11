@@ -18,7 +18,7 @@ const defaultResponse: MediaResponse = {
     totalPages: 0
   }
 };
-const API_BASE = configApi.NEXT_PUBLIC_LOCAL_HOST;
+const API_BASE = configApi.NEXT_PUBLIC_API_URL;
 export const mediaService = {
   // 获取媒体列表
   async getMedia(
