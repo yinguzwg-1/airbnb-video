@@ -61,7 +61,7 @@ export default function MediaCard({ item }: MediaCardProps) {
 
           {/* 内容信息 */}
           <div className="p-2 md:p-4">
-            <h3 className="font-semibold text-sm md:text-lg mb-1 line-clamp-2 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+            <h3 className="font-semibold text-sm md:text-lg mb-1 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 truncate">
               {isEn ? item.title_en : item.title}
             </h3>
             <div className="flex items-center text-xs md:text-sm text-gray-500 dark:text-gray-400 space-x-1 md:space-x-2">

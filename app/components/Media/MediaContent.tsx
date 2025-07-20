@@ -7,6 +7,7 @@ import { FilterSection, MediaGrid, PaginationSection, LoadingSpinner } from "@/a
 import { getMediaData } from "@/app/actions/getMediaData";
 import { useStore } from "@/app/stores";
 import { observer } from "mobx-react-lite";
+import { useTracker } from "@/app/hooks/useTracker";
 
 interface MediaContentProps {
   initialData: any;
@@ -33,6 +34,7 @@ export default observer(function MediaContent({ initialData, params, searchParam
   const { mediaList, total } = mediaStore;
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const tracker = useTracker();
 
   // 构建过滤参数
   const filters: FilterParams = useMemo(() => ({

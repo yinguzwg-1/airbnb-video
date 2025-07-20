@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { MediaItem, MediaType } from '@/app/types/media';
 import { useT } from '@/app/contexts/TranslationContext';
-import { FiHeart, FiShare2, FiMessageCircle, FiStar, FiClock, FiCalendar, FiTv, FiFilm, FiSend, FiSmile, FiMoreVertical, FiUsers, FiMic, FiMicOff, FiLoader } from 'react-icons/fi';
+import { FiHeart, FiShare2, FiMessageCircle, FiStar, FiClock, FiCalendar, FiTv, FiFilm, FiSend, FiSmile, FiMoreVertical, FiUsers, FiMic, FiMicOff } from 'react-icons/fi';
+import { LoadingSpinner } from '@/app/components';
 import Player from 'xgplayer';
 
 interface ChatMessage {
@@ -223,18 +224,7 @@ export default function MediaDetail({ media }: MediaDetailProps) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-responsive">
         <div className="text-center">
-          <FiLoader className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400 text-responsive">加载中...</p>
-        </div>
-      </div>
-    );
-  }
-  // 如果没有媒体数据，显示加载状态
-  if (!currentMedia) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-responsive">
-        <div className="text-center">
-          <FiLoader className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
+          <LoadingSpinner size="lg" className="mb-4" />
           <p className="text-gray-600 dark:text-gray-400 text-responsive">加载中...</p>
         </div>
       </div>
@@ -317,7 +307,7 @@ export default function MediaDetail({ media }: MediaDetailProps) {
                 {isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
                     <div className="text-center text-white">
-                      <FiLoader className="w-8 h-8 animate-spin mx-auto mb-2" />
+                      <LoadingSpinner size="lg" className="mb-2" />
                       <p className="text-responsive">视频加载中...</p>
                     </div>
                   </div>

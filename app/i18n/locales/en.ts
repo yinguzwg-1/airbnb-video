@@ -18,12 +18,34 @@ export const en: TranslationKeys = {
   },
 
   home: {
-    title: 'Movie Shelter',
-    subtitle: 'Discover amazing movies and TV shows',
-    welcomeTitle: 'Movie Shelter',
-    welcomeSubtitle: 'Discover amazing content',
+    title: 'Mushishi\'s World',
+    subtitle: 'Discover Someting Fantastic',
+    welcomeTitle: 'Welcome to Mushishi\'s World',
+    welcomeSubtitle: 'Choose a module to start your experience',
     exploreButton: '🎬 Explore Movie Shelter Now',
     autoRedirect: 'Auto redirect in',
+    modules: {
+      media: {
+        title: 'Media',
+        description: 'Browse and manage media content',
+      },
+      blog: {
+        title: 'Blog',
+        description: 'Read and share articles',
+      },
+      burrypoint: {
+        title: 'Data Analytics',
+        description: 'Data tracking and analysis',
+      },
+      about: {
+        title: 'About Us',
+        description: 'Learn about our team and mission',
+      },
+      monitoring: {
+        title: 'Performance Monitoring',
+        description: 'Real-time system error and performance monitoring',
+      },
+    },
     features: {
       content: {
         title: 'Rich Content',
@@ -141,6 +163,9 @@ export const en: TranslationKeys = {
     lightDescription: 'Light theme',
     darkDescription: 'Dark theme',
     systemDescription: 'Follow system setting',
+    switchToLight: 'Switch to light mode',
+    switchToDark: 'Switch to dark mode',
+    switchToLanguage: 'Switch to',
   },
 
   upload: {
@@ -191,4 +216,105 @@ export const en: TranslationKeys = {
 
   mediaDetail: 'Media Detail',
   comingSoon: 'Detail page is under development, stay tuned...',
+
+  // 监控页面
+  monitoring: {
+    title: 'System Monitoring',
+    frontendMonitoring: 'Frontend Performance Monitoring',
+    backendMonitoring: 'Backend API Monitoring',
+    apiStatus: 'API Status',
+    responseTime: 'Response Time',
+    statusCode: 'Status Code',
+    requestMethod: 'Request Method',
+    requestUrl: 'Request URL',
+    requestParams: 'Request Parameters',
+    requestBody: 'Request Body',
+    averageResponseTime: 'Average Response Time',
+    totalRequests: 'Total Requests',
+    successRate: 'Success Rate',
+    errorRate: 'Error Rate',
+    lastUpdated: 'Last Updated',
+    noData: 'No Data',
+    loading: 'Loading...',
+    status: {
+      success: 'Success',
+      error: 'Error',
+      warning: 'Warning'
+    },
+    // 前端性能监控
+    performanceMetrics: 'Performance Metrics',
+    pagePerformance: 'Page Performance',
+    visitCount: 'Visit Count',
+    overallGrade: 'Overall Grade',
+    averageMetrics: 'Average Metrics',
+    latestMetrics: 'Latest Metrics',
+    lastCollected: 'Last Collected',
+    performanceGrade: {
+      good: 'Good',
+      needsImprovement: 'Needs Improvement',
+      poor: 'Poor',
+      unknown: 'Unknown'
+    },
+    metrics: {
+      lcp: 'Largest Contentful Paint',
+      fcp: 'First Contentful Paint',
+      ttfb: 'Time to First Byte',
+      cls: 'Cumulative Layout Shift',
+      fid: 'First Input Delay'
+    },
+    noPerformanceData: 'No Frontend Performance Data',
+    noPerformanceDataDesc: 'Performance data will be collected automatically after visiting other pages',
+    // 通知相关
+    syncComplete: 'Sync Complete',
+    syncCompleteMessage: 'Processed',
+    dataUpdate: 'Data Update',
+    dataUpdateMessage: 'Added',
+    update: 'Update Notification',
+    updateMessage: 'Updated',
+    jobs: 'jobs',
+    requests: 'requests',
+    errors: 'errors',
+    records: 'records'
+  },
+
+  // 埋点数据页面
+  burrypoint: {
+    title: 'Data Tracking & Analytics Platform',
+    totalEvents: 'Total Events',
+    totalUsers: 'Total Users',
+    totalSessions: 'Total Sessions',
+    todayEvents: 'Today\'s Events',
+    moduleStats: 'Module Access Statistics',
+    deviceStats: 'Device Access Statistics',
+    recentEvents: 'Recent Events',
+    webAccess: 'Web Access',
+    mobileAccess: 'Mobile Access',
+    unknownDevice: 'Unknown Device',
+    eventTime: 'Event Time',
+    user: 'User',
+    session: 'Session',
+    module: 'Module',
+    route: 'Route',
+    noData: 'No Data',
+    loading: 'Loading...',
+    pageView: 'Page View',
+    clickEvent: 'Click Event',
+    customEvent: 'Custom Event',
+    accessCount: 'Access Count',
+    webAccessDesc: 'Web Access',
+    mobileAccessDesc: 'Mobile Access',
+    unknownDeviceDesc: 'Unknown Device Type',
+    routes: 'Routes',
+    moreRoutes: 'more',
+    configuration: 'Tracking Configuration',
+    pageTracking: 'Page Tracking',
+    pageTrackingDesc: 'Automatically track page visits',
+    clickTracking: 'Click Tracking',
+    clickTrackingDesc: 'Track user interaction behavior',
+    customTracking: 'Custom Events',
+    customTrackingDesc: 'Flexible event tracking',
+    backToHome: 'Back to Home',
+    unknownModule: 'Unknown Module',
+    moduleId: 'Module ID',
+  },
 }; 

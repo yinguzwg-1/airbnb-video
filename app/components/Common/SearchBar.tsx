@@ -7,6 +7,7 @@ import { observer } from 'mobx-react-lite';
 import { useStore } from '@/app/stores';
 import { mediaService } from '@/app/services/mediaService';
 import { MediaItem } from '@/app/types/media';
+import { LoadingSpinner } from '@/app/components';
 
 interface SearchBarProps {
   initialQuery?: string;
@@ -117,11 +118,13 @@ const SearchBar = observer(({ initialQuery = '' }: SearchBarProps) => {
         className="w-full px-3 md:px-4 py-2 md:py-2.5 pl-9 md:pl-10 pr-9 md:pr-10 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors text-sm md:text-base font-size-16"
         disabled={mediaStore.isLoading}
       />
-      <FiSearch 
-        className={`absolute left-2.5 md:left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 ${
-          mediaStore.isLoading ? 'text-blue-500 animate-pulse' : 'text-gray-400 dark:text-gray-500'
-        }`}
-      />
+      {mediaStore.isLoading ? (
+        <LoadingSpinner size="sm" className="absolute left-2.5 md:left-3 top-1/2 transform -translate-y-1/2" />
+      ) : (
+        <FiSearch 
+          className="absolute left-2.5 md:left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400 dark:text-gray-500"
+        />
+      )}
       {query && (
         <button
           type="button"

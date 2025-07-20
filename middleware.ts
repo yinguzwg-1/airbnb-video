@@ -43,8 +43,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // 匹配所有路径，除了 API 路由和静态资源
+  // 匹配所有路径，除了 API 路由、静态资源和文件扩展名
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.).*)',
   ],
 };

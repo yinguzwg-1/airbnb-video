@@ -26,6 +26,28 @@ export interface TranslationKeys {
     welcomeSubtitle: string;
     exploreButton: string;
     autoRedirect: string;
+    modules: {
+      media: {
+        title: string;
+        description: string;
+      };
+      blog: {
+        title: string;
+        description: string;
+      };
+      burrypoint: {
+        title: string;
+        description: string;
+      };
+      about: {
+        title: string;
+        description: string;
+      };
+      monitoring: {
+        title: string;
+        description: string;
+      };
+    };
     features: {
       content: {
         title: string;
@@ -154,6 +176,9 @@ export interface TranslationKeys {
     lightDescription: string;
     darkDescription: string;
     systemDescription: string;
+    switchToLight: string;
+    switchToDark: string;
+    switchToLanguage: string;
   };
 
   // 上传功能
@@ -206,4 +231,105 @@ export interface TranslationKeys {
   // 媒体详情页面
   mediaDetail: string;
   comingSoon: string;
+
+  // 监控页面
+  monitoring: {
+    title: string;
+    frontendMonitoring: string;
+    backendMonitoring: string;
+    apiStatus: string;
+    responseTime: string;
+    statusCode: string;
+    requestMethod: string;
+    requestUrl: string;
+    requestParams: string;
+    requestBody: string;
+    averageResponseTime: string;
+    totalRequests: string;
+    successRate: string;
+    errorRate: string;
+    lastUpdated: string;
+    noData: string;
+    loading: string;
+    status: {
+      success: string;
+      error: string;
+      warning: string;
+    };
+    // 前端性能监控
+    performanceMetrics: string;
+    pagePerformance: string;
+    visitCount: string;
+    overallGrade: string;
+    averageMetrics: string;
+    latestMetrics: string;
+    lastCollected: string;
+    performanceGrade: {
+      good: string;
+      needsImprovement: string;
+      poor: string;
+      unknown: string;
+    };
+    metrics: {
+      lcp: string;
+      fcp: string;
+      ttfb: string;
+      cls: string;
+      fid: string;
+    };
+    noPerformanceData: string;
+    noPerformanceDataDesc: string;
+    // 通知相关
+    syncComplete: string;
+    syncCompleteMessage: string;
+    dataUpdate: string;
+    dataUpdateMessage: string;
+    update: string;
+    updateMessage: string;
+    jobs: string;
+    requests: string;
+    errors: string;
+    records: string;
+  };
+
+  // 埋点数据页面
+  burrypoint: {
+    title: string;
+    totalEvents: string;
+    totalUsers: string;
+    totalSessions: string;
+    todayEvents: string;
+    moduleStats: string;
+    deviceStats: string;
+    recentEvents: string;
+    webAccess: string;
+    mobileAccess: string;
+    unknownDevice: string;
+    eventTime: string;
+    user: string;
+    session: string;
+    module: string;
+    route: string;
+    noData: string;
+    loading: string;
+    pageView: string;
+    clickEvent: string;
+    customEvent: string;
+    accessCount: string;
+    webAccessDesc: string;
+    mobileAccessDesc: string;
+    unknownDeviceDesc: string;
+    routes: string;
+    moreRoutes: string;
+    configuration: string;
+    pageTracking: string;
+    pageTrackingDesc: string;
+    clickTracking: string;
+    clickTrackingDesc: string;
+    customTracking: string;
+    customTrackingDesc: string;
+    backToHome: string;
+    unknownModule: string;
+    moduleId: string;
+  };
 } 

@@ -4,13 +4,14 @@ import "./globals.css";
 import { ThemeProvider } from './contexts/ThemeContext';
 import { TranslationProvider } from './contexts/TranslationContext';
 import { TrackerInitializer } from "./components/BurryPoint/ClientTrackerProvider";
+import { NotificationManager } from "./components/Common/NotificationManager";
 import Script from 'next/script';
 
 const inter = Nunito({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "电影避难所",
-  description: "电影避难所 - 发现精彩的电影和电视剧",
+  title: "虫师的世界",
+  description: "",
   icons: {
     icon: [
       { url: '/favicon.svg', sizes: 'any', type: 'image/svg+xml' },
@@ -23,7 +24,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const userId = '1234567890';
+  const userId = '9527';
 
   return (
     <html lang="zh-CN" suppressHydrationWarning={true}>
@@ -93,6 +94,7 @@ export default async function RootLayout({
           <TranslationProvider>
             <TrackerInitializer userId={userId}>
               {children}
+              <NotificationManager />
             </TrackerInitializer>
           </TranslationProvider>
         </ThemeProvider>

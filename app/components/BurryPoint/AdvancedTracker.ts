@@ -173,7 +173,6 @@ class AdvancedTracker {
         const success = navigator.sendBeacon(this.config.endpoint, blob);
         success ? resolve() : reject(new Error('sendBeacon failed'));
       } else {
-        console.log('sendData', events);
         fetch(this.config.endpoint, {
           method: 'POST',
           body: JSON.stringify(events),

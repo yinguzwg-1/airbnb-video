@@ -13,7 +13,6 @@ interface MediaDetailPageProps {
 export default async function MediaDetailPage({ params }: MediaDetailPageProps) {
 
   const media = await mediaService.getMediaById(params.id);
-  console.log('-----media', media);
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       {/* 顶部导航 */}

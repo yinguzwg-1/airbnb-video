@@ -18,12 +18,34 @@ export const zh: TranslationKeys = {
   },
 
   home: {
-    title: '电影避难所',
-    subtitle: '发现精彩的电影和电视剧',
-    welcomeTitle: '电影避难所',
-    welcomeSubtitle: '发现精彩内容',
+    title: '虫师的世界',
+    subtitle: '发现一些奇妙的东西',
+    welcomeTitle: '欢迎来到虫师的世界',
+    welcomeSubtitle: '选择一个模块开始您的体验',
     exploreButton: '🎬 立即探索电影避难所',
     autoRedirect: '自动跳转中',
+    modules: {
+      media: {
+        title: '媒体',
+        description: '浏览和管理媒体内容',
+      },
+      blog: {
+        title: '博客',
+        description: '阅读和分享文章',
+      },
+      burrypoint: {
+        title: '数据埋点',
+        description: '数据埋点和分析',
+      },
+      about: {
+        title: '关于我们',
+        description: '了解我们的团队和使命',
+      },
+      monitoring: {
+        title: '性能监控',
+        description: '实时监控系统错误和性能指标',
+      },
+    },
     features: {
       content: {
         title: '丰富内容',
@@ -141,6 +163,9 @@ export const zh: TranslationKeys = {
     lightDescription: '浅色主题',
     darkDescription: '深色主题',
     systemDescription: '跟随系统设置',
+    switchToLight: '切换到浅色模式',
+    switchToDark: '切换到深色模式',
+    switchToLanguage: '切换到',
   },
 
   upload: {
@@ -191,4 +216,105 @@ export const zh: TranslationKeys = {
 
   mediaDetail: '媒体详情',
   comingSoon: '详情页面开发中，敬请期待...',
+
+  // 监控页面
+  monitoring: {
+    title: '系统监控',
+    frontendMonitoring: '前端性能监控',
+    backendMonitoring: '后端接口监控',
+    apiStatus: '接口状态',
+    responseTime: '响应时间',
+    statusCode: '状态码',
+    requestMethod: '请求方法',
+    requestUrl: '请求地址',
+    requestParams: '请求参数',
+    requestBody: '请求体',
+    averageResponseTime: '平均响应时间',
+    totalRequests: '总请求数',
+    successRate: '成功率',
+    errorRate: '错误率',
+    lastUpdated: '最后更新',
+    noData: '暂无数据',
+    loading: '加载中...',
+    status: {
+      success: '成功',
+      error: '错误',
+      warning: '警告'
+    },
+    // 前端性能监控
+    performanceMetrics: '性能指标',
+    pagePerformance: '页面性能',
+    visitCount: '访问次数',
+    overallGrade: '整体评级',
+    averageMetrics: '平均指标',
+    latestMetrics: '最新指标',
+    lastCollected: '最后收集时间',
+    performanceGrade: {
+      good: '良好',
+      needsImprovement: '需改进',
+      poor: '较差',
+      unknown: '未知'
+    },
+    metrics: {
+      lcp: '最大内容绘制',
+      fcp: '首次内容绘制',
+      ttfb: '首字节时间',
+      cls: '累积布局偏移',
+      fid: '首次输入延迟'
+    },
+    noPerformanceData: '暂无前端性能数据',
+    noPerformanceDataDesc: '访问其他页面后性能数据将自动收集',
+    // 通知相关
+    syncComplete: '同步完成',
+    syncCompleteMessage: '已处理',
+    dataUpdate: '数据更新',
+    dataUpdateMessage: '新增',
+    update: '更新通知',
+    updateMessage: '更新了',
+    jobs: '个任务',
+    requests: '个请求',
+    errors: '个错误',
+    records: '条记录'
+  },
+
+  // 埋点数据页面
+  burrypoint: {
+    title: '数据埋点与分析平台',
+    totalEvents: '埋点总量',
+    totalUsers: '用户总数',
+    totalSessions: '会话总数',
+    todayEvents: '今日事件',
+    moduleStats: '模块访问统计',
+    deviceStats: '设备访问统计',
+    recentEvents: '最近事件',
+    webAccess: 'Web访问',
+    mobileAccess: '移动端访问',
+    unknownDevice: '未知设备',
+    eventTime: '事件时间',
+    user: '用户',
+    session: '会话',
+    module: '模块',
+    route: '路由',
+    noData: '暂无数据',
+    loading: '加载中...',
+    pageView: '页面访问',
+    clickEvent: '点击事件',
+    customEvent: '自定义事件',
+    accessCount: '访问次数',
+    webAccessDesc: 'Web端访问',
+    mobileAccessDesc: '移动端访问',
+    unknownDeviceDesc: '未知设备类型',
+    routes: '路由',
+    moreRoutes: '个',
+    configuration: '埋点配置',
+    pageTracking: '页面埋点',
+    pageTrackingDesc: '自动跟踪页面访问',
+    clickTracking: '点击埋点',
+    clickTrackingDesc: '跟踪用户交互行为',
+    customTracking: '自定义事件',
+    customTrackingDesc: '灵活的事件追踪',
+    backToHome: '返回首页',
+    unknownModule: '未知模块',
+    moduleId: '模块ID',
+  },
 }; 
