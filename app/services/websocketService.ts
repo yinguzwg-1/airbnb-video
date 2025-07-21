@@ -17,10 +17,10 @@ class WebSocketManager {
     }
 
     this.isConnecting = true;
-    
+    console.log('WebSocket: Connecting to:', configApi.NEXT_PUBLIC_API_URL);
     try {
       // 使用 socket.io-client 连接
-      const serverUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const serverUrl = configApi.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       
       this.socket = io(serverUrl, {
         transports: ['websocket', 'polling'],
