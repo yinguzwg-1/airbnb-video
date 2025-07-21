@@ -17,10 +17,15 @@ class WebSocketManager {
     }
 
     this.isConnecting = true;
-    console.log('WebSocket: Connecting to:', configApi.NEXT_PUBLIC_API_URL);
+    console.log('WebSocket: Environment check:', {
+      NODE_ENV: process.env.NODE_ENV,
+      NEXT_PUBLIC_API_URL: configApi.NEXT_PUBLIC_API_URL,
+      serverUrl: configApi.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    });
+    
     try {
       // 使用 socket.io-client 连接
-      const serverUrl = configApi.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const serverUrl = configApi.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       
       this.socket = io(serverUrl, {
         transports: ['websocket', 'polling'],
