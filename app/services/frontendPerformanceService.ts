@@ -68,11 +68,11 @@ export async function getFrontendPerformanceData(): Promise<FrontendPerformanceS
 
     // 根据module分组，并筛选出每个module的最新数据
     const moduleGroups = performanceData.reduce((groups, item) => {
-      const module = item.module;
-      if (!groups[module]) {
-        groups[module] = [];
+      const moduleName = item.module;
+      if (!groups[moduleName]) {
+        groups[moduleName] = [];
       }
-      groups[module].push(item);
+      groups[moduleName].push(item);
       return groups;
     }, {} as Record<string, typeof performanceData>);
 
