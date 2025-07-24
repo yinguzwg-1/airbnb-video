@@ -30,8 +30,39 @@ const nextConfig = {
   compress: true,
   // 生产环境优化
   poweredByHeader: false,
-  // 静态资源优化
-  assetPrefix: process.env.NODE_ENV === 'production' ? '' : '',
+  productionBrowserSourceMaps: false, // 禁用源码映射
+  compress: true, // 启用Gzip压缩
+  
+  // 自定义分包策略
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        maxInitialRequests: 25,
+        minSize: 20000,
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name(module) {
+              // 安全处理路径解析
+              const match = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/);
+              if (!match) return 'vendor';
+              
+              const packageName = match[1];
+              return `npm.${packageName.replace('@', '')}`;
+            },
+            priority: 10 // 确保vendor分组优先级
+          },
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true
+          }
+        }
+      };
+    }
+    return config;
+  }
 };
 
 export default nextConfig;

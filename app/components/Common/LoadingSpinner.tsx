@@ -24,10 +24,10 @@ export default function LoadingSpinner({ size = 'md', className = '' }: LoadingS
 // 页面级别的加载组件
 export function PageLoading() {
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center max-h-screen">
       <div className="text-center">
-        <LoadingSpinner size="lg" className="mb-4" />
-        <p className="text-gray-600 dark:text-gray-400">加载中...</p>
+        <LoadingSpinner size="lg" />
+       
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
 // Common Components
 export { default as Footer } from './Common/Footer';
-export { SafeClientWrapper } from './Common/SafeClientWrapper';
 export { default as LanguageSwitcher } from './Common/LanguageSwitcher';
 export { default as CircularLanguageSwitcher } from './Common/CircularLanguageSwitcher';
 export { default as LoadingSpinner } from './Common/LoadingSpinner';
@@ -19,8 +18,6 @@ export { Pagination } from './Media/Pagination';
 export { ComponentLoading, PageLoading } from './Common/LoadingSpinner';
 // MediaDetail Components
 export { default as MediaDetail } from './MediaDetail';
-// BurryPoint Components
-export { TrackerInitializer as ClientTrackerProvider } from './BurryPoint/ClientTrackerProvider';
 export { default as AdvancedTracker } from './BurryPoint/AdvancedTracker';
 export { default as BurryPointClient } from './BurryPoint/BurryPointClient';
 
@@ -28,3 +25,5 @@ export { default as MediaContent } from './Media/MediaContent';
 // Home Components
 export { default as HomePageClient } from './Home/HomePageClient';
 export { default as TopBar } from './Common/TopBar';
+// Monitoring Components
+export { default as MonitorDataClient } from './Monitoring/MonitorDataClient';

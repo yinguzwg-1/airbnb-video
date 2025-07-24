@@ -3,7 +3,7 @@ import { Nunito } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from './contexts/ThemeContext';
 import { TranslationProvider } from './contexts/TranslationContext';
-import { TrackerInitializer } from "./components/BurryPoint/ClientTrackerProvider";
+import TrackerInitializer from "./components/BurryPoint/ClientTrackerProvider";
 import { NotificationManager } from "./components/Common/NotificationManager";
 import Script from 'next/script';
 

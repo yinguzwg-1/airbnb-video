@@ -28,16 +28,17 @@ const API_BASE = configApi.NEXT_PUBLIC_API_URL;
 export const burryPointService = {
   // 获取埋点事件列表
   async getTrackerEvents(
-    {page}: {page: string}
+    {page = '1', limit = '10'}: {page?: string, limit?: string}
   ): Promise<ApiResponse<UserEventsResponse>> {
     try {
       const params = new URLSearchParams();
       if (page) params.append('page', page);
-
-      const res = await axios.get(`${API_BASE}/events?${params}`, {
-        timeout: 5000 // 5秒超时
+      if (limit) params.append('limit', limit);
+      
+      const res = await fetch(`${API_BASE}/events?${params.toString()}`, {
+        method: 'GET',
       });
-      return res.data;
+      return res.json();
     } catch (error) {
       console.error('获取埋点事件列表失败:', error);
       // 返回默认响应而不是抛出错误，避免服务器端渲染失败

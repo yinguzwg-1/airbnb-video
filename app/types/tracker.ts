@@ -29,7 +29,7 @@ export interface TrackerEvent {
   event_time?: Date;
   user_id?: string;
   session_id?: string;
-  device_fingerprint?: string;
+  module?: string;
   properties?: TrackerProperties;
   sdk_version?: string;
   app_id?: string;
@@ -43,7 +43,7 @@ export interface CreateTrackerEvent {
   event_time?: Date;
   user_id?: string;
   session_id?: string;
-  device_fingerprint?: string;
+  module?: string;
   properties?: TrackerProperties;
   sdk_version?: string;
   app_id?: string;
@@ -55,7 +55,7 @@ export interface UpdateTrackerEvent {
   event_time?: Date;
   user_id?: string;
   session_id?: string;
-  device_fingerprint?: string;
+  module?: string;
   properties?: TrackerProperties;
   sdk_version?: string;
   app_id?: string;

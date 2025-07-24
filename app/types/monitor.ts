@@ -9,4 +9,5 @@ export interface MonitorData {
   duration: number;
   timestamp: Date;
   query: string;
+  module?: string;
 }

@@ -1,6 +1,10 @@
+'use client';
+
 import { Language, translations } from "@/app/i18n";
 import { TrackerEvent, UserEventsResponse, ModuleStats, DeviceStats } from "@/app/types/tracker";
 import TopBar from "../Common/TopBar";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
 interface BurryPointClientProps {
   lang: Language;
@@ -45,12 +49,33 @@ function getEventIcon(eventId?: string): string {
 
 export default function BurryPointClient({ 
   lang, 
-  data, 
+  data,
+  currentPage = 1,
+  pageSize = 10, // 减少默认页面大小以提高加载速度
 }: BurryPointClientProps) {
   const t = translations[lang];
-  const { events, total, stats } = data || { events: [], total: 0, hasMore: false, stats: { totalEvents: 0, uniqueSessions: 0, todayEvents: 0, moduleStats: [], deviceStats: { web: 0, mobile: 0, unknown: 0 } } };
-  const { uniqueUsers } = stats;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [localPageSize, setLocalPageSize] = useState(pageSize);
   
+  const { events, total, hasMore, stats } = data || { events: [], total: 0, hasMore: false, stats: { totalEvents: 0, uniqueSessions: 0, todayEvents: 0, moduleStats: [], deviceStats: { web: 0, mobile: 0, unknown: 0 } } };
+  const { uniqueUsers } = stats;
+  console.log('--------stats----------------------',stats);
+  // 分页处理函数
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', page.toString());
+    router.push(`/${lang}/burrypoint?${params.toString()}`);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('limit', size.toString());
+    params.set('page', '1'); // 重置到第一页
+    setLocalPageSize(size);
+    router.push(`/${lang}/burrypoint?${params.toString()}`);
+  };
+
   // 模块名称映射表 - 支持双向映射
   const moduleNameMap: Record<string, string> = {
     // 英文到当前语言（后端统一使用英文名称）
@@ -250,6 +275,41 @@ export default function BurryPointClient({
           {/* Pagination */}
           {total > 0 && (
             <div className="mt-6 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">每页显示:</span>
+                <select
+                  value={localPageSize}
+                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                  className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                显示 {((currentPage - 1) * localPageSize) + 1} - {Math.min(currentPage * localPageSize, total)} 条，共 {total} 条记录
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage <= 1}
+                  className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-600"
+                >
+                  上一页
+                </button>
+                <span className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300">
+                  {currentPage} / {Math.ceil(total / localPageSize)}
+                </span>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!hasMore}
+                  className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-600"
+                >
+                  下一页
+                </button>
+              </div>
             </div>
           )}
         </div>

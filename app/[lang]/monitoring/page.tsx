@@ -1,13 +1,9 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { Language, translations } from "../../i18n";
-import { TopBar, LoadingSpinner } from "../../components";
-import { useTracker } from "../../hooks/useTracker";
-import { monitoringService } from "@/app/services/monitoringService";
+import { TopBar, LoadingSpinner, MonitorDataClient } from "../../components";
 import { formatRelativeTime } from "@/app/utils/timeUtils";
-import { websocketService } from "@/app/services/websocketService";
-import { getFrontendPerformanceSummary, FrontendPerformanceSummary, getGlobalPerformanceMetrics, GlobalPerformanceMetrics } from "@/app/services/frontendPerformanceService";
+import { config } from "@/app/config";
+import { monitoringService } from "@/app/services/monitoringService";
+import { FrontendPerformanceData, FrontendPerformanceSummary, getFrontendPerformanceData } from "@/app/services/frontendPerformanceService";
 
 interface MonitoringPageProps {
   params: { lang: Language };
@@ -24,6 +20,7 @@ interface MonitorData {
   duration: number;
   timestamp: Date;
   query: string;
+  module?: string;
 }
 
 interface ApiStats {
@@ -34,91 +31,63 @@ interface ApiStats {
   statusCodeDistribution: Record<number, number>;
 }
 
-export default function MonitoringPage({ params }: MonitoringPageProps) {
+export default async function MonitoringPage({ params }: MonitoringPageProps) {
   const t = translations[params.lang];
-  const tracker = useTracker();
-  const [monitorData, setMonitorData] = useState<MonitorData[]>([]);
-  const [frontendPerformanceData, setFrontendPerformanceData] = useState<FrontendPerformanceSummary[]>([]);
-  const [globalPerformanceMetrics, setGlobalPerformanceMetrics] = useState<GlobalPerformanceMetrics>({
-    averageLcp: 0,
-    averageFcp: 0,
-    averageTtfb: 0,
-    averageCls: 0,
-    averageFid: 0,
-    latestLcp: 0,
-    latestFcp: 0,
-    latestTtfb: 0,
-    latestCls: 0,
-    latestFid: 0,
-    latestTimestamp: 0,
+  
+  // 服务端数据获取
+  let monitorData: MonitorData[] = [];
+  let monitorPagination = {
+    page: 1,
+    limit: 20,
+    total: 0,
     totalPages: 0,
-    totalVisits: 0,
-  });
-  const [apiStats, setApiStats] = useState<ApiStats>({
+    hasNext: false,
+    hasPrev: false
+  };
+  let apiStats: ApiStats = {
     totalRequests: 0,
     averageResponseTime: 0,
     successRate: 0,
     errorRate: 0,
     statusCodeDistribution: {}
-  });
-  const [loading, setLoading] = useState(true);
-  const [frontendLoading, setFrontendLoading] = useState(true);
+  };
+  let frontendPerformanceData: FrontendPerformanceSummary[] = [];
 
-  // 加载监控数据
-  useEffect(() => {
-    const fetchMonitorData = async () => {
-      try {
-        setLoading(true);
-        const data = await monitoringService.getMonitoringData();
-        setMonitorData(data);
-
-        // 计算统计数据
-        const totalRequests = data.length;
-        const successfulRequests = data.filter(item => item.status_code < 400).length;
-        const averageResponseTime = data.reduce((sum, item) => sum + item.duration, 0) / totalRequests;
-        const successRate = (successfulRequests / totalRequests) * 100;
-        const errorRate = 100 - successRate;
-
-        // 状态码分布
-        const statusCodeDistribution: Record<number, number> = {};
-        data.forEach(item => {
-          statusCodeDistribution[item.status_code] = (statusCodeDistribution[item.status_code] || 0) + 1;
-        });
-
-        setApiStats({
-          totalRequests,
-          averageResponseTime: Math.round(averageResponseTime),
-          successRate: Math.round(successRate * 100) / 100,
-          errorRate: Math.round(errorRate * 100) / 100,
-          statusCodeDistribution
-        });
-      } catch (error) {
-        console.error('Failed to fetch monitor data:', error);
-      } finally {
-        setLoading(false);
-      }
+  try {
+    // 并行获取数据
+    const [monitorDataResult, monitorStatsResult, frontendPerformanceDataResult] = await Promise.allSettled([
+      monitoringService.getMonitoringDataWithPagination(1, 20),
+      monitoringService.getMonitoringStats(),
+      getFrontendPerformanceData(),
+    ]);
+    // 处理监控数据
+    if (monitorDataResult.status === 'fulfilled') {
+      const result = monitorDataResult.value;
+      monitorData = result.data;
+      monitorPagination = result.pagination;
     }
 
-    const fetchFrontendPerformanceData = async () => {
-      try {
-        setFrontendLoading(true);
-        const [summaryData, globalData] = await Promise.all([
-          getFrontendPerformanceSummary(),
-          getGlobalPerformanceMetrics()
-        ]);
-        setFrontendPerformanceData(summaryData);
-        setGlobalPerformanceMetrics(globalData);
-      } catch (error) {
-        console.error('Failed to fetch frontend performance data:', error);
-      } finally {
-        setFrontendLoading(false);
-      }
+    // 处理统计数据
+    if (monitorStatsResult.status === 'fulfilled') {
+      const stats = monitorStatsResult.value;
+      apiStats = {
+        totalRequests: stats.total,
+        averageResponseTime: stats.averageResponseTime,
+        successRate: stats.successRate,
+        errorRate: stats.errorRate,
+        statusCodeDistribution: stats.statusCodeDistribution
+      };
     }
 
-    fetchMonitorData();
-    fetchFrontendPerformanceData();
-  }, []);
+    if (frontendPerformanceDataResult.status === 'fulfilled') {
+      frontendPerformanceData = frontendPerformanceDataResult.value;
+    }
 
+  } catch (error) {
+    console.error('Failed to load data:', error);
+  }
+
+  // 工具函数
   const getStatusCodeColor = (statusCode: number) => {
     if (statusCode >= 200 && statusCode < 300) return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20';
     if (statusCode >= 300 && statusCode < 400) return 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20';
@@ -165,148 +134,20 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
             </div>
           </div>
           
-          {frontendLoading ? (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              <LoadingSpinner size="lg" className="mb-4" />
-              <p>{t.monitoring.loading}</p>
-            </div>
-          ) : frontendPerformanceData.length === 0 ? (
+          {frontendPerformanceData.length === 0 ? (
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <div className="text-6xl mb-4">⚡</div>
               <p className="text-lg font-medium mb-2">{t.monitoring.noPerformanceData}</p>
               <p className="text-sm">{t.monitoring.noPerformanceDataDesc}</p>
             </div>
           ) : (
-            <>
-              {/* Global Performance Metrics */}
-              <div className="mb-8">
-                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t.monitoring.averageMetrics}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t.monitoring.metrics.lcp}</div>
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">
-                      {globalPerformanceMetrics.averageLcp > 0 ? `${(globalPerformanceMetrics.averageLcp / 1000).toFixed(1)}s` : '--'}
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t.monitoring.metrics.fcp}</div>
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">
-                      {globalPerformanceMetrics.averageFcp > 0 ? `${(globalPerformanceMetrics.averageFcp / 1000).toFixed(1)}s` : '--'}
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t.monitoring.metrics.ttfb}</div>
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">
-                      {globalPerformanceMetrics.averageTtfb > 0 ? `${globalPerformanceMetrics.averageTtfb.toFixed(0)}ms` : '--'}
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-lg border border-orange-200 dark:border-orange-800">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t.monitoring.metrics.cls}</div>
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">
-                      {globalPerformanceMetrics.averageCls > 0 ? globalPerformanceMetrics.averageCls.toFixed(3) : '--'}
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20 p-4 rounded-lg border border-pink-200 dark:border-pink-800">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t.monitoring.metrics.fid}</div>
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">
-                      {globalPerformanceMetrics.averageFid > 0 ? `${globalPerformanceMetrics.averageFid.toFixed(0)}ms` : '--'}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Latest Metrics */}
-                <div className="mb-6">
-                  <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t.monitoring.latestMetrics}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t.monitoring.metrics.lcp}</div>
-                      <div className="text-lg font-bold text-gray-900 dark:text-white">
-                        {globalPerformanceMetrics.latestLcp > 0 ? `${(globalPerformanceMetrics.latestLcp / 1000).toFixed(1)}s` : '--'}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {globalPerformanceMetrics.latestTimestamp > 0 ? formatRelativeTime(new Date(globalPerformanceMetrics.latestTimestamp), params.lang) : ''}
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t.monitoring.metrics.fcp}</div>
-                      <div className="text-lg font-bold text-gray-900 dark:text-white">
-                        {globalPerformanceMetrics.latestFcp > 0 ? `${(globalPerformanceMetrics.latestFcp / 1000).toFixed(1)}s` : '--'}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {globalPerformanceMetrics.latestTimestamp > 0 ? formatRelativeTime(new Date(globalPerformanceMetrics.latestTimestamp), params.lang) : ''}
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t.monitoring.metrics.ttfb}</div>
-                      <div className="text-lg font-bold text-gray-900 dark:text-white">
-                        {globalPerformanceMetrics.latestTtfb > 0 ? `${globalPerformanceMetrics.latestTtfb.toFixed(0)}ms` : '--'}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {globalPerformanceMetrics.latestTimestamp > 0 ? formatRelativeTime(new Date(globalPerformanceMetrics.latestTimestamp), params.lang) : ''}
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-lg border border-orange-200 dark:border-orange-800">
-                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t.monitoring.metrics.cls}</div>
-                      <div className="text-lg font-bold text-gray-900 dark:text-white">
-                        {globalPerformanceMetrics.latestCls > 0 ? globalPerformanceMetrics.latestCls.toFixed(3) : '--'}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {globalPerformanceMetrics.latestTimestamp > 0 ? formatRelativeTime(new Date(globalPerformanceMetrics.latestTimestamp), params.lang) : ''}
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20 p-4 rounded-lg border border-pink-200 dark:border-pink-800">
-                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t.monitoring.metrics.fid}</div>
-                      <div className="text-lg font-bold text-gray-900 dark:text-white">
-                        {globalPerformanceMetrics.latestFid > 0 ? `${globalPerformanceMetrics.latestFid.toFixed(0)}ms` : '--'}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {globalPerformanceMetrics.latestTimestamp > 0 ? formatRelativeTime(new Date(globalPerformanceMetrics.latestTimestamp), params.lang) : ''}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Summary Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">总页面数</div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{globalPerformanceMetrics.totalPages}</div>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t.monitoring.visitCount}</div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{globalPerformanceMetrics.totalVisits}</div>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t.monitoring.lastCollected}</div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                      {globalPerformanceMetrics.latestTimestamp > 0 ? formatRelativeTime(new Date(globalPerformanceMetrics.latestTimestamp), params.lang) : '--'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
+            <div>
               {/* Page Performance Details */}
               <div>
                 <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t.monitoring.pagePerformance}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6">
                   {frontendPerformanceData.map((page, index) => {
-                    const getGradeColor = (grade: string) => {
-                      switch (grade) {
-                        case 'good': return 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200';
-                        case 'needs-improvement': return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200';
-                        case 'poor': return 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200';
-                        default: return 'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200';
-                      }
-                    };
-
-                    const getGradeText = (grade: string) => {
-                      switch (grade) {
-                        case 'good': return t.monitoring.performanceGrade.good;
-                        case 'needs-improvement': return t.monitoring.performanceGrade.needsImprovement;
-                        case 'poor': return t.monitoring.performanceGrade.poor;
-                        default: return t.monitoring.performanceGrade.unknown;
-                      }
-                    };
+              
 
                     const bgColors = [
                       'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800',
@@ -317,97 +158,224 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
                       'bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20 border-pink-200 dark:border-pink-800',
                     ];
 
+                    // 性能指标评估函数
+                    const getPerformanceGrade = (value: number, metric: string) => {
+                      const thresholds = {
+                        lcp: { good: 2500, poor: 4000 },
+                        fcp: { good: 1800, poor: 3000 },
+                        ttfb: { good: 800, poor: 1800 },
+                        cls: { good: 0.1, poor: 0.25 },
+                        fid: { good: 100, poor: 300 }
+                      };
+                      
+                      const threshold = thresholds[metric as keyof typeof thresholds];
+                      if (!threshold) return 'unknown';
+                      
+                      if (value <= threshold.good) return 'good';
+                      if (value <= threshold.poor) return 'needs-improvement';
+                      return 'poor';
+                    };
+
+                    const getGradeColor = (grade: string) => {
+                      switch (grade) {
+                        case 'good': return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20';
+                        case 'needs-improvement': return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20';
+                        case 'poor': return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/20';
+                        default: return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/20';
+                      }
+                    };
+
+                    const getGradeText = (grade: string) => {
+                      switch (grade) {
+                        case 'good': return '优秀';
+                        case 'needs-improvement': return '需改进';
+                        case 'poor': return '较差';
+                        default: return '未知';
+                      }
+                    };
+
+                    const formatMetric = (value: number, metric: string) => {
+                      if (metric === 'cls') return value.toFixed(1);
+                      if (metric === 'fid' || metric === 'lcp' || metric === 'fcp' || metric === 'ttfb') return `${value.toFixed(1)}ms`;
+                      return value.toFixed(1);
+                    };
+
                     return (
-                      <div key={page.pageName} className={`p-6 ${bgColors[index % bgColors.length]} rounded-xl border hover:shadow-lg transition-all duration-300`}>
+                      <div key={page.module} className={`p-6 ${bgColors[index % bgColors.length]} rounded-xl border hover:shadow-lg transition-all duration-300`}>
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex-1">
                             <h5 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
-                              {page.pageTitle || page.pageName}
+                              {page.module}
                             </h5>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {t.monitoring.pagePerformance}
+                           
+                            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                              更新时间: {formatRelativeTime(new Date(page.timestamp), params.lang)}
                             </p>
                           </div>
-                          <span className={`text-xs px-3 py-1 rounded-full font-medium ${getGradeColor(page.overallGrade)}`}>
-                            {getGradeText(page.overallGrade)}
-                          </span>
+                         
                         </div>
                         
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">{t.monitoring.metrics.lcp}:</span>
-                            <div className="text-right">
-                              <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                                {page.averageLcp > 0 ? `${(page.averageLcp / 1000).toFixed(1)}s` : '--'}
+                        {/* 性能指标紧凑垂直排列 */}
+                        <div className="space-y-2 max-w-xs">
+                          {/* LCP */}
+                          <div className="group relative bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div className="text-base font-bold text-gray-900 dark:text-white">
+                                  {formatMetric(page.lcp, 'lcp')}
+                                </div>
+                                <div className="text-xs font-medium text-gray-700 dark:text-gray-300">LCP</div>
                               </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {page.latestLcp > 0 ? `最新: ${(page.latestLcp / 1000).toFixed(1)}s` : ''}
+                            </div>
+                            
+                            {/* Hover 详细信息 */}
+                            <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-xl border border-gray-200 dark:border-gray-700 z-10 min-w-[200px]">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white">
+                                    {formatMetric(page.lcp, 'lcp')}
+                                  </div>
+                                  <div className="text-xs font-medium text-gray-700 dark:text-gray-300">LCP</div>
+                                </div>
+                                <div className={`px-2 py-1 rounded-full text-xs font-medium ${getGradeColor(getPerformanceGrade(page.lcp, 'lcp'))}`}>
+                                  {getGradeText(getPerformanceGrade(page.lcp, 'lcp'))}
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-500">
+                                {params.lang === 'zh' ? '最大内容绘制' : 'Largest Contentful Paint'}
                               </div>
                             </div>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">{t.monitoring.metrics.fcp}:</span>
-                            <div className="text-right">
-                              <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                                {page.averageFcp > 0 ? `${(page.averageFcp / 1000).toFixed(1)}s` : '--'}
+
+                          {/* FCP */}
+                          <div className="group relative bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div className="text-base font-bold text-gray-900 dark:text-white">
+                                  {formatMetric(page.fcp, 'fcp')}
+                                </div>
+                                <div className="text-xs font-medium text-gray-700 dark:text-gray-300">FCP</div>
                               </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {page.latestFcp > 0 ? `最新: ${(page.latestFcp / 1000).toFixed(1)}s` : ''}
+                            </div>
+                            
+                            {/* Hover 详细信息 */}
+                            <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-xl border border-gray-200 dark:border-gray-700 z-10 min-w-[200px]">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white">
+                                    {formatMetric(page.fcp, 'fcp')}
+                                  </div>
+                                  <div className="text-xs font-medium text-gray-700 dark:text-gray-300">FCP</div>
+                                </div>
+                                <div className={`px-2 py-1 rounded-full text-xs font-medium ${getGradeColor(getPerformanceGrade(page.fcp, 'fcp'))}`}>
+                                  {getGradeText(getPerformanceGrade(page.fcp, 'fcp'))}
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-500">
+                                {params.lang === 'zh' ? '首次内容绘制' : 'First Contentful Paint'}
                               </div>
                             </div>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">{t.monitoring.metrics.ttfb}:</span>
-                            <div className="text-right">
-                              <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                                {page.averageTtfb > 0 ? `${page.averageTtfb.toFixed(0)}ms` : '--'}
+
+                          {/* TTFB */}
+                          <div className="group relative bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div className="text-base font-bold text-gray-900 dark:text-white">
+                                  {formatMetric(page.ttfb, 'ttfb')}
+                                </div>
+                                <div className="text-xs font-medium text-gray-700 dark:text-gray-300">TTFB</div>
                               </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {page.latestTtfb > 0 ? `最新: ${page.latestTtfb.toFixed(0)}ms` : ''}
+                            </div>
+                            
+                            {/* Hover 详细信息 */}
+                            <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-xl border border-gray-200 dark:border-gray-700 z-10 min-w-[200px]">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white">
+                                    {formatMetric(page.ttfb, 'ttfb')}
+                                  </div>
+                                  <div className="text-xs font-medium text-gray-700 dark:text-gray-300">TTFB</div>
+                                </div>
+                                <div className={`px-2 py-1 rounded-full text-xs font-medium ${getGradeColor(getPerformanceGrade(page.ttfb, 'ttfb'))}`}>
+                                  {getGradeText(getPerformanceGrade(page.ttfb, 'ttfb'))}
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-500">
+                                {params.lang === 'zh' ? '首字节时间' : 'Time to First Byte'}
                               </div>
                             </div>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">{t.monitoring.metrics.cls}:</span>
-                            <div className="text-right">
-                              <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                                {page.averageCls > 0 ? page.averageCls.toFixed(3) : '--'}
+
+                          {/* CLS */}
+                          <div className="group relative bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div className="text-base font-bold text-gray-900 dark:text-white">
+                                  {formatMetric(page.cls, 'cls')}
+                                </div>
+                                <div className="text-xs font-medium text-gray-700 dark:text-gray-300">CLS</div>
                               </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {page.latestCls > 0 ? `最新: ${page.latestCls.toFixed(3)}` : ''}
+                            </div>
+                            
+                            {/* Hover 详细信息 */}
+                            <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-xl border border-gray-200 dark:border-gray-700 z-10 min-w-[200px]">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white">
+                                    {formatMetric(page.cls, 'cls')}
+                                  </div>
+                                  <div className="text-xs font-medium text-gray-700 dark:text-gray-300">CLS</div>
+                                </div>
+                                <div className={`px-2 py-1 rounded-full text-xs font-medium ${getGradeColor(getPerformanceGrade(page.cls, 'cls'))}`}>
+                                  {getGradeText(getPerformanceGrade(page.cls, 'cls'))}
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-500">
+                                {params.lang === 'zh' ? '累积布局偏移' : 'Cumulative Layout Shift'}
                               </div>
                             </div>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">{t.monitoring.metrics.fid}:</span>
-                            <div className="text-right">
-                              <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                                {page.averageFid > 0 ? `${page.averageFid.toFixed(0)}ms` : '--'}
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {page.latestFid > 0 ? `最新: ${page.latestFid.toFixed(0)}ms` : ''}
+
+                          {/* FID */}
+                          <div className="group relative bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div className="text-base font-bold text-gray-900 dark:text-white">
+                                  {formatMetric(page.fid, 'fid')}
+                                </div>
+                                <div className="text-xs font-medium text-gray-700 dark:text-gray-300">FID</div>
                               </div>
                             </div>
-                          </div>
-                          
-                          <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-600 dark:text-gray-400">{t.monitoring.visitCount}:</span>
-                              <span className="text-lg font-bold text-gray-900 dark:text-white">{page.totalVisits}</span>
-                            </div>
-                            {page.latestTimestamp > 0 && (
-                              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                {formatRelativeTime(new Date(page.latestTimestamp), params.lang)}
+                            
+                            {/* Hover 详细信息 */}
+                            <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-xl border border-gray-200 dark:border-gray-700 z-10 min-w-[200px]">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white">
+                                    {formatMetric(page.fid, 'fid')}
+                                  </div>
+                                  <div className="text-xs font-medium text-gray-700 dark:text-gray-300">FID</div>
+                                </div>
+                                <div className={`px-2 py-1 rounded-full text-xs font-medium ${getGradeColor(getPerformanceGrade(page.fid, 'fid'))}`}>
+                                  {getGradeText(getPerformanceGrade(page.fid, 'fid'))}
+                                </div>
                               </div>
-                            )}
+                              <div className="text-xs text-gray-500 dark:text-gray-500">
+                                {params.lang === 'zh' ? '首次输入延迟' : 'First Input Delay'}
+                              </div>
+                            </div>
                           </div>
                         </div>
+
+                        {/* 性能趋势指示器 */}
+                       
                       </div>
                     );
                   })}
                 </div>
               </div>
-            </>
+            </div>
           )}
         </div>
 
@@ -429,12 +397,7 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
             </div>
           </div>
           
-          {loading ? (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              <LoadingSpinner size="lg" className="mb-4" />
-              <p>{t.monitoring.loading}</p>
-            </div>
-          ) : monitorData.length === 0 ? (
+          {monitorData.length === 0 ? (
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <div className="text-6xl mb-4">🔧</div>
               <p className="text-lg font-medium mb-2">{t.monitoring.noData}</p>
@@ -489,48 +452,12 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
                 </div>
               </div>
 
-              {/* API Request Details */}
-              <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-hide">
-                {monitorData.map((item) => (
-                  <div key={item.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getMethodColor(item.method)}`}>
-                          {item.method}
-                        </span>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusCodeColor(item.status_code)}`}>
-                          {item.status_code}
-                        </span>
-                      </div>
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {formatDuration(item.duration)}
-                      </span>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-600 dark:text-gray-400 font-medium">URL:</span>
-                        <span className="text-gray-900 dark:text-white font-mono text-xs truncate flex-1">
-                          {item.url}
-                        </span>
-                      </div>
-                      {item.query && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-600 dark:text-gray-400 font-medium">Query:</span>
-                          <span className="text-gray-900 dark:text-white font-mono text-xs truncate flex-1">
-                            {item.query}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-600 dark:text-gray-400 font-medium">Time:</span>
-                        <span className="text-gray-900 dark:text-white text-xs">
-                          {formatRelativeTime(item.timestamp, params.lang)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {/* API Request Details with Pagination */}
+              <MonitorDataClient 
+                lang={params.lang}
+                initialData={monitorData}
+                initialPagination={monitorPagination}
+              />
             </>
           )}
         </div>

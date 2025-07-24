@@ -88,7 +88,6 @@ export default observer(function MediaContent({ initialData, params, searchParam
     const urlState = urlStore.getAllParams();
     const hasUrlParams = Object.keys(urlState).length > 0;
     if (hasUrlParams) {
-      console.log('Initial URL state, fetching data:', urlState);
       fetchData(urlState);
     }
 

@@ -21,14 +21,12 @@ let performanceMetrics: PerformanceMetrics = {
 export function initPerformanceMonitoring(): void {
   if (typeof window === 'undefined') return;
 
-  console.log('Initializing performance monitoring...');
   
   // 立即检查FCP，因为它可能在DOMContentLoaded之前就发生了
   setTimeout(() => {
     const fcp = getFCPFromPerformanceAPI();
     if (fcp) {
       performanceMetrics.fcp = fcp;
-      console.log('Early FCP collected:', fcp);
     }
   }, 100);
   
@@ -44,7 +42,7 @@ export function initPerformanceMonitoring(): void {
 
 // 内部初始化函数
 function initPerformanceMonitoringInternal(): void {
-  console.log('Initializing performance monitoring internal...');
+
 
   // 监听LCP (Largest Contentful Paint)
   if ('PerformanceObserver' in window) {
@@ -54,11 +52,11 @@ function initPerformanceMonitoringInternal(): void {
         const lastEntry = entries[entries.length - 1];
         if (lastEntry) {
           performanceMetrics.lcp = lastEntry.startTime;
-          console.log('LCP collected:', performanceMetrics.lcp);
+
         }
       });
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
-      console.log('LCP observer initialized');
+
     } catch (e) {
       console.warn('LCP monitoring not supported:', e);
     }
@@ -70,11 +68,11 @@ function initPerformanceMonitoringInternal(): void {
         const firstEntry = entries[0];
         if (firstEntry) {
           performanceMetrics.fcp = firstEntry.startTime;
-          console.log('FCP collected:', performanceMetrics.fcp);
+
         }
       });
       fcpObserver.observe({ entryTypes: ['first-contentful-paint'] });
-      console.log('FCP observer initialized');
+
     } catch (e) {
       console.warn('FCP monitoring not supported:', e);
     }
@@ -90,10 +88,10 @@ function initPerformanceMonitoringInternal(): void {
           }
         }
         performanceMetrics.cls = clsValue;
-        console.log('CLS collected:', performanceMetrics.cls);
+
       });
       clsObserver.observe({ entryTypes: ['layout-shift'] });
-      console.log('CLS observer initialized');
+
     } catch (e) {
       console.warn('CLS monitoring not supported:', e);
     }
@@ -105,11 +103,11 @@ function initPerformanceMonitoringInternal(): void {
         const firstEntry = entries[0] as any;
         if (firstEntry) {
           performanceMetrics.fid = firstEntry.processingStart - firstEntry.startTime;
-          console.log('FID collected:', performanceMetrics.fid);
+
         }
       });
       fidObserver.observe({ entryTypes: ['first-input'] });
-      console.log('FID observer initialized');
+
     } catch (e) {
       console.warn('FID monitoring not supported:', e);
     }
@@ -118,7 +116,7 @@ function initPerformanceMonitoringInternal(): void {
   // 获取TTFB (Time to First Byte)
   getTTFB();
   
-  console.log('Performance monitoring initialization completed');
+
 }
 
 // 获取TTFB
@@ -130,7 +128,7 @@ function getTTFB(): void {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
     if (navigation) {
       performanceMetrics.ttfb = navigation.responseStart - navigation.requestStart;
-      console.log('TTFB:', performanceMetrics.ttfb);
+
     }
   }
 }
@@ -165,7 +163,7 @@ export function getFCPFromPerformanceAPI(): number | undefined {
     const entries = performance.getEntriesByType('first-contentful-paint');
     if (entries.length > 0) {
       const firstEntry = entries[0];
-      console.log('FCP found in Performance API:', firstEntry.startTime);
+
       return firstEntry.startTime;
     }
     
@@ -173,11 +171,11 @@ export function getFCPFromPerformanceAPI(): number | undefined {
     const paintEntries = performance.getEntriesByType('paint');
     const fcpEntry = paintEntries.find(entry => entry.name === 'first-contentful-paint');
     if (fcpEntry) {
-      console.log('FCP found in paint entries:', fcpEntry.startTime);
+      
       return fcpEntry.startTime;
     }
     
-    console.log('No FCP entries found in Performance API');
+    
   } catch (e) {
     console.warn('Failed to get FCP from Performance API:', e);
   }
@@ -194,11 +192,11 @@ export function getFIDFromPerformanceAPI(): number | undefined {
     if (entries.length > 0) {
       const firstEntry = entries[0] as any;
       const fid = firstEntry.processingStart - firstEntry.startTime;
-      console.log('FID found in Performance API:', fid);
+      
       return fid;
     }
     
-    console.log('No FID entries found in Performance API');
+
   } catch (e) {
     console.warn('Failed to get FID from Performance API:', e);
   }
@@ -231,7 +229,7 @@ export function getCLSFromPerformanceAPI(): number | undefined {
 
 // 获取当前性能指标
 export function getPerformanceMetrics(): PerformanceMetrics {
-  console.log('Current performance metrics:', performanceMetrics);
+  
   
   // 如果某些指标没有数据，尝试直接从Performance API获取
   const currentMetrics = { ...performanceMetrics };
@@ -240,7 +238,7 @@ export function getPerformanceMetrics(): PerformanceMetrics {
     const lcpFromAPI = getLCPFromPerformanceAPI();
     if (lcpFromAPI) {
       currentMetrics.lcp = lcpFromAPI;
-      console.log('LCP retrieved from API in getPerformanceMetrics:', lcpFromAPI);
+      
     }
   }
   
@@ -248,7 +246,7 @@ export function getPerformanceMetrics(): PerformanceMetrics {
     const fcpFromAPI = getFCPFromPerformanceAPI();
     if (fcpFromAPI) {
       currentMetrics.fcp = fcpFromAPI;
-      console.log('FCP retrieved from API in getPerformanceMetrics:', fcpFromAPI);
+      
     }
   }
   
@@ -256,7 +254,7 @@ export function getPerformanceMetrics(): PerformanceMetrics {
     const clsFromAPI = getCLSFromPerformanceAPI();
     if (clsFromAPI) {
       currentMetrics.cls = clsFromAPI;
-      console.log('CLS retrieved from API in getPerformanceMetrics:', clsFromAPI);
+      
     }
   }
   
@@ -265,26 +263,18 @@ export function getPerformanceMetrics(): PerformanceMetrics {
 
 // 检查性能监控状态
 export function checkPerformanceMonitoringStatus(): void {
-  if (typeof window === 'undefined') {
-    console.log('Performance monitoring: Not available (server-side)');
-    return;
-  }
-
-  console.log('Performance monitoring status:');
-  console.log('- PerformanceObserver supported:', 'PerformanceObserver' in window);
-  console.log('- Performance API supported:', 'performance' in window);
   
   if ('performance' in window) {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    console.log('- Navigation timing available:', !!navigation);
+    
     
     if (navigation) {
-      console.log('- Page load time:', performance.now());
-      console.log('- Navigation start:', navigation.startTime);
+      
+      
     }
   }
   
-  console.log('- Current metrics:', performanceMetrics);
+  
 }
 
 // 重置性能指标
@@ -401,7 +391,7 @@ function triggerFIDCollection(): void {
 
 // 强制收集所有性能指标
 export function forceCollectAllMetrics(): PerformanceMetrics {
-  console.log('Force collecting all performance metrics...');
+  
   
   // 首先获取已经收集到的指标
   const currentMetrics = { ...performanceMetrics };
@@ -441,19 +431,19 @@ export function forceCollectAllMetrics(): PerformanceMetrics {
   // 优先使用已收集的CLS，如果没有则从API获取
   if (currentMetrics.cls) {
     metrics.cls = currentMetrics.cls;
-    console.log('CLS from cache:', metrics.cls);
+    
   } else {
     const cls = getCLSFromPerformanceAPI();
     if (cls) {
       metrics.cls = cls;
-      console.log('CLS from API:', metrics.cls);
+      
     }
   }
   
   // 优先使用已收集的FID，如果没有则从API获取
   if (currentMetrics.fid) {
     metrics.fid = currentMetrics.fid;
-    console.log('FID from cache:', metrics.fid);
+    
   } else {
     // 尝试触发FID收集
     triggerFIDCollection();
@@ -463,20 +453,20 @@ export function forceCollectAllMetrics(): PerformanceMetrics {
       const fid = getFIDFromPerformanceAPI();
       if (fid) {
         metrics.fid = fid;
-        console.log('FID from API after trigger:', fid);
+        
       }
     }, 200);
     
     const fid = getFIDFromPerformanceAPI();
     if (fid) {
       metrics.fid = fid;
-      console.log('FID from API:', fid);
+      
     }
   }
   
   // 更新全局缓存
   performanceMetrics = { ...performanceMetrics, ...metrics };
   
-  console.log('All metrics collected:', metrics);
+  
   return metrics;
 } 

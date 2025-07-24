@@ -17,11 +17,7 @@ class WebSocketManager {
     }
 
     this.isConnecting = true;
-    console.log('WebSocket: Environment check:', {
-      NODE_ENV: process.env.NODE_ENV,
-      NEXT_PUBLIC_API_URL: configApi.NEXT_PUBLIC_API_URL,
-      serverUrl: configApi.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-    });
+
     
     try {
       // 使用 socket.io-client 连接
@@ -65,18 +61,15 @@ class WebSocketManager {
 
       // 监听监控数据更新
       this.socket.on('monitorUpdate', (data: any) => {
-        console.log('WebSocket: Monitor update received:', data);
         this.notifyListeners('monitorUpdate', data);
       });
 
       // 监听同步完成通知
       this.socket.on('syncComplete', (data: any) => {
-        console.log('WebSocket: Sync complete received:', data);
         this.notifyListeners('syncComplete', data);
       });
 
     } catch (error) {
-      console.error('WebSocket: Failed to connect:', error);
       this.isConnecting = false;
       this.scheduleReconnect();
     }
@@ -86,7 +79,6 @@ class WebSocketManager {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       setTimeout(() => {
-        console.log(`WebSocket: Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
         this.connect();
       }, this.reconnectInterval);
     }
@@ -98,10 +90,7 @@ class WebSocketManager {
     }
     // 检查是否已经存在相同的回调函数
     if (!this.listeners[event].includes(callback)) {
-      console.log(`WebSocket: Adding listener for event: ${event}`);
       this.listeners[event].push(callback);
-    } else {
-      console.log(`WebSocket: Listener for event ${event} already exists, skipping`);
     }
   }
 
@@ -109,7 +98,6 @@ class WebSocketManager {
     if (this.listeners[event]) {
       const index = this.listeners[event].indexOf(callback);
       if (index > -1) {
-        console.log(`WebSocket: Removing listener for event: ${event}`);
         this.listeners[event].splice(index, 1);
       }
     }
@@ -117,22 +105,17 @@ class WebSocketManager {
 
   private notifyListeners(event: string, data: any) {
     if (this.listeners[event]) {
-      console.log(`WebSocket: Notifying ${this.listeners[event].length} listeners for event: ${event}`);
       this.listeners[event].forEach(callback => {
         try {
           callback(data);
         } catch (error) {
-          console.error('WebSocket: Error in listener callback:', error);
         }
       });
-    } else {
-      console.log(`WebSocket: No listeners for event: ${event}`);
     }
   }
 
   disconnect() {
     if (this.socket) {
-      console.log('WebSocket: Disconnecting...');
       this.socket.disconnect();
       this.socket = null;
     }
@@ -153,7 +136,6 @@ let isInitialized = false;
 
 const initializeWebSocket = () => {
   if (typeof window !== 'undefined' && !isInitialized) {
-    console.log('WebSocket: Initializing...');
     wsManager.connect();
     isInitialized = true;
   }
@@ -175,14 +157,12 @@ export const websocketService = {
   
   // 添加事件监听器
   on: (event: string, callback: Function) => {
-    console.log(`WebSocket Service: Adding listener for ${event}`);
     initializeWebSocket(); // 确保在添加监听器时已连接
     wsManager.addListener(event, callback);
   },
   
   // 移除事件监听器
-  off: (event: string, callback: Function) => {
-    console.log(`WebSocket Service: Removing listener for ${event}`);
+  off: (event: string, callback: Function) => { console.log(`WebSocket Service: Removing listener for ${event}`);
     wsManager.removeListener(event, callback);
   },
   

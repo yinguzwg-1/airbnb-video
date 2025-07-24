@@ -59,7 +59,6 @@ export const NotificationManager: React.FC = () => {
     };
 
     if (!shouldShowNotification()) {
-      console.log('Skipping notification with zero records:', safeNotification);
       return;
     }
 
@@ -68,7 +67,6 @@ export const NotificationManager: React.FC = () => {
     
     // 检查是否是重复通知（1秒内的相同通知）
     if (recentNotificationsRef.current.has(notificationKey)) {
-      console.log('Skipping duplicate notification:', notificationKey);
       return;
     }
 
@@ -80,7 +78,6 @@ export const NotificationManager: React.FC = () => {
       recentNotificationsRef.current.delete(notificationKey);
     }, 1000);
 
-    console.log('Adding notification to UI:', safeNotification);
     setNotifications(prev => [...prev, safeNotification]);
     
     // 5秒后自动移除通知
@@ -94,11 +91,9 @@ export const NotificationManager: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log('NotificationManager: Setting up event listeners');
     
     // 创建事件处理函数
     const handleMonitorUpdate = (data: any) => {
-      console.log('Received monitorUpdate event:', data);
       // 清除之前的防抖定时器
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);

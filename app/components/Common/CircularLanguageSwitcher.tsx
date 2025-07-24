@@ -15,14 +15,6 @@ export default function CircularLanguageSwitcher() {
     const nextIndex = (currentIndex + 1) % supportedLanguages.length;
     const newLanguage = supportedLanguages[nextIndex];
 
-    console.log('Language toggle:', {
-      currentLanguage: language,
-      nextLanguage: newLanguage,
-      currentIndex,
-      nextIndex,
-      supportedLanguages
-    });
-
     // 详细的埋点记录
     tracker?.track('language_toggle', {
       old_language: language,

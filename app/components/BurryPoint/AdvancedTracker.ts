@@ -12,10 +12,10 @@ interface EventData {
   event_time: string;
   user_id: string;
   session_id: string;
-  device_fingerprint: string;
   properties: Record<string, any>;
   sdk_version: string;
   app_id: string;
+  module: string;
 }
 
 interface CommonProperties {
@@ -74,18 +74,17 @@ class AdvancedTracker {
    * @param eventName 事件名称
    * @param properties 事件属性
    */
-  public track(eventName: string, properties: Record<string, any> = {}): void {
+  public track(eventName: string, properties: Record<string, any> = {}, module: string = ''): void {
     const event: EventData = {
       event_id: eventName,
       event_time: new Date().toISOString(),
       user_id: this.userId,
       session_id: this.sessionId,
-      device_fingerprint: this.deviceFingerprint,
       properties: this.enrichProperties(properties),
       sdk_version: '1.0.0',
       app_id: this.config.appId,
+      module: module,
     };
-    console.log('event', event);
     this.queue.push(event);
     
     // 达到批量大小立即发送
@@ -107,7 +106,6 @@ class AdvancedTracker {
 
     const eventsToSend = [...this.queue];
     this.queue = [];
-    console.log('eventsToSend', eventsToSend);
     this.sendData(eventsToSend)
       .then(() => {
         this.retryCount = 0; // 重置重试计数器
