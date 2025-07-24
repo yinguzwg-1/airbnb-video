@@ -60,7 +60,6 @@ export default function BurryPointClient({
   
   const { events, total, hasMore, stats } = data || { events: [], total: 0, hasMore: false, stats: { totalEvents: 0, uniqueSessions: 0, todayEvents: 0, moduleStats: [], deviceStats: { web: 0, mobile: 0, unknown: 0 } } };
   const { uniqueUsers } = stats;
-  console.log('--------stats----------------------',stats);
   // 分页处理函数
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
