@@ -87,28 +87,6 @@ export default async function MonitoringPage({ params }: MonitoringPageProps) {
     console.error('Failed to load data:', error);
   }
 
-  // 工具函数
-  const getStatusCodeColor = (statusCode: number) => {
-    if (statusCode >= 200 && statusCode < 300) return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20';
-    if (statusCode >= 300 && statusCode < 400) return 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20';
-    if (statusCode >= 400 && statusCode < 500) return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20';
-    return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/20';
-  };
-
-  const getMethodColor = (method: string) => {
-    switch (method.toUpperCase()) {
-      case 'GET': return 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20';
-      case 'POST': return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20';
-      case 'PUT': return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20';
-      case 'DELETE': return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/20';
-      default: return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/20';
-    }
-  };
-
-  const formatDuration = (duration: number) => {
-    return duration < 1000 ? `${duration}ms` : `${(duration / 1000).toFixed(2)}s`;
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       {/* Top Navigation Bar */}
