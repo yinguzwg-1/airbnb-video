@@ -1,5 +1,6 @@
 import { Language, translations } from "../i18n";
 import { CircularLanguageSwitcher, CircularThemeSwitcher, HomePageClient } from "../components";
+import Swiper from "../components/Swiper";
 
 interface HomePageProps {
   params: { lang: Language };
@@ -62,7 +63,7 @@ export default async function HomePage({ params }: HomePageProps) {
     //   position: 'top-left' // 左上
     // }
   ];
-
+  
   return (
     <div className="relative">
       {/* 语言和主题切换器 */}
