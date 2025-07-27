@@ -62,6 +62,14 @@ const nextConfig = {
       };
     }
     return config;
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/api/:path*" : "https://zwg.autos/api/:path*" // 转发到 NestJS 端口
+      }
+    ];
   }
 };
 

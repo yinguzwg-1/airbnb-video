@@ -63,9 +63,43 @@ export default async function HomePage({ params }: HomePageProps) {
     //   position: 'top-left' // 左上
     // }
   ];
-  
+  const carouselItems = [
+    {
+      id: 1,
+      content: (
+        <div className="h-64 bg-blue-500 flex items-center justify-center text-white text-2xl">
+          Slide 1 Content
+        </div>
+      ),
+    },
+    {
+      id: 2,
+      content: (
+        <div className="h-64 bg-green-500 flex items-center justify-center text-white text-2xl">
+          Slide 2 Content
+        </div>
+      ),
+    },
+    {
+      id: 3,
+      content: (
+        <div className="h-64 bg-purple-500 flex items-center justify-center text-white text-2xl">
+          Slide 3 Content
+        </div>
+      ),
+    },
+  ];
   return (
     <div className="relative">
+      <div className="max-w-4xl mx-auto mt-10">
+        <Swiper
+          items={carouselItems}
+          autoPlay={true}
+          interval={2000}
+          showArrows={true}
+          showDots={true}
+        />
+      </div>
       {/* 语言和主题切换器 */}
       <div className="absolute top-6 right-6 z-10 md:top-8 md:right-8 flex gap-3">
         <CircularLanguageSwitcher />

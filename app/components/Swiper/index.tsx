@@ -15,7 +15,7 @@ interface CarouselProps {
   transitionDuration?: number;
 }
 
-const Swiper: React.FC<CarouselProps> = ({
+const Carousel: React.FC<CarouselProps> = ({
   items,
   autoPlay = true,
   interval = 3000,
@@ -100,15 +100,15 @@ const Swiper: React.FC<CarouselProps> = ({
   };
 
   // 处理过渡结束事件
-  // const handleTransitionEnd = () => {
-  //   if (currentIndex === 0) {
-  //     setIsTransitioning(false);
-  //     setCurrentIndex(totalItems - 2);
-  //   } else if (currentIndex === totalItems - 1) {
-  //     setIsTransitioning(false);
-  //     setCurrentIndex(1);
-  //   }
-  // };
+  const handleTransitionEnd = () => {
+    if (currentIndex === 0) {
+      setIsTransitioning(false);
+      setCurrentIndex(totalItems - 2);
+    } else if (currentIndex === totalItems - 1) {
+      setIsTransitioning(false);
+      setCurrentIndex(1);
+    }
+  };
 
   return (
     <div
@@ -124,7 +124,7 @@ const Swiper: React.FC<CarouselProps> = ({
           transform: `translateX(-${currentIndex * 100}%)`,
           transition: isTransitioning ? `transform ${transitionDuration}ms ease-in-out` : 'none',
         }}
-        // onTransitionEnd={handleTransitionEnd}
+        onTransitionEnd={handleTransitionEnd}
       >
         {clonedItems.map((item) => (
           <div
@@ -177,4 +177,4 @@ const Swiper: React.FC<CarouselProps> = ({
   );
 };
 
-export default Swiper;
+export default Carousel;
