@@ -14,8 +14,11 @@ export const metadata: Metadata = {
   description: "",
   icons: {
     icon: [
+      { url: '/favicon.ico', sizes: 'any' },
       { url: '/favicon.svg', sizes: 'any', type: 'image/svg+xml' },
     ],
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
   },
 };
 

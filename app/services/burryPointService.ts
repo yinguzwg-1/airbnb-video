@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { get } from '@/app/utils/apiUtils';
 import {
   TrackerEvent,
   CreateTrackerEvent,
@@ -35,12 +35,8 @@ export const burryPointService = {
       if (page) params.append('page', page);
       if (limit) params.append('limit', limit);
       
-      const res = await fetch(`${API_BASE}/events?${params.toString()}`, {
-        method: 'GET',
-        cache: 'no-store', // 关键设置
-        next: { revalidate: 0 } // Next.js特有选项
-      });
-      return res.json();
+      const res = await get(`${API_BASE}/events?${params.toString()}`);
+      return res;
     } catch (error) {
       console.error('获取埋点事件列表失败:', error);
       // 返回默认响应而不是抛出错误，避免服务器端渲染失败

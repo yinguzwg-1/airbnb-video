@@ -6,6 +6,37 @@ const nextConfig = {
     // 启用更详细的错误信息
     serverComponentsExternalPackages: [],
   },
+  // 静态资源配置
+  async headers() {
+    return [
+      {
+        source: '/favicon.svg',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'image/svg+xml',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/favicon.ico',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'image/x-icon',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
   // 图片配置
   images: {
     remotePatterns: [

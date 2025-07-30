@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { get, put, del } from '@/app/utils/apiUtils';
 import { 
   MediaItem, 
   MediaType, 
@@ -41,11 +41,11 @@ export const mediaService = {
         queryParams.append('orderBy', order);
       }
       
-      const res = await axios.get(`${API_BASE}/media`, {
+      const res = await get(`${API_BASE}/media`, {
         params: queryParams,
         timeout: 5000 // 5秒超时
       });
-      return res.data;
+      return res;
     } catch (error) {
       console.error('获取媒体列表失败:', error);
       // 返回默认响应而不是抛出错误，避免服务器端渲染失败
@@ -61,10 +61,10 @@ export const mediaService = {
         return ;
       }
       
-      const res = await axios.get(`${API_BASE}/media/${id}`, {
+      const res = await get(`${API_BASE}/media/${id}`, {
         timeout: 5000
       });
-      return res.data;
+      return res;
     } catch (error) {
       console.error('获取媒体详情失败:', error);
       return ;
@@ -79,11 +79,11 @@ export const mediaService = {
         return [];
       }
       
-      const res = await axios.get(`${API_BASE}/media/${id}/related`, { 
+      const res = await get(`${API_BASE}/media/${id}/related`, { 
         params: { limit },
         timeout: 5000
       });
-      return res.data;
+      return res;
     } catch (error) {
       console.error('获取相关推荐失败:', error);
       return [];
@@ -98,10 +98,10 @@ export const mediaService = {
         return { total: 0, movies: 0, tvShows: 0 };
       }
       
-      const res = await axios.get(`${API_BASE}/media/stats`, {
+      const res = await get(`${API_BASE}/media/stats`, {
         timeout: 5000
       });
-      return res.data;
+      return res;
     } catch (error) {
       console.error('获取统计信息失败:', error);
       return { total: 0, movies: 0, tvShows: 0 };
@@ -116,10 +116,10 @@ export const mediaService = {
         return [];
       }
       
-      const res = await axios.get(`${API_BASE}/media/type/${type}`, {
+      const res = await get(`${API_BASE}/media/type/${type}`, {
         timeout: 5000
       });
-      return res.data;
+      return res;
     } catch (error) {
       console.error('按类型获取媒体失败:', error);
       return [];
@@ -134,10 +134,10 @@ export const mediaService = {
         return [];
       }
       
-      const res = await axios.get(`${API_BASE}/media/year/${year}`, {
+      const res = await get(`${API_BASE}/media/year/${year}`, {
         timeout: 5000
       });
-      return res.data;
+      return res;
     } catch (error) {
       console.error('按年份获取媒体失败:', error);
       return [];
@@ -152,10 +152,10 @@ export const mediaService = {
         return [];
       }
       
-      const res = await axios.get(`${API_BASE}/media/status/${status}`, {
+      const res = await get(`${API_BASE}/media/status/${status}`, {
         timeout: 5000
       });
-      return res.data;
+      return res;
     } catch (error) {
       console.error('按状态获取媒体失败:', error);
       return [];
@@ -170,10 +170,10 @@ export const mediaService = {
         return null;
       }
       
-      const res = await axios.patch(`${API_BASE}/media/${id}`, media, {
+      const res = await put(`${API_BASE}/media/${id}`, media, {
         timeout: 5000
       });
-      return res.data;
+      return res;
     } catch (error) {
       console.error('更新媒体失败:', error);
       return null;
@@ -188,7 +188,7 @@ export const mediaService = {
         return false;
       }
       
-      await axios.delete(`${API_BASE}/media/${id}`, {
+      await del(`${API_BASE}/media/${id}`, {
         timeout: 5000
       });
       return true;

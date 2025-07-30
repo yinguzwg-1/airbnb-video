@@ -1,5 +1,5 @@
 import { config } from '@/app/config';
-import axios from 'axios';
+import { get } from '@/app/utils/apiUtils';
 
 export interface FrontendPerformanceData {
   id: number,
@@ -46,13 +46,7 @@ export interface FrontendPerformanceSummary {
 export async function getFrontendPerformanceData(): Promise<FrontendPerformanceSummary[]> {
   try {
 
-    const response = await axios.get<FrontendPerformanceData[]>(`${config.NEXT_PUBLIC_API_URL}/events/frontend-performance`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = response.data;
+    const data = await get<FrontendPerformanceData[]>(`${config.NEXT_PUBLIC_API_URL}/events/frontend-performance`);
     // 过滤出包含性能数据的page_view事件
     const performanceData = data.map((event: FrontendPerformanceData) => ({
       pageName: event.properties.page_name || 'unknown',

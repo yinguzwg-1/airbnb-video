@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Language } from '@/app/i18n';
 import { formatRelativeTime } from '@/app/utils/timeUtils';
 import { config } from '@/app/config';
+import { get } from '@/app/utils/apiUtils';
 
 interface TrackerEvent {
   id: number;
@@ -35,11 +36,7 @@ export default function TrackerEventsClient({
   const fetchEvents = async (page: number, limit: number) => {
     try {
       setLoading(true);
-      const response = await fetch(`${config.NEXT_PUBLIC_API_URL}/events?page=${page}&limit=${limit}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await get(`${config.NEXT_PUBLIC_API_URL}/events?page=${page}&limit=${limit}`);
       if (data.success && data.data) {
         setEvents(data.data.events || []);
         setHasMore(data.data.hasMore || false);
