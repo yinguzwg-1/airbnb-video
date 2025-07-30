@@ -18,7 +18,7 @@ const nextConfig = {
       },
     ],
     // 添加更多图片域名
-    domains: ['localhost'],
+    domains: ['localhost', 'zwg.autos'],
   },
   // 环境变量处理
   env: {
@@ -63,15 +63,15 @@ const nextConfig = {
     }
     return config;
   },
-  async rewrites() {
-    console.log('-------------NODE_ENV-----',process.env.NODE_ENV)
-    return [
-      {
-        source: "/api/:path*",
-        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/api/:path*" : "https://zwg.autos/api/:path*" // 转发到 NestJS 端口
-      }
-    ];
-  }
+  // async rewrites() {
+  //   console.log('-------------NODE_ENV-----',process.env.NODE_ENV)
+  //   return [
+  //     {
+  //       source: "/api/:path*",
+  //       destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/api/:path*" : "https://zwg.autos/api/:path*" // 转发到 NestJS 端口
+  //     }
+  //   ];
+  // }
 };
 
 export default nextConfig;
