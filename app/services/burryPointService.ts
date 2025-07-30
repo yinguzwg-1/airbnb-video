@@ -37,6 +37,8 @@ export const burryPointService = {
       
       const res = await fetch(`${API_BASE}/events?${params.toString()}`, {
         method: 'GET',
+        cache: 'no-store', // 关键设置
+        next: { revalidate: 0 } // Next.js特有选项
       });
       return res.json();
     } catch (error) {

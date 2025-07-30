@@ -140,7 +140,7 @@ export const NotificationManager: React.FC = () => {
       eventHandlersRef.current.syncComplete = null;
     };
   }, [addNotification]);
-
+  console.log('notifications-----------', notifications);
   return (
     <div className="fixed top-0 right-0 z-50 p-4 space-y-2">
       {notifications.map((notification, index) => (
