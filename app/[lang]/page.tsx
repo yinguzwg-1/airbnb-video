@@ -91,7 +91,7 @@ export default async function HomePage({ params }: HomePageProps) {
   ];
   return (
     <div className="relative">
-      <div className="max-w-4xl mx-auto mt-10">
+      {/* <div className="max-w-4xl mx-auto mt-10">
         <Swiper
           items={carouselItems}
           autoPlay={true}
@@ -99,7 +99,7 @@ export default async function HomePage({ params }: HomePageProps) {
           showArrows={true}
           showDots={true}
         />
-      </div>
+      </div> */}
       {/* 语言和主题切换器 */}
       <div className="absolute top-6 right-6 z-10 md:top-8 md:right-8 flex gap-3">
         <CircularLanguageSwitcher />

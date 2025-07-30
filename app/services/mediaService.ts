@@ -162,24 +162,6 @@ export const mediaService = {
     }
   },
 
-  // 创建媒体
-  async createMedia(media: Omit<MediaItem, 'id'>): Promise<MediaItem | null> {
-    try {
-      if (!API_BASE) {
-        console.warn('API_BASE not configured, returning null');
-        return null;
-      }
-      
-      const res = await axios.post(`${API_BASE}/media`, media, {
-        timeout: 5000
-      });
-      return res.data;
-    } catch (error) {
-      console.error('创建媒体失败:', error);
-      return null;
-    }
-  },
-
   // 更新媒体
   async updateMedia(id: string, media: Partial<MediaItem>): Promise<MediaItem | null> {
     try {
