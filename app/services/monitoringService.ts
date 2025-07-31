@@ -17,7 +17,12 @@ export const monitoringService = {
     };
   }> {
     try {
-      const response = await get(`${API_BASE}/monitor?page=${page}&limit=${limit}`);
+      // 添加时间戳参数强制刷新，禁用缓存
+      const timestamp = Date.now();
+      const response = await get(`${API_BASE}/monitor?page=${page}&limit=${limit}&t=${timestamp}`, {
+        forceRefresh: true,
+        enableCache: false
+      });
       return response;
     } catch (error) {
       console.error('获取监控数据失败:', error);
@@ -33,7 +38,12 @@ export const monitoringService = {
     statusCodeDistribution: Record<number, number>;
   }> {
     try {
-      const response = await get(`${API_BASE}/monitor/stats`);
+      // 添加时间戳参数强制刷新，禁用缓存
+      const timestamp = Date.now();
+      const response = await get(`${API_BASE}/monitor/stats?t=${timestamp}`, {
+        forceRefresh: true,
+        enableCache: false
+      });
       return response;
     } catch (error) {
       console.error('获取监控统计数据失败:', error);

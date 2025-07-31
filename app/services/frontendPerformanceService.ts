@@ -45,8 +45,12 @@ export interface FrontendPerformanceSummary {
 // 获取前端性能数据
 export async function getFrontendPerformanceData(): Promise<FrontendPerformanceSummary[]> {
   try {
-
-    const data = await get<FrontendPerformanceData[]>(`${config.NEXT_PUBLIC_API_URL}/events/frontend-performance`);
+    // 添加时间戳参数强制刷新，禁用缓存
+    const timestamp = Date.now();
+    const data = await get<FrontendPerformanceData[]>(`${config.NEXT_PUBLIC_API_URL}/events/frontend-performance?t=${timestamp}`, {
+      forceRefresh: true,
+      enableCache: false
+    });
     // 过滤出包含性能数据的page_view事件
     const performanceData = data.map((event: FrontendPerformanceData) => ({
       pageName: event.properties.page_name || 'unknown',

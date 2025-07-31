@@ -5,6 +5,11 @@ import { config } from "@/app/config";
 import { monitoringService } from "@/app/services/monitoringService";
 import { FrontendPerformanceData, FrontendPerformanceSummary, getFrontendPerformanceData } from "@/app/services/frontendPerformanceService";
 
+// 强制动态渲染，禁用缓存
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 interface MonitoringPageProps {
   params: { lang: Language };
 }
