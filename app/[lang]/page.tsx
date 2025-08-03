@@ -21,7 +21,7 @@ export default async function HomePage({ params }: HomePageProps) {
       id: 'media',
       icon: '🎬',
       route: `/${lang}/media`,
-      gradient: 'gradient-purple-pink',
+      gradient: 'bg-gradient-to-br from-purple-500 via-pink-500 to-red-500',
       title: t.home.modules.media.title,
       description: t.home.modules.media.description,
       position: 'top' // 顶部
@@ -30,16 +30,25 @@ export default async function HomePage({ params }: HomePageProps) {
       id: 'blog',
       icon: '📝',
       route: `/${lang}/blog`,
-      gradient: 'gradient-purple-indigo',
+      gradient: 'bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500',
       title: t.home.modules.blog.title,
       description: t.home.modules.blog.description,
       position: 'top-right' // 右上
     },
     {
+      id: 'music',
+      icon: '🎵',
+      route: `/${lang}/music`,
+      gradient: 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-500',
+      title: '音乐搜索',
+      description: '搜索你喜欢的音乐，支持歌手、歌名、歌词搜索',
+      position: 'center' // 中心
+    },
+    {
       id: 'burrypoint',
       icon: '📊',
       route: `/${lang}/burrypoint`,
-      gradient: 'gradient-purple-blue',
+      gradient: 'bg-gradient-to-br from-green-500 via-teal-500 to-cyan-500',
       title: t.home.modules.burrypoint.title,
       description: t.home.modules.burrypoint.description,
       position: 'bottom-right' // 右下
@@ -48,7 +57,7 @@ export default async function HomePage({ params }: HomePageProps) {
       id: 'monitoring',
       icon: '🔍',
       route: `/${lang}/monitoring`,
-      gradient: 'gradient-purple-green',
+      gradient: 'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500',
       title: t.home.modules.monitoring.title,
       description: t.home.modules.monitoring.description,
       position: 'bottom-left' // 左下
@@ -57,7 +66,7 @@ export default async function HomePage({ params }: HomePageProps) {
     //   id: 'about',
     //   icon: 'ℹ️',
     //   route: `/${params.lang}/about`,
-    //   gradient: 'gradient-purple-violet',
+    //   gradient: 'bg-gradient-to-br from-purple-500 via-violet-500 to-indigo-500',
     //   title: t.home.modules.about.title,
     //   description: t.home.modules.about.description,
     //   position: 'top-left' // 左上
@@ -90,7 +99,7 @@ export default async function HomePage({ params }: HomePageProps) {
     },
   ];
   return (
-    <div className="relative">
+    <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       {/* <div className="max-w-4xl mx-auto mt-10">
         <Swiper
           items={carouselItems}

@@ -25,5 +25,6 @@ export { default as MediaContent } from './Media/MediaContent';
 // Home Components
 export { default as HomePageClient } from './Home/HomePageClient';
 export { default as TopBar } from './Common/TopBar';
+export { default as UploadMusicModal } from './Common/UploadMusicModal';
 // Monitoring Components
 export { default as MonitorDataClient } from './Monitoring/MonitorDataClient';

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Language } from "../../i18n";
 import { useTracker } from "../../hooks/useTracker";
+import WaveBackground from "./WaveBackground";
 
 interface Module {
   id: string;
@@ -58,7 +59,7 @@ export default function HomePageClient({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-purple-100 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-800 transition-colors duration-300">
+    <WaveBackground className="min-h-screen bg-gradient-to-br from-purple-50 via-purple-100 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-800 transition-colors duration-300">
       {/* Header Content */}
       <div className="text-center py-20 px-4 pt-16 md:pt-20">
         <h1 className="text-6xl font-bold text-purple-900 dark:text-purple-100 mb-6 animate-fade-in transition-colors duration-300">
@@ -82,17 +83,19 @@ export default function HomePageClient({
               onClick={() => handleModuleClick(module.route, module.id)}
               onMouseEnter={() => handleModuleHover(module)}
             >
-              <div className={`w-full h-full ${module.gradient} rounded-full flex flex-col items-center justify-center text-white shadow-2xl dark:shadow-gray-900/50 transition-all duration-300 ease-out relative overflow-hidden`}>
-                {/* 背景装饰 */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-4 right-4 w-8 h-8 border border-white rounded-full"></div>
-                  <div className="absolute bottom-4 left-4 w-6 h-6 border border-white rounded-full"></div>
+              <div className={`w-full h-full rounded-full flex flex-col items-center justify-center text-white shadow-2xl dark:shadow-gray-900/50 transition-all duration-300 ease-out relative overflow-hidden ${module.gradient}`}>
+                {/* 波浪背景装饰 */}
+                <div className="absolute inset-0 opacity-20">
+                  <div className="absolute top-4 right-4 w-8 h-8 border border-white rounded-full animate-pulse"></div>
+                  <div className="absolute bottom-4 left-4 w-6 h-6 border border-white rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+                  <div className="absolute top-1/2 left-1/4 w-4 h-4 border border-white rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
                 </div>
 
                 {/* 浮动元素 */}
-                <div className="absolute inset-0 opacity-20">
-                  <div className="absolute top-1/3 left-1/3 w-2 h-2 bg-white rounded-full"></div>
-                  <div className="absolute bottom-1/3 right-1/3 w-3 h-3 bg-white rounded-full"></div>
+                <div className="absolute inset-0 opacity-30">
+                  <div className="absolute top-1/3 left-1/3 w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                  <div className="absolute bottom-1/3 right-1/3 w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.5s' }}></div>
+                  <div className="absolute top-1/4 right-1/4 w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
                 </div>
 
                 {/* 内容 */}
@@ -110,6 +113,9 @@ export default function HomePageClient({
 
                 {/* Hover效果环 */}
                 <div className="absolute inset-0 rounded-full border-2 border-white border-opacity-0 group-hover:border-opacity-30 transition-all duration-300"></div>
+                
+                {/* 渐变光晕效果 */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300 transform rotate-45"></div>
               </div>
             </div>
           ))}
@@ -122,6 +128,6 @@ export default function HomePageClient({
           © 2025 浙ICP备2025184029号
         </p>
       </div>
-    </div>
+    </WaveBackground>
   );
 } 
