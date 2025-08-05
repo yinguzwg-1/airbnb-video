@@ -37,27 +37,55 @@ export default function MusicMetadataEditor({
     });
   };
 
-  // 添加歌词行
-  const addLyricLine = () => {
-    updateMetadata({
-      lyrics: [...metadata.lyrics, { time: 0, text: '' }]
+
+  // 解析歌词文本并提取时间戳
+  const parseLyricsText = (text: string) => {
+    const lines = text.split('\n').filter(line => line.trim());
+    const parsedLyrics: Array<{ time: number; text: string }> = [];
+
+    lines.forEach(line => {
+      // 匹配 [分:秒.毫秒] 格式的时间戳，毫秒可以是1-3位
+      const timeMatch = line.match(/\[(\d+):(\d{2})\.(\d{1,3})\]/);
+      console.log('---timeMatch-',timeMatch);
+      if (timeMatch) {
+        const minutes = parseInt(timeMatch[1]);
+        const seconds = parseInt(timeMatch[2]);
+        const milliseconds = parseInt(timeMatch[3]);
+        const totalSeconds = minutes * 60 + seconds + milliseconds / 1000;
+
+        // 提取时间戳后的歌词内容
+        const lyricText = line.replace(/\[\d+:\d{2}\.\d{1,3}\]/, '').trim();
+        console.log('---lyricText-',lyricText);
+        if (lyricText) {
+          parsedLyrics.push({
+            time: Math.round(totalSeconds * 1000) / 1000, // 保留3位小数
+            text: lyricText
+          });
+        }
+      }
     });
+
+    return parsedLyrics;
   };
 
-  // 更新歌词行
-  const updateLyricLine = (index: number, field: 'time' | 'text', value: string | number) => {
-    updateMetadata({
-      lyrics: metadata.lyrics.map((line, i) => 
-        i === index ? { ...line, [field]: value } : line
-      )
-    });
+  // 处理歌词文本变化
+  const handleLyricsTextChange = (text: string) => {
+    console.log('---handleLyricsTextChange-',text);
+    const parsedLyrics = parseLyricsText(text);
+    console.log('---parsedLyrics-',parsedLyrics);
+    updateMetadata({ lyrics: parsedLyrics });
   };
 
-  // 移除歌词行
-  const removeLyricLine = (index: number) => {
-    updateMetadata({
-      lyrics: metadata.lyrics.filter((_, i) => i !== index)
-    });
+  // 将当前歌词转换为文本格式
+  const getLyricsText = () => {
+    return metadata.lyrics
+      .map(line => {
+        const minutes = Math.floor(line.time / 60);
+        const seconds = Math.floor(line.time % 60);
+        const milliseconds = Math.round((line.time % 1) * 1000);
+        return `[${minutes}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(3, '0')}]${line.text}`;
+      })
+      .join('\n');
   };
 
   // 处理封面图片上传
@@ -115,7 +143,7 @@ export default function MusicMetadataEditor({
                   title="移除封面"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                   </svg>
                 </button>
               </div>
@@ -127,7 +155,7 @@ export default function MusicMetadataEditor({
               </div>
             )}
           </div>
-          
+
           {/* 上传按钮和说明 */}
           <div className="flex-1">
             <button
@@ -238,7 +266,7 @@ export default function MusicMetadataEditor({
           </select>
         </div>
       </div>
-      
+
       {/* 其他设置 */}
       <div className="grid grid-cols-3 gap-6">
         <div>
@@ -315,38 +343,61 @@ export default function MusicMetadataEditor({
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             歌词
           </label>
-          <button
-            onClick={addLyricLine}
-            className="text-sm text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
-          >
-            添加歌词行
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                const defaultLyrics = `[0:14.580]暖暖阳光懒懒爬进窗
+              [0:20.990]悠悠微醺淡淡咖啡香
+              [0:27.200]恍然你又在身旁
+              [0:30.560]笑容星一样明亮
+              [3:02.450]够不够`;
+                handleLyricsTextChange(defaultLyrics);
+              }}
+              className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              示例歌词
+            </button>
+
+          </div>
         </div>
-        <div className="space-y-2 max-h-64 overflow-y-auto">
-          {metadata.lyrics.map((line, index) => (
-            <div key={index} className="flex gap-2">
-              <input
-                type="number"
-                value={line.time}
-                onChange={(e) => updateLyricLine(index, 'time', parseInt(e.target.value) || 0)}
-                className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs dark:bg-gray-700 dark:text-white"
-                placeholder="时间(秒)"
-              />
-              <input
-                type="text"
-                value={line.text}
-                onChange={(e) => updateLyricLine(index, 'text', e.target.value)}
-                className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs dark:bg-gray-700 dark:text-white"
-                placeholder="歌词内容"
-              />
-              <button
-                onClick={() => removeLyricLine(index)}
-                className="px-2 py-1 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs"
-              >
-                删除
-              </button>
+        <div className="space-y-4">
+          {/* 文本输入区域 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              歌词文本 (支持 [分:秒.毫秒] 格式时间戳)
+            </label>
+            <textarea
+              value={getLyricsText()}
+              onChange={(e) => handleLyricsTextChange(e.target.value)}
+              className="w-full h-48 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-none"
+              placeholder="请输入歌词，格式如：[0:14.580]歌词内容"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              支持 [分:秒.毫秒] 格式的时间戳，每行一首歌词
+            </p>
+          </div>
+
+          {/* 解析后的歌词预览 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              解析预览 ({metadata.lyrics.length} 行)
+            </label>
+            <div className="max-h-32 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-gray-800">
+              {metadata.lyrics.length > 0 ? (
+                metadata.lyrics.map((line, index) => (
+                  <div key={index} className="flex items-center gap-2 py-1 text-sm">
+                    <span className="text-gray-500 dark:text-gray-400 min-w-[60px]">
+                      {Math.floor(line.time / 60)}:{String(Math.floor(line.time % 60)).padStart(2, '0')}.{String(Math.round((line.time % 1) * 1000)).padStart(3, '0')}
+                    </span>
+                    <span className="text-gray-700 dark:text-gray-300">{line.text}</span>
+
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400 text-sm">暂无歌词</p>
+              )}
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </div>

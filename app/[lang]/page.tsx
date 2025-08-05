@@ -40,8 +40,8 @@ export default async function HomePage({ params }: HomePageProps) {
       icon: '🎵',
       route: `/${lang}/music`,
       gradient: 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-500',
-      title: '音乐搜索',
-      description: '搜索你喜欢的音乐，支持歌手、歌名、歌词搜索',
+      title: '音乐',
+      description: '搜索你喜欢的音乐',
       position: 'center' // 中心
     },
     {

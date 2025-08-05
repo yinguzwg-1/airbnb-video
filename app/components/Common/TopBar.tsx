@@ -2,12 +2,10 @@
 import Link from "next/link";
 import { CircularLanguageSwitcher, CircularThemeSwitcher } from "..";
 import { translations, Language } from "@/app/i18n";
-import { useIsH5 } from "@/app/hooks/useIsH5";
 
 
 const TopBar = ({lang, children, title}: {lang: Language, children?: React.ReactNode, title?: string}) => {
   const t = translations[lang];
-  const isH5 = useIsH5();
   return (
     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-4">
@@ -34,6 +32,7 @@ const TopBar = ({lang, children, title}: {lang: Language, children?: React.React
           <div className="flex gap-3">
             <CircularLanguageSwitcher />
             <CircularThemeSwitcher />
+      
           </div>
         </div>
       </div>

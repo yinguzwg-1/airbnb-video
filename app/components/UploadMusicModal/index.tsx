@@ -47,11 +47,6 @@ export default function UploadMusicModal({ isOpen, onClose }: UploadMusicModalPr
         // 重置元数据表单
         setMusicMetadata(getDefaultMusicMetadata());
       }
-      // 这里可以调用API保存元数据
-      // setCurrentStep('upload');
-      // setSelectedFile(null);
-      // // 重置元数据表单
-      // setMusicMetadata(getDefaultMusicMetadata());
        
     }
   };

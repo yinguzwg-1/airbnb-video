@@ -8,6 +8,7 @@ export { default as CircularThemeSwitcher } from './Common/CircularThemeSwitcher
 export { default as SearchBar } from './Common/SearchBar';
 export { default as FilterBar } from './Media/FilterBar';
 export { default as Header } from './Media/Header';
+export { default as MusicPlayerControl } from './Common/MusicPlayerControl';
 // Media Components
 export { default as MediaGrid } from './Media/MediaGrid';
 export { default as MediaCard } from './Media/MediaCard';
