@@ -227,16 +227,87 @@ jobs:
           echo "🔐 登录到 GitHub Container Registry..."
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
-          # 拉取最新镜像（增加超时时间）
+          # 拉取最新镜像（增加超时时间和重试机制）
           echo "📥 拉取最新 Docker 镜像..."
-          timeout 300 docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest || {
-            echo "⚠️ 镜像拉取超时，尝试使用本地构建..."
-            docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest .
-          }
+          
+          # 记录当前镜像信息
+          echo "📋 当前本地镜像信息:"
+          docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest || echo "本地没有该镜像"
+          
+          # 尝试拉取镜像，最多重试3次
+          PULL_SUCCESS=false
+          for i in {1..3}; do
+            echo "🔄 第 $i 次尝试拉取镜像..."
+            if timeout 300 docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest; then
+              echo "✅ 镜像拉取成功！"
+              PULL_SUCCESS=true
+              break
+            else
+              echo "❌ 第 $i 次拉取失败，等待 30 秒后重试..."
+              sleep 30
+            fi
+          done
+          
+          # 如果拉取失败，尝试本地构建
+          if [ "$PULL_SUCCESS" = false ]; then
+            echo "⚠️ 所有拉取尝试都失败了，尝试本地构建..."
+            
+            # 检查是否有 Dockerfile
+            if [ ! -f "Dockerfile" ]; then
+              echo "❌ 错误：找不到 Dockerfile，无法进行本地构建"
+              exit 1
+            fi
+            
+            # 尝试本地构建
+            if timeout 600 docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest .; then
+              echo "✅ 本地构建成功！"
+            else
+              echo "❌ 本地构建也失败了"
+              echo "📋 检查网络连接和 Docker 配置..."
+              docker info
+              echo "📋 尝试测试基础镜像拉取..."
+              docker pull node:18-alpine || echo "基础镜像拉取失败"
+              exit 1
+            fi
+          fi
+          
+          # 验证镜像是否成功获取
+          echo "🔍 验证镜像..."
+          if docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest | grep -q "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video"; then
+            echo "✅ 镜像验证成功"
+            docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest
+            
+            # 验证镜像创建时间（确保是最新的）
+            echo "🔍 验证镜像创建时间..."
+            IMAGE_CREATED=$(docker inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest --format='{{.Created}}')
+            echo "📅 镜像创建时间: $IMAGE_CREATED"
+            
+            # 检查镜像是否在最近1小时内创建
+            IMAGE_TIMESTAMP=$(date -d "$IMAGE_CREATED" +%s 2>/dev/null || echo "0")
+            CURRENT_TIMESTAMP=$(date +%s)
+            TIME_DIFF=$((CURRENT_TIMESTAMP - IMAGE_TIMESTAMP))
+            
+            if [ $TIME_DIFF -lt 3600 ]; then
+              echo "✅ 镜像是最新的（创建于 $((TIME_DIFF/60)) 分钟前）"
+            else
+              echo "⚠️ 警告：镜像可能不是最新的（创建于 $((TIME_DIFF/3600)) 小时前）"
+            fi
+          else
+            echo "❌ 镜像验证失败，没有找到目标镜像"
+            exit 1
+          fi
           
           # 停止并删除现有容器
           echo "🛑 停止现有容器..."
           $COMPOSE_CMD down || true
+          
+          # 强制删除旧镜像（如果存在）
+          echo "🧹 清理旧镜像..."
+          docker rmi ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest 2>/dev/null || echo "没有旧镜像需要删除"
+          
+          # 验证镜像版本
+          echo "🔍 验证镜像版本信息..."
+          docker inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest | grep -E "(Created|Id|RepoTags)" || echo "无法获取镜像详细信息"
           
           # 启动服务
           echo "🚀 启动 Docker 服务..."
@@ -251,13 +322,46 @@ jobs:
           $COMPOSE_CMD ps
           
           # 健康检查
-          if curl -f http://localhost:8080 > /dev/null 2>&1; then
+          echo "🔍 开始健康检查..."
+          
+          # 等待更长时间确保服务完全启动
+          echo "⏳ 等待服务完全启动..."
+          sleep 60
+          
+          # 检查容器状态
+          echo "📋 容器状态检查:"
+          $COMPOSE_CMD ps
+          
+          # 检查容器日志
+          echo "📋 容器日志检查:"
+          $COMPOSE_CMD logs --tail=50 nextjs-app
+          
+          # 多次健康检查
+          HEALTH_CHECK_PASSED=false
+          for i in {1..5}; do
+            echo "🔍 第 $i 次健康检查..."
+            if curl -f -m 30 http://localhost:8080 > /dev/null 2>&1; then
+              echo "✅ 健康检查通过！"
+              HEALTH_CHECK_PASSED=true
+              break
+            else
+              echo "❌ 第 $i 次健康检查失败，等待 10 秒..."
+              sleep 10
+            fi
+          done
+          
+          if [ "$HEALTH_CHECK_PASSED" = true ]; then
             echo "✅ 部署成功！"
             echo "🌐 应用地址: http://${{ secrets.HOST }}:8080"
             echo "📦 部署版本: ${{ github.sha }}"
+            echo "📦 镜像信息: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video:latest"
           else
-            echo "⚠️  健康检查失败，但服务可能仍在启动中..."
-            echo "📋 查看日志: $COMPOSE_CMD logs nextjs-app"
+            echo "❌ 健康检查失败"
+            echo "📋 查看详细日志:"
+            $COMPOSE_CMD logs nextjs-app
+            echo "📋 检查容器状态:"
+            docker ps -a
+            exit 1
           fi
           
           echo "🎉 自动化部署完成！" 
