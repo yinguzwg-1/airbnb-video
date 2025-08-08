@@ -46,7 +46,6 @@ export default function MusicMetadataEditor({
     lines.forEach(line => {
       // 匹配 [分:秒.毫秒] 格式的时间戳，毫秒可以是1-3位
       const timeMatch = line.match(/\[(\d+):(\d{2})\.(\d{1,3})\]/);
-      console.log('---timeMatch-',timeMatch);
       if (timeMatch) {
         const minutes = parseInt(timeMatch[1]);
         const seconds = parseInt(timeMatch[2]);
@@ -55,7 +54,6 @@ export default function MusicMetadataEditor({
 
         // 提取时间戳后的歌词内容
         const lyricText = line.replace(/\[\d+:\d{2}\.\d{1,3}\]/, '').trim();
-        console.log('---lyricText-',lyricText);
         if (lyricText) {
           parsedLyrics.push({
             time: Math.round(totalSeconds * 1000) / 1000, // 保留3位小数
@@ -70,9 +68,7 @@ export default function MusicMetadataEditor({
 
   // 处理歌词文本变化
   const handleLyricsTextChange = (text: string) => {
-    console.log('---handleLyricsTextChange-',text);
     const parsedLyrics = parseLyricsText(text);
-    console.log('---parsedLyrics-',parsedLyrics);
     updateMetadata({ lyrics: parsedLyrics });
   };
 
