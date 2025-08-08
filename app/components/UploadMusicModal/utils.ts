@@ -29,10 +29,11 @@ export const getDefaultMusicMetadata = (): MusicMetadata => ({
   album: '',
   genre: '',
   duration: '',
-  releaseDate: '',
+  release_date: '',
   language: '',
   tags: [],
   mood: '',
   lyrics: [],
-  cover: ''
+  cover: '',
+  mp3: ''
 }); 
