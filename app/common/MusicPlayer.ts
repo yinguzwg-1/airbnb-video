@@ -1,4 +1,5 @@
 import { AudioTrack, PlayerEvent, PlayerEventListener } from "../types/music-player";
+import { get } from "../utils/apiUtils";
 
 export class MusicPlayer {
   private audioContext: AudioContext;
@@ -48,9 +49,7 @@ export class MusicPlayer {
       const track = typeof src === 'string' ? { src } : src;
 
       // 1. 测试网络请求
-      console.log('[DEBUG] 开始加载音频:', track.src);
       const response = await fetch(track.src);
-
       if (!response.ok) {
         console.error('[ERROR] 响应状态异常:', response.status, response.statusText);
         return false;
@@ -70,7 +69,6 @@ export class MusicPlayer {
           throw decodeError;
         });
 
-      console.log('[DEBUG] 音频加载成功, 时长:', audioBuffer.duration);
 
       this.currentTrack = {
         ...track,

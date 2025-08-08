@@ -7,6 +7,7 @@ export interface AudioTrack {
   cover?: string;
   duration?: number;
   buffer?: AudioBuffer;
+  genre?: string;
   lyrics?: { time: number; text: string; }[];
 }
 

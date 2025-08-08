@@ -20,6 +20,15 @@ const config: Config = {
         'dark-surface': '#1E293B',
         'dark-border': '#334155',
       },
+      keyframes: {
+        audioWave: {
+          '0%, 100%': { transform: 'scaleY(1)' },
+          '50%': { transform: 'scaleY(2)' },
+        }
+      },
+      animation: {
+        'audio-wave': 'audioWave 1s ease-in-out infinite',
+      }
     },
   },
   plugins: [],
