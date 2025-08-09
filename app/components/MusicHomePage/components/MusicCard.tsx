@@ -38,13 +38,10 @@ const MusicCard = ({ music, index, isPlaying, handlePlaySong }: { music: AudioTr
     >
       <div className="relative overflow-hidden">
         <img
-          src={music.cover || '/images/default-cover.jpg'}
+          src={music.cover}
           alt={music.title}
           className="w-full h-56 object-cover transition-transform duration-500"
-          onError={(e) => {
-            // 如果图片加载失败，显示默认图片
-            e.currentTarget.src = '/images/default-cover.jpg';
-          }}
+          
         />
 
         {/* 播放状态指示器 - 左上角 */}
