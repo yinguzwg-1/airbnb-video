@@ -49,7 +49,17 @@ export class MusicPlayer {
       const track = typeof src === 'string' ? { src } : src;
 
       // 1. 测试网络请求
-      const response = await fetch(track.src);
+      const response = await fetch(track.src,{
+        headers: {
+          'Content-Type': 'audio/mpeg',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Allow-Credentials': 'true',
+          'Access-Control-Max-Age': '86400',
+          'Access-Control-Expose-Headers': 'Content-Length, Content-Range, X-Total-Count',
+        }
+      });
       if (!response.ok) {
         console.error('[ERROR] 响应状态异常:', response.status, response.statusText);
         return false;

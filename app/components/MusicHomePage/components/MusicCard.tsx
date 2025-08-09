@@ -41,6 +41,7 @@ const MusicCard = ({ music, index, isPlaying, handlePlaySong }: { music: AudioTr
           src={music.cover}
           alt={music.title}
           className="w-full h-56 object-cover transition-transform duration-500"
+          crossOrigin="anonymous"
           
         />
 
