@@ -11,6 +11,29 @@ export interface AudioTrack {
   lyrics?: { time: number; text: string; }[];
 }
 
+// 流式播放相关类型
+export interface StreamingTrack extends AudioTrack {
+  isStreaming: boolean;
+  bufferSize: number;
+  bufferedRanges: TimeRanges | null;
+  downloadProgress: number;
+}
+
+export interface BufferStats {
+  buffered: TimeRanges | null;
+  currentTime: number;
+  duration: number;
+  bufferSize: number;
+  downloadProgress: number;
+  isBuffering: boolean;
+}
+
+export interface NetworkQuality {
+  bandwidth: number; // Mbps
+  latency: number;   // ms
+  quality: 'excellent' | 'good' | 'fair' | 'poor';
+}
+
 interface PlayerEventMap {
   play: (currentTime: number) => void;
   pause: (currentTime: number) => void;
@@ -20,6 +43,12 @@ interface PlayerEventMap {
   volumechange: (volume: number) => void;
   trackchange: (track: AudioTrack) => void;
   error: (error: Error) => void;
+  // 流式播放相关事件
+  buffering: (isBuffering: boolean) => void;
+  canplay: () => void;
+  canplaythrough: () => void;
+  progress: (progress: number) => void;
+  bufferupdate: (stats: BufferStats) => void;
 }
 
 type PlayerEvent = keyof PlayerEventMap;
