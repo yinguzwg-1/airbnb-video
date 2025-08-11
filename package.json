@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 8080",
-    "build": "next build",
+    "build": "NEXT_PUBLIC_APP_VERSION=$(node -p \"require('./package.json').version\") NEXT_PUBLIC_BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) NEXT_PUBLIC_COMMIT_HASH=$(git rev-parse --short HEAD) next build",
     "start": "next start -p 8080",
     "lint": "next lint"
   },

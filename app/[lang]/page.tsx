@@ -1,6 +1,7 @@
 import { Language, translations } from "../i18n";
 import { CircularLanguageSwitcher, CircularThemeSwitcher, HomePageClient } from "../components";
 import Swiper from "../components/Swiper";
+import { VersionInfo } from "../components/VersionInfo";
 
 interface HomePageProps {
   params: { lang: Language };
@@ -122,6 +123,7 @@ export default async function HomePage({ params }: HomePageProps) {
         welcomeTitle={t.home.welcomeTitle}
         welcomeSubtitle={t.home.welcomeSubtitle}
       />
+      <VersionInfo />
     </div>
   );
 } 
