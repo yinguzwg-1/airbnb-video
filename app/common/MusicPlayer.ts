@@ -345,6 +345,10 @@ export class MusicPlayer {
       const contentLength = response.headers.get('content-length');
       const totalSize = contentLength ? parseInt(contentLength) : 0;
       
+      // 设置更小的初始缓冲阈值，实现快速播放
+      const initialBufferThreshold = 2 * 128000; // 2秒的音频数据
+      let hasStartedPlayback = false;
+      
       while (true) {
         const { done, value } = await reader.read();
         
@@ -358,11 +362,18 @@ export class MusicPlayer {
           }
           
           // 更新下载进度
-          this.emit('progress', totalBytes / totalSize);
+          this.emit('progress', totalSize > 0 ? totalBytes / totalSize : 0);
           
-          // 检查是否可以开始播放
-          if (this.shouldStartPlayback()) {
+          // 检查是否可以开始播放（降低初始缓冲阈值）
+          if (!hasStartedPlayback && this.shouldStartPlayback(initialBufferThreshold)) {
+            console.log('[MusicPlayer] 初始缓冲完成，开始播放');
+            hasStartedPlayback = true;
             await this.startStreamingPlayback();
+          }
+          
+          // 继续监控缓冲状态
+          if (hasStartedPlayback && this.shouldStartPlayback()) {
+            this.updateStreamingBuffer();
           }
         }
       }
@@ -379,16 +390,38 @@ export class MusicPlayer {
   /**
    * 检查是否可以开始播放
    */
-  private shouldStartPlayback(): boolean {
+  private shouldStartPlayback(customThreshold?: number): boolean {
     if (!this.sourceBuffer || this.bufferingState !== BufferingState.BUFFERING) {
       return false;
     }
     
     // 检查缓冲区大小
     const bufferSize = this.calculateBufferSize();
-    const targetSize = this.calculateTargetBufferSize();
+    const targetSize = customThreshold || this.calculateTargetBufferSize();
     
     return bufferSize >= targetSize;
+  }
+
+  /**
+   * 更新流式缓冲区
+   */
+  private updateStreamingBuffer(): void {
+    if (!this.sourceBuffer || this.sourceBuffer.updating) return;
+    
+    try {
+      // 将缓冲的数据添加到SourceBuffer
+      for (const buffer of this.streamingBuffer) {
+        if (this.sourceBuffer && !this.sourceBuffer.updating) {
+          this.sourceBuffer.appendBuffer(buffer);
+        }
+      }
+      
+      // 清空已处理的缓冲区
+      this.streamingBuffer = [];
+      
+    } catch (error) {
+      console.warn('[MusicPlayer] 更新流式缓冲区失败:', error);
+    }
   }
 
   /**
@@ -415,6 +448,9 @@ export class MusicPlayer {
       
       // 开始缓冲监控
       this.startBufferMonitoring();
+      
+      // 立即开始处理缓冲数据
+      this.updateStreamingBuffer();
       
     } catch (error) {
       console.error('[ERROR] 开始流式播放失败:', error);
@@ -489,10 +525,13 @@ export class MusicPlayer {
       const bufferedEnd = buffered.end(buffered.length - 1);
       
       // 检查是否需要缓冲
-      if (bufferedEnd - currentTime < 5) { // 5秒缓冲
+      if (bufferedEnd - currentTime < 3) { // 3秒缓冲（原来是5秒）
         this.isBuffering = true;
         this.bufferingState = BufferingState.BUFFERING;
         this.emit('buffering', true);
+        
+        // 尝试继续加载数据
+        this.continueStreamingLoad();
       } else {
         this.isBuffering = false;
         this.bufferingState = BufferingState.READY;
@@ -520,8 +559,18 @@ export class MusicPlayer {
    * 计算目标缓冲区大小
    */
   private calculateTargetBufferSize(): number {
-    // 目标缓冲区大小：5秒的音频数据
-    return 5 * 128000; // 假设128kbps
+    // 降低目标缓冲区大小，实现更快的播放启动
+    return 3 * 128000; // 3秒的音频数据（原来是5秒）
+  }
+
+  /**
+   * 继续流式加载
+   */
+  private continueStreamingLoad(): void {
+    // 如果缓冲区不足，尝试预加载更多数据
+    if (this.streamingBuffer.length > 0) {
+      this.updateStreamingBuffer();
+    }
   }
 
   /**
