@@ -50,7 +50,6 @@ export class MusicPlayer {
   // 定时器和监控
   private timeUpdateInterval: number | null = null;
   private bufferUpdateInterval: number | null = null;
-  private networkMonitor: NetworkMonitor;
   private preloadManager: PreloadManager;
   
   events: {
@@ -87,7 +86,6 @@ export class MusicPlayer {
     this.gainNode.gain.value = this.volume;
     
     // 初始化网络监控和预加载管理器
-    this.networkMonitor = new NetworkMonitor();
     this.preloadManager = new PreloadManager(this.audioContext);
     
     // 初始化流式播放支持
@@ -120,7 +118,7 @@ export class MusicPlayer {
       const track = typeof src === 'string' ? { src } : src;
       
       // 智能选择播放模式
-      this.currentPlaybackMode = await this.selectPlaybackMode(track);
+      this.currentPlaybackMode = PlaybackMode.STREAMING;
       
       if (this.currentPlaybackMode === PlaybackMode.STREAMING) {
         return await this.loadStreaming(track);
@@ -132,25 +130,6 @@ export class MusicPlayer {
       this.emit('error', error);
       return false;
     }
-  }
-
-  /**
-   * 智能选择播放模式
-   */
-  private async selectPlaybackMode(track: AudioTrack): Promise<PlaybackMode> {
-    if (!this.isStreamingMode) {
-      return PlaybackMode.TRADITIONAL;
-    }
-
-    // 检查网络状况
-    const networkQuality = await this.networkMonitor.getNetworkQuality();
-    
-    // 如果网络状况良好且文件较大，使用流式播放
-    if (networkQuality.isStable && networkQuality.bandwidth > 1000000) { // 1MB/s
-      return PlaybackMode.STREAMING;
-    }
-    
-    return PlaybackMode.TRADITIONAL;
   }
 
   /**
@@ -584,40 +563,7 @@ export class MusicPlayer {
   }
 
   play(): boolean {
-    if (this.currentPlaybackMode === PlaybackMode.STREAMING) {
-      return this.playStreaming();
-    } else {
-      return this.playTraditional();
-    }
-  }
-
-  /**
-   * 传统播放模式
-   */
-  private playTraditional(): boolean {
-    if (!this.currentTrack?.buffer) return false;
-
-    if (!this.isPlaying) {
-      this.audioSource = this.audioContext.createBufferSource();
-      this.audioSource.buffer = this.currentTrack.buffer;
-      this.audioSource.connect(this.analyser);
-
-      const offset = this.pauseTime || 0;
-      this.audioSource.start(0, offset);
-      this.startTime = this.audioContext.currentTime - offset;
-      this.isPlaying = true;
-
-      this.audioSource.onended = () => {
-        this.isPlaying = false;
-        this.emit('ended');
-        this.playNext();
-      };
-
-      this.emit('play', this.getCurrentTime());
-      this.setupTimeUpdate();
-      return true;
-    }
-    return false;
+    return this.playStreaming();
   }
 
   /**
@@ -988,11 +934,7 @@ export class MusicPlayer {
   destroy(): void {
     this.forceCleanupAllAudio();
     this.audioContext.close();
-    
-    // 清理网络监控和预加载管理器
-    if (this.networkMonitor) {
-      this.networkMonitor.destroy();
-    }
+ 
     if (this.preloadManager) {
       this.preloadManager.destroy();
     }
@@ -1001,156 +943,6 @@ export class MusicPlayer {
 
 export default MusicPlayer;
 
-/**
- * 网络监控器 - 监控网络状况和带宽
- */
-class NetworkMonitor {
-  private connection: any;
-  private isDestroyed: boolean = false;
-
-  constructor() {
-    this.initNetworkMonitoring();
-  }
-
-  /**
-   * 初始化网络监控
-   */
-  private initNetworkMonitoring(): void {
-    try {
-      // 检查是否支持网络信息API
-      if ('connection' in navigator) {
-        this.connection = (navigator as any).connection;
-      } else if ('mozConnection' in navigator) {
-        this.connection = (navigator as any).mozConnection;
-      } else if ('webkitConnection' in navigator) {
-        this.connection = (navigator as any).webkitConnection;
-      }
-    } catch (error) {
-      console.warn('[NetworkMonitor] 网络监控初始化失败:', error);
-    }
-  }
-
-  /**
-   * 获取网络质量信息
-   */
-  async getNetworkQuality(): Promise<{
-    isStable: boolean;
-    bandwidth: number;
-    latency: number;
-    connectionType: string;
-  }> {
-    try {
-      const connectionInfo = await this.getConnectionInfo();
-      const bandwidth = await this.measureBandwidth();
-      const latency = await this.measureLatency();
-
-      return {
-        isStable: this.isConnectionStable(connectionInfo, bandwidth, latency),
-        bandwidth,
-        latency,
-        connectionType: connectionInfo.type || 'unknown'
-      };
-    } catch (error) {
-      console.warn('[NetworkMonitor] 获取网络质量失败:', error);
-      return {
-        isStable: false,
-        bandwidth: 0,
-        latency: 1000,
-        connectionType: 'unknown'
-      };
-    }
-  }
-
-  /**
-   * 获取连接信息
-   */
-  private async getConnectionInfo(): Promise<any> {
-    if (this.connection) {
-      return {
-        type: this.connection.effectiveType || this.connection.type,
-        downlink: this.connection.downlink,
-        rtt: this.connection.rtt
-      };
-    }
-
-    // 如果没有网络信息API，返回默认值
-    return {
-      type: 'unknown',
-      downlink: 0,
-      rtt: 0
-    };
-  }
-
-  /**
-   * 测量带宽
-   */
-  private async measureBandwidth(): Promise<number> {
-    try {
-      const startTime = performance.now();
-      const response = await fetch('/api/bandwidth-test', {
-        method: 'HEAD',
-        cache: 'no-cache'
-      });
-      
-      if (response.ok) {
-        const contentLength = response.headers.get('content-length');
-        if (contentLength) {
-          const size = parseInt(contentLength);
-          const endTime = performance.now();
-          const duration = (endTime - startTime) / 1000; // 转换为秒
-          return size / duration; // bytes per second
-        }
-      }
-    } catch (error) {
-      // 如果带宽测试失败，使用默认值
-    }
-
-    // 默认带宽：1MB/s
-    return 1000000;
-  }
-
-  /**
-   * 测量延迟
-   */
-  private async measureLatency(): Promise<number> {
-    try {
-      const startTime = performance.now();
-      await fetch('/api/ping', { method: 'HEAD' });
-      const endTime = performance.now();
-      return endTime - startTime;
-    } catch (error) {
-      // 如果延迟测试失败，使用默认值
-      return 100;
-    }
-  }
-
-  /**
-   * 判断连接是否稳定
-   */
-  private isConnectionStable(connectionInfo: any, bandwidth: number, latency: number): boolean {
-    // 带宽大于500KB/s且延迟小于200ms认为稳定
-    return bandwidth > 500000 && latency < 200;
-  }
-
-  /**
-   * 监听网络变化
-   */
-  onNetworkChange(callback: (quality: any) => void): void {
-    if (this.connection && !this.isDestroyed) {
-      this.connection.addEventListener('change', () => {
-        this.getNetworkQuality().then(callback);
-      });
-    }
-  }
-
-  /**
-   * 销毁网络监控器
-   */
-  destroy(): void {
-    this.isDestroyed = true;
-    this.connection = null;
-  }
-}
 
 /**
  * 预加载管理器 - 管理音频文件的预加载
