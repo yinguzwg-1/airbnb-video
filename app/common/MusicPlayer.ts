@@ -691,23 +691,23 @@ class TraditionalEngine implements PlayerEngine {
  */
 export class MusicPlayer {
   // 音频上下文和节点
-  private audioContext: AudioContext;
-  private analyser: AnalyserNode;
-  private gainNode: GainNode;
+  audioContext: AudioContext;
+  analyser: AnalyserNode;
+  gainNode: GainNode;
 
   // 播放器引擎
-  private currentEngine: PlayerEngine | null = null;
-  private streamingEngine: StreamingEngine;
-  private traditionalEngine: TraditionalEngine;
+  currentEngine: PlayerEngine | null = null;
+  streamingEngine: StreamingEngine;
+  traditionalEngine: TraditionalEngine;
 
   // 播放列表管理
   playlist: AudioTrack[] = [];
-  private currentIndex: number = -1;
-  private currentTrack: AudioTrack | null = null;
+  currentIndex: number = -1;
+  currentTrack: AudioTrack | null = null;
 
   // 播放配置
-  private currentPlaybackMode: PlaybackMode = PlaybackMode.STREAMING;
-  private volume: number = 0.7;
+  currentPlaybackMode: PlaybackMode = PlaybackMode.STREAMING;
+  volume: number = 0.7;
 
   // 事件系统
   events: {
