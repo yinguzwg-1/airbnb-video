@@ -4,7 +4,7 @@ import MusicPlayer from './MusicPlayer';
 
 class PlayerManager {
   private static instance: PlayerManager;
-  private player: MusicPlayer | null = null;
+  player: MusicPlayer | null = null;
 
   private constructor() {
     // 延迟初始化，只在客户端创建
