@@ -237,7 +237,7 @@ class StreamingEngine implements PlayerEngine {
   private async startLoading(url: string): Promise<{ audioUrl: string, duration: string | null, stream: ReadableStream<any> }> {
     try {
       // 发起请求，获取原始Response对象
-      const response = await fetch(`/api/${url}`, {
+      const response = await fetch(`/api${url}`, {
         headers: {
           'Accept': 'audio/*'
         }

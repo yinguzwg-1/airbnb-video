@@ -11,7 +11,7 @@ export const VersionInfo = () => {
   }
 
   return (
-    <div className="text-xs text-gray-500 p-2">
+    <div className="text-xs text-gray-500 p-2 absolute bottom-0 right-0">
       v{versionInfo.version} | {new Date(versionInfo.buildTime).toLocaleDateString()}
     </div>
   );

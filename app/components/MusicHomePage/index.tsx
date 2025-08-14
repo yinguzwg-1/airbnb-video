@@ -73,7 +73,6 @@ const MusicHomePage = ({ musicList, lang }: { musicList: Music[], lang: Language
     
     try {
       const player = playerManager.getPlayer();
-      console.log('---handlePlaySong-',music);
       if (!player) return;
       // 1. 确保播放列表存在
       if (player.playlist.length === 0) {
