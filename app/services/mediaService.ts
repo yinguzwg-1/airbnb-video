@@ -40,7 +40,7 @@ export const mediaService = {
       if (order) {
         queryParams.append('orderBy', order);
       }
-      
+      console.log('API_BASE--------------',API_BASE);
       const res = await get(`${API_BASE}/media`, {
         params: queryParams,
         timeout: 5000 // 5秒超时
