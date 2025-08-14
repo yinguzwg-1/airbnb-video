@@ -69,7 +69,9 @@ jobs:
         echo "  - NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL"
         echo "  - NEXT_PUBLIC_LOCAL_HOST: $NEXT_PUBLIC_LOCAL_HOST"
         echo "  - NEXT_PUBLIC_APP_ID: $NEXT_PUBLIC_APP_ID"
-        
+        echo "⚠️ 检查并删除同名进程..."
+        pm2 delete nextjs-app || echo "没有找到名为 nextjs-app 的进程"
+        echo "⚠️ 检查并删除同名进程..."
         # 执行构建
         npm run build
 
