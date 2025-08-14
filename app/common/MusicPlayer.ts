@@ -234,75 +234,98 @@ class StreamingEngine implements PlayerEngine {
   /**
    * 开始加载音频数据
    */
-  private async startLoading(url: string): Promise<{ audioUrl: string, duration: string | null, stream: ReadableStream<any> }> {
+  private async startLoading(url: string): Promise<{ audioUrl: string, duration: string | null, mediaSource: MediaSource }> {
     try {
-      // 发起请求，获取原始Response对象
       const response = await fetch(`/api${url}`, {
         headers: {
           'Accept': 'audio/*'
         }
       });
 
-      // 1. 提取时长响应头（注意：响应头名称在fetch中是小写的）
-      const duration = response.headers.get('x-audio-duration');
-      console.log('音频时长（秒）：', duration);
-
-      // 2. 检查响应状态
       if (!response.ok) {
         throw new Error(`请求失败: ${response.status} ${response.statusText}`);
       }
 
-      // 3. 验证响应体是否为可读流
+      // 获取时长和 MIME 类型
+      const duration = response.headers.get('x-audio-duration');
+      const mimeType = response.headers.get('content-type') || 'audio/mpeg';
+      console.log(`音频信息: 类型=${mimeType}, 时长=${duration}秒`);
+
+      // 验证响应流
       if (!response.body) {
-        throw new Error('服务器未返回音频流数据');
+        throw new Error('服务器未返回音频流');
       }
 
-      // 4. 创建可读流处理音频数据
-      const reader = response.body.getReader();
-      const stream = new ReadableStream<Uint8Array>({
-        start(controller) {
-          /**
-           * 处理流数据块
-           * @param result 流读取结果
-           */
-          function processChunk(result: ReadableStreamReadResult<Uint8Array>): Promise<void> {
-            if (result.done) {
-              // 流结束，关闭控制器
-              controller.close();
-              return Promise.resolve();
-            }
+      // 关键：使用 MediaSource API 处理流式数据
+      const mediaSource = new MediaSource();
+      const audioUrl = URL.createObjectURL(mediaSource); // 创建媒体源 URL
 
-            // 将数据块推送到流中
-            controller.enqueue(result.value);
-            // 继续读取下一个数据块
-            return reader.read().then(processChunk);
-          }
-
-          // 开始读取流
-          return reader.read().then(processChunk);
-        },
-        // 取消流时的清理逻辑
-        cancel() {
-          reader.cancel().catch(err => {
-            console.error('流取消时发生错误:', err);
-          });
-        }
+      // 等待 MediaSource 就绪
+      await new Promise<void>((resolve, reject) => {
+        mediaSource.addEventListener('sourceopen', () => resolve());
+        mediaSource.addEventListener('error', reject);
       });
 
-      // 5. 将流转换为可播放的音频URL
-      const audioBlob = await new Response(stream).blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
+      // 创建音频缓冲区
+      const sourceBuffer = mediaSource.addSourceBuffer(mimeType);
+      sourceBuffer.mode = 'sequence'; // 顺序模式（适合流式传输）
 
+      // 读取并处理分块数据
+      const reader = response.body.getReader();
+      let isSourceOpen = true;
+
+      // 处理流取消
+      const cleanup = () => {
+        isSourceOpen = false;
+        reader.cancel().catch(err => console.error('流取消错误:', err));
+        if (mediaSource.readyState !== 'closed') {
+          mediaSource.endOfStream();
+        }
+      };
+
+      // 逐块读取并添加到缓冲区
+      const processChunks = async () => {
+        while (isSourceOpen) {
+          const { done, value } = await reader.read();
+          if (done) {
+            // 流结束，标记媒体源完成
+            if (mediaSource.readyState === 'open') {
+              mediaSource.endOfStream();
+            }
+            break;
+          }
+
+          // 等待缓冲区可用（避免缓冲区满导致的错误）
+          if (sourceBuffer.updating) {
+            await new Promise(resolve => sourceBuffer.addEventListener('updateend', resolve, { once: true }));
+          }
+
+          // 将数据块添加到缓冲区
+          try {
+            sourceBuffer.appendBuffer(value);
+          } catch (err) {
+            
+            cleanup();
+            break;
+          }
+        }
+      };
+
+      // 启动分块处理（不阻塞当前函数）
+      processChunks().catch(err => console.error('流处理错误:', err));
+
+      // 返回媒体源信息（音频可立即通过 audioUrl 播放）
       return {
         audioUrl,
         duration,
-        stream
+        mediaSource
       };
     } catch (error) {
-        this.handleLoadError(error as Error, url);
-        return { audioUrl: '', duration: null, stream: null as any };
+      this.handleLoadError(error as Error, url);
+      return { audioUrl: '', duration: null, mediaSource: null as any };
     }
   }
+
 
   /**
    * 处理加载错误和重试
