@@ -148,17 +148,17 @@ jobs:
           # 启动应用并通过 PM2 管理
           echo "🚀 启动 Next.js 应用..."
           echo "⚠️ 检查并删除同名进程..."
-          pm2 delete nextjs-app || echo "没有找到名为 nextjs-app 的进程"
-          pm2 start npm --name "nextjs-app" -- run start -- --port 8080
+          npm run pm2:delete nextjs-app || echo "没有找到名为 nextjs-app 的进程"
+          npm run pm2:start:prod
 
           # 配置 PM2 在服务器重启后自动启动应用
           echo "🔧 配置 PM2 开机自启..."
-          pm2 startup
-          pm2 save
+          npm run pm2:startup
+          npm run pm2:save
 
           # 检查服务是否启动
           echo "📋 检查 PM2 进程..."
-          pm2 list
+          npm run pm2:status
 
           # 健康检查
           echo "🔍 开始健康检查..."
@@ -182,7 +182,7 @@ jobs:
           else
             echo "❌ 健康检查失败"
             echo "📋 查看详细日志:"
-            pm2 logs nextjs-app
+            npm run pm2:logs
             exit 1
           fi
 

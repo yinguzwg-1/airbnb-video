@@ -6,7 +6,18 @@
     "dev": "next dev -p 8080",
     "build": "NEXT_PUBLIC_APP_VERSION=$(node -p \"require('./package.json').version\") NEXT_PUBLIC_BUILD_TIME=$(TZ=Asia/Shanghai date -u +%Y-%m-%dT%H:%M:%S%z) NEXT_PUBLIC_COMMIT_HASH=$(git rev-parse --short HEAD) next build",
     "start": "next start -p 8080",
-    "lint": "next lint"
+    "lint": "next lint",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:start:prod": "pm2 start ecosystem.config.js --env production",
+    "pm2:start:staging": "pm2 start ecosystem.config.js --env staging",
+    "pm2:stop": "pm2 stop nextjs-app",
+    "pm2:restart": "pm2 restart nextjs-app",
+    "pm2:delete": "pm2 delete nextjs-app",
+    "pm2:logs": "pm2 logs nextjs-app",
+    "pm2:status": "pm2 status",
+    "pm2:monit": "pm2 monit",
+    "pm2:save": "pm2 save",
+    "pm2:startup": "pm2 startup"
   },
   "dependencies": {
     "axios": "^1.7.2",
