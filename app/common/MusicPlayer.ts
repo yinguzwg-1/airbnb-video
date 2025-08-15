@@ -26,6 +26,7 @@ interface PlayerEngine {
   getDuration(): number;
   setVolume(volume: number): void;
   cleanup(): void;
+  abortLoading(): void;
   isPlaying: boolean;
 }
 
@@ -60,6 +61,9 @@ class StreamingEngine implements PlayerEngine {
   private bufferSize: number = 0;
   private minBufferSize: number = 256 * 1024; // 最小缓冲区大小 (256KB)
   private targetBufferSize: number = 1024 * 1024; // 目标缓冲区大小 (1MB)
+  // 请求控制
+  private abortController: AbortController | null = null;
+  private isAborted: boolean = false;
 
   // 事件系统
   private events: {
@@ -117,8 +121,11 @@ class StreamingEngine implements PlayerEngine {
    */
   async load(track: AudioTrack): Promise<boolean> {
     // 清理之前的状态
-    this.cleanup();
+    await this.cleanup();
 
+    // 重置中止状态
+    this.isAborted = false;
+    
     this.currentTrack = track;
     this.bufferingState = BufferingState.BUFFERING;
     this.isLoadingComplete = false;
@@ -240,11 +247,13 @@ class StreamingEngine implements PlayerEngine {
     if (!this.sourceBuffer) return;
 
     this.sourceBuffer.addEventListener('updateend', () => {
-      this.processBufferQueue();
+      this.processBufferQueue().catch(err => {
+        console.error('处理缓冲区队列失败:', err);
+      });
 
       // 检查是否所有数据都已加载且缓冲区更新完成
       if (this.isLoadingComplete && !this.sourceBuffer?.updating && this.mediaSource) {
-        this.mediaSource.endOfStream();
+        this.safeEndOfStream();
       }
     });
 
@@ -260,10 +269,15 @@ class StreamingEngine implements PlayerEngine {
     try {
       console.log('开始加载音频数据，URL:', url);
       
+      // 创建新的 AbortController
+      this.abortController = new AbortController();
+      this.isAborted = false;
+      
       const response = await fetch(`/api${url}`, {
         headers: {
           'Accept': 'audio/*'
-        }
+        },
+        signal: this.abortController.signal
       });
 
       if (!response.ok) {
@@ -303,35 +317,42 @@ class StreamingEngine implements PlayerEngine {
       // 逐块读取并添加到缓冲区
       const processChunks = async () => {
         let chunkCount = 0;
-        while (isSourceOpen && this.mediaSource?.readyState === 'open') {
-          const { done, value } = await reader.read();
-          if (done) {
-            // 流结束，标记媒体源完成
-            if (this.mediaSource?.readyState === 'open') {
-              this.mediaSource.endOfStream();
-            }
-            this.isLoadingComplete = true;
-            console.log(`音频流处理完成，共处理 ${chunkCount} 个数据块`);
-            break;
-          }
-
-          chunkCount++;
-          console.log(`处理第 ${chunkCount} 个数据块，大小: ${value.byteLength} 字节`);
-
-          // 等待缓冲区可用（避免缓冲区满导致的错误）
-          if (this.sourceBuffer?.updating) {
-            await new Promise(resolve => this.sourceBuffer?.addEventListener('updateend', resolve, { once: true }));
-          }
-
-          // 将数据块添加到缓冲区
+        while (isSourceOpen && this.mediaSource?.readyState === 'open' && !this.isAborted) {
           try {
-            if (this.sourceBuffer && this.mediaSource?.readyState === 'open') {
-              this.sourceBuffer.appendBuffer(value);
-              console.log(`第 ${chunkCount} 个数据块已添加到缓冲区`);
+            const { done, value } = await reader.read();
+            
+            // 检查是否被中止
+            if (this.isAborted) {
+              console.log('音频加载被中止，停止处理数据块');
+              break;
             }
-          } catch (err) {
-            console.error('添加缓冲区错误:', err);
-            cleanup();
+            
+            if (done) {
+              // 流结束，标记媒体源完成
+              this.isLoadingComplete = true;
+              if (this.mediaSource?.readyState === 'open') {
+                this.safeEndOfStream();
+              }
+              console.log(`音频流处理完成，共处理 ${chunkCount} 个数据块`);
+              break;
+            }
+
+            chunkCount++;
+            console.log(`处理第 ${chunkCount} 个数据块，大小: ${value.byteLength} 字节`);
+
+            // 使用安全的缓冲区添加方法
+            const success = await this.safeAppendBuffer(value);
+            if (success) {
+              console.log(`第 ${chunkCount} 个数据块已添加到缓冲区`);
+            } else {
+              console.warn(`第 ${chunkCount} 个数据块添加失败，跳过`);
+            }
+          } catch (error) {
+            if (this.isAborted) {
+              console.log('音频加载被中止，停止处理数据块');
+              break;
+            }
+            console.error('处理数据块时出错:', error);
             break;
           }
         }
@@ -339,8 +360,10 @@ class StreamingEngine implements PlayerEngine {
 
       // 启动分块处理
       processChunks().catch(err => {
-        console.error('流处理错误:', err);
-        this.handleError(`Stream processing error: ${err}`);
+        if (!this.isAborted) {
+          console.error('流处理错误:', err);
+          this.handleError(`Stream processing error: ${err}`);
+        }
       });
 
       // 返回时长信息
@@ -348,6 +371,12 @@ class StreamingEngine implements PlayerEngine {
         duration
       };
     } catch (error) {
+      // 检查是否是中止错误
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('音频加载请求被中止');
+        return { duration: null };
+      }
+      
       console.error('加载音频数据失败:', error);
       this.handleLoadError(error as Error, url);
       return { duration: null };
@@ -378,9 +407,216 @@ class StreamingEngine implements PlayerEngine {
   }
 
   /**
+   * 安全地调用 endOfStream
+   */
+  private safeEndOfStream(): void {
+    if (!this.mediaSource || this.mediaSource.readyState !== 'open') {
+      return;
+    }
+
+    // 检查所有 SourceBuffer 是否都不在 updating 状态
+    if (this.sourceBuffer && this.sourceBuffer.updating) {
+      // 如果正在更新，等待更新完成后再调用 endOfStream
+      this.sourceBuffer.addEventListener('updateend', () => {
+        this.safeEndOfStream();
+      }, { once: true });
+      return;
+    }
+
+    try {
+      this.mediaSource.endOfStream();
+      console.log('MediaSource endOfStream 调用成功');
+    } catch (error) {
+      console.error('endOfStream 调用失败:', error);
+      // 如果仍然失败，延迟重试
+      setTimeout(() => this.safeEndOfStream(), 100);
+    }
+  }
+
+  /**
+   * 安全地添加数据到 SourceBuffer
+   */
+  private async safeAppendBuffer(data: Uint8Array): Promise<boolean> {
+    if (!this.sourceBuffer || !this.mediaSource || this.mediaSource.readyState !== 'open') {
+      return false;
+    }
+
+    // 最大重试次数
+    const maxRetries = 3;
+    let retryCount = 0;
+
+    while (retryCount < maxRetries) {
+      try {
+        // 等待 SourceBuffer 完全就绪
+        if (!(await this.waitForSourceBufferReady())) {
+          console.warn('SourceBuffer 未就绪，跳过数据块');
+          return false;
+        }
+
+        // 检查缓冲区大小，如果过大则主动清理
+        await this.checkBufferSize();
+
+        // 最终状态检查
+        if (!this.sourceBuffer || this.sourceBuffer.updating || this.mediaSource.readyState !== 'open') {
+          return false;
+        }
+
+        // 尝试添加数据
+        this.sourceBuffer.appendBuffer(data);
+        return true;
+
+      } catch (error) {
+        retryCount++;
+        console.error(`safeAppendBuffer 失败 (尝试 ${retryCount}/${maxRetries}):`, error);
+        
+        if (error instanceof Error) {
+          if (error.name === 'QuotaExceededError') {
+            console.log('缓冲区已满，尝试清理空间...');
+            if (await this.cleanupSourceBuffer()) {
+              // 清理成功后继续重试
+              continue;
+            } else {
+              console.error('清理缓冲区失败');
+              return false;
+            }
+          } else if (error.name === 'InvalidStateError') {
+            console.log('SourceBuffer 状态错误，等待更新完成...');
+            // 等待更长时间
+            await new Promise(resolve => setTimeout(resolve, 100));
+            continue;
+          }
+        }
+        
+        // 如果是最后一次重试，返回失败
+        if (retryCount >= maxRetries) {
+          console.error('达到最大重试次数，放弃添加数据');
+          return false;
+        }
+        
+        // 等待一段时间后重试
+        await new Promise(resolve => setTimeout(resolve, 50 * retryCount));
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * 清理 SourceBuffer 以释放空间
+   */
+  private async cleanupSourceBuffer(): Promise<boolean> {
+    if (!this.sourceBuffer || this.sourceBuffer.updating) {
+      return false;
+    }
+
+    try {
+      // 获取当前播放时间
+      const currentTime = this.audioElement.currentTime;
+      const duration = this.audioElement.duration || 0;
+      
+      if (duration > 0) {
+        // 保留当前播放位置前后各 10 秒的数据
+        const keepStart = Math.max(0, currentTime - 10);
+        const keepEnd = Math.min(duration, currentTime + 10);
+        
+        // 清理开始部分
+        if (keepStart > 0) {
+          try {
+            this.sourceBuffer.remove(0, keepStart);
+            console.log(`清理开始部分: 0 - ${keepStart}`);
+          } catch (error) {
+            console.warn('清理开始部分失败:', error);
+          }
+        }
+        
+        // 清理结束部分
+        if (keepEnd < duration) {
+          try {
+            this.sourceBuffer.remove(keepEnd, duration);
+            console.log(`清理结束部分: ${keepEnd} - ${duration}`);
+          } catch (error) {
+            console.warn('清理结束部分失败:', error);
+          }
+        }
+        
+        return true;
+      }
+    } catch (error) {
+      console.error('清理 SourceBuffer 失败:', error);
+    }
+    
+    return false;
+  }
+
+  /**
+   * 检查缓冲区大小，如果过大则主动清理
+   */
+  private async checkBufferSize(): Promise<void> {
+    if (!this.sourceBuffer || this.sourceBuffer.updating) {
+      return;
+    }
+
+    try {
+      const buffered = this.sourceBuffer.buffered;
+      if (buffered.length === 0) return;
+
+      // 计算总缓冲区大小
+      let totalBufferSize = 0;
+      for (let i = 0; i < buffered.length; i++) {
+        totalBufferSize += buffered.end(i) - buffered.start(i);
+      }
+
+      // 如果缓冲区超过 60 秒，主动清理
+      if (totalBufferSize > 60) {
+        console.log(`缓冲区过大 (${totalBufferSize.toFixed(1)}秒)，主动清理...`);
+        await this.cleanupSourceBuffer();
+      }
+    } catch (error) {
+      console.error('检查缓冲区大小失败:', error);
+    }
+  }
+
+  /**
+   * 等待 SourceBuffer 完全就绪
+   */
+  private async waitForSourceBufferReady(): Promise<boolean> {
+    if (!this.sourceBuffer) return false;
+
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    while (attempts < maxAttempts) {
+      if (!this.sourceBuffer.updating && 
+          this.mediaSource?.readyState === 'open' && 
+          this.isSourceOpen) {
+        return true;
+      }
+
+      // 等待更新完成
+      if (this.sourceBuffer.updating) {
+        await new Promise<void>((resolve) => {
+          const handleUpdateEnd = () => {
+            this.sourceBuffer?.removeEventListener('updateend', handleUpdateEnd);
+            resolve();
+          };
+          this.sourceBuffer?.addEventListener('updateend', handleUpdateEnd);
+        });
+      }
+
+      attempts++;
+      if (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    }
+
+    console.warn('等待 SourceBuffer 就绪超时');
+    return false;
+  }
+
+  /**
    * 处理缓冲区队列
    */
-  private processBufferQueue(finalChunk: boolean = false) {
+  private async processBufferQueue(finalChunk: boolean = false) {
     if (!this.sourceBuffer || this.sourceBuffer.updating || !this.isSourceOpen) {
       return;
     }
@@ -394,15 +630,33 @@ class StreamingEngine implements PlayerEngine {
       this.bufferSize -= chunk.byteLength;
 
       try {
-        this.sourceBuffer.appendBuffer(chunk);
+        // 使用安全的缓冲区添加方法
+        const success = await this.safeAppendBuffer(chunk);
+        if (!success) {
+          // 如果添加失败，将数据块放回队列
+          this.bufferQueue.unshift(chunk);
+          this.bufferSize += chunk.byteLength;
+          break;
+        }
       } catch (error) {
         console.error('Error appending buffer:', error);
-        // 尝试恢复
-        if (this.bufferQueue.length > 0) {
-          setTimeout(() => this.processBufferQueue(finalChunk), 100);
-        }
+        // 将数据块放回队列
+        this.bufferQueue.unshift(chunk);
+        this.bufferSize += chunk.byteLength;
         break;
       }
+    }
+  }
+
+  /**
+   * 中止音频加载
+   */
+  abortLoading(): void {
+    if (this.abortController) {
+      console.log('手动中止音频加载');
+      this.abortController.abort();
+      this.isAborted = true;
+      this.abortController = null;
     }
   }
 
@@ -511,7 +765,15 @@ class StreamingEngine implements PlayerEngine {
   /**
    * 清理资源
    */
-  cleanup(): void {
+  async cleanup(): Promise<void> {
+    // 中止正在进行的请求
+    if (this.abortController) {
+      console.log('中止正在进行的音频加载请求');
+      this.abortController.abort();
+      this.isAborted = true;
+      this.abortController = null;
+    }
+
     // 停止播放
     this.stop();
 
@@ -521,10 +783,59 @@ class StreamingEngine implements PlayerEngine {
       this.reader = null;
     }
 
+    // 清理 SourceBuffer
+    if (this.sourceBuffer && this.mediaSource?.readyState === 'open') {
+      try {
+        // 等待 SourceBuffer 完成当前操作
+        if (this.sourceBuffer.updating) {
+          await new Promise<void>((resolve) => {
+            const handleUpdateEnd = () => {
+              this.sourceBuffer?.removeEventListener('updateend', handleUpdateEnd);
+              resolve();
+            };
+            this.sourceBuffer?.addEventListener('updateend', handleUpdateEnd);
+          });
+        }
+
+        // 清理所有缓冲区数据
+        if (this.sourceBuffer.buffered.length > 0) {
+          const buffered = this.sourceBuffer.buffered;
+          for (let i = 0; i < buffered.length; i++) {
+            const start = buffered.start(i);
+            const end = buffered.end(i);
+            try {
+              // 再次检查状态
+              if (!this.sourceBuffer.updating) {
+                this.sourceBuffer.remove(start, end);
+                console.log(`清理缓冲区段: ${start} - ${end}`);
+                
+                // 等待移除操作完成
+                if (this.sourceBuffer.updating) {
+                  await new Promise<void>((resolve) => {
+                    const handleUpdateEnd = () => {
+                      this.sourceBuffer?.removeEventListener('updateend', handleUpdateEnd);
+                      resolve();
+                    };
+                    this.sourceBuffer?.addEventListener('updateend', handleUpdateEnd);
+                  });
+                }
+              }
+            } catch (error) {
+              console.warn('清理缓冲区段失败:', error);
+              // 如果清理失败，等待一段时间再继续
+              await new Promise(resolve => setTimeout(resolve, 50));
+            }
+          }
+        }
+      } catch (error) {
+        console.error('清理 SourceBuffer 失败:', error);
+      }
+    }
+
     // 清理MediaSource
     if (this.mediaSource) {
       if (this.mediaSource.readyState === 'open') {
-        this.mediaSource.endOfStream();
+        this.safeEndOfStream();
       }
       this.mediaSource = null;
     }
@@ -753,6 +1064,13 @@ class TraditionalEngine implements PlayerEngine {
     this.currentTime = 0;
     this.duration = 0;
   }
+
+  /**
+   * 中止音频加载（传统引擎不需要实现，但为了接口兼容性）
+   */
+  abortLoading(): void {
+    // 传统引擎不需要实现中止功能
+  }
 }
 
 /**
@@ -826,13 +1144,13 @@ export class MusicPlayer {
   /**
    * 设置播放模式
    */
-  setPlaybackMode(mode: PlaybackMode): void {
+  async setPlaybackMode(mode: PlaybackMode): Promise<void> {
     const wasPlaying = this.isPlaying;
     const currentTime = this.getCurrentTime();
 
     // 清理当前引擎
     if (this.currentEngine) {
-      this.currentEngine.cleanup();
+      await this.currentEngine.cleanup();
     }
 
     // 切换引擎
@@ -841,10 +1159,9 @@ export class MusicPlayer {
 
     // 恢复播放状态
     if (wasPlaying && this.currentTrack) {
-      this.load(this.currentTrack).then(() => {
-        this.seek(currentTime);
-        this.play();
-      });
+      await this.load(this.currentTrack);
+      this.seek(currentTime);
+      this.play();
     }
   }
 
@@ -1031,6 +1348,15 @@ export class MusicPlayer {
    */
   getAnalyser(): AnalyserNode {
     return this.analyser;
+  }
+
+  /**
+   * 中止当前音频加载
+   */
+  abortLoading(): void {
+    if (this.currentEngine) {
+      this.currentEngine.abortLoading();
+    }
   }
 
   /**
