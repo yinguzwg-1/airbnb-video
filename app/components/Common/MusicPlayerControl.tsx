@@ -51,6 +51,7 @@ const MusicPlayerControl = ({ currentMusic, onMusicChange }: MusicPlayerControlP
         }
       };
       const handleTrackChange = (track: AudioTrack) => {
+        console.log('track', track);
         setDuration(track.duration || 0);
         setCurrentTime(0);
         setCurrentLyricIndex(-1);

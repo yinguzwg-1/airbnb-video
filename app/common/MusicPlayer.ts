@@ -125,43 +125,55 @@ class StreamingEngine implements PlayerEngine {
     this.retryCount = 0;
 
     try {
+      console.log('开始加载音频轨道:', track.src);
+      
       // 初始化MediaSource
       if (!await this.initMediaSource()) {
+        console.error('MediaSource初始化失败');
         return false;
       }
-
+      
       // 开始加载音频数据
-      const { audioUrl, duration } = await this.startLoading(track.src);
-      this.audioElement.src = audioUrl;
-      this.duration = duration ? parseInt(duration) : 0;
+      const { duration } = await this.startLoading(track.src);
      
+      track.duration = duration ? parseFloat(duration) : 0;
+      console.log('音频轨道加载完成，时长:', this.duration);
       return true;
     } catch (error) {
+      console.error('加载音频轨道失败:', error);
       this.handleError(`Load failed: ${error}`);
       return false;
     }
   }
-
   /**
    * 初始化MediaSource
    */
   private async initMediaSource(): Promise<boolean> {
     return new Promise((resolve) => {
       try {
+        console.log('开始初始化MediaSource');
+        
         // 检查MediaSource支持
         if (!window.MediaSource) {
+          console.error('MediaSource is not supported');
           this.handleError('MediaSource is not supported');
           return resolve(false);
         }
 
         this.mediaSource = new MediaSource();
         this.mediaSourceUrl = URL.createObjectURL(this.mediaSource);
+        // 设置音频元素源为MediaSource URL
         this.audioElement.src = this.mediaSourceUrl;
+        console.log('MediaSource URL set:', this.mediaSourceUrl);
 
         // MediaSource事件
         this.mediaSource.addEventListener('sourceopen', () => {
+          console.log('MediaSource opened');
           this.isSourceOpen = true;
-          this.attachSourceBuffer().then(resolve).catch(() => resolve(false));
+          this.attachSourceBuffer().then(resolve).catch(() => {
+            console.error('SourceBuffer附加失败');
+            resolve(false);
+          });
         });
 
         this.mediaSource.addEventListener('sourceended', () => {
@@ -169,10 +181,12 @@ class StreamingEngine implements PlayerEngine {
         });
 
         this.mediaSource.addEventListener('error', (e) => {
+          console.error('MediaSource error:', (e as any).error);
           this.handleError(`MediaSource error: ${(e as any).error}`);
           resolve(false);
         });
       } catch (error) {
+        console.error('MediaSource初始化失败:', error);
         this.handleError(`MediaSource init failed: ${error}`);
         resolve(false);
       }
@@ -184,8 +198,11 @@ class StreamingEngine implements PlayerEngine {
    */
   private async attachSourceBuffer(): Promise<boolean> {
     if (!this.mediaSource || this.mediaSource.readyState !== 'open') {
+      console.error('MediaSource未就绪');
       return false;
     }
+
+    console.log('开始创建SourceBuffer');
 
     // 尝试多种音频格式
     const supportedMimeTypes = [
@@ -196,17 +213,22 @@ class StreamingEngine implements PlayerEngine {
     ];
 
     for (const mimeType of supportedMimeTypes) {
+      console.log('尝试MIME类型:', mimeType);
       if (MediaSource.isTypeSupported(mimeType)) {
         try {
           this.sourceBuffer = this.mediaSource.addSourceBuffer(mimeType);
+          console.log('SourceBuffer创建成功，MIME类型:', mimeType);
           this.setupSourceBufferEvents();
           return true;
         } catch (error) {
           console.warn(`Failed to create SourceBuffer for ${mimeType}: ${error}`);
         }
+      } else {
+        console.log('MIME类型不支持:', mimeType);
       }
     }
 
+    console.error('没有找到支持的音频格式');
     this.handleError('No supported audio format found');
     return false;
   }
@@ -234,8 +256,10 @@ class StreamingEngine implements PlayerEngine {
   /**
    * 开始加载音频数据
    */
-  private async startLoading(url: string): Promise<{ audioUrl: string, duration: string | null, mediaSource: MediaSource }> {
+  private async startLoading(url: string): Promise<{ duration: string | null }> {
     try {
+      console.log('开始加载音频数据，URL:', url);
+      
       const response = await fetch(`/api${url}`, {
         headers: {
           'Accept': 'audio/*'
@@ -248,27 +272,23 @@ class StreamingEngine implements PlayerEngine {
 
       // 获取时长和 MIME 类型
       const duration = response.headers.get('x-audio-duration');
-      const mimeType = response.headers.get('content-type') || 'audio/mpeg';
-      console.log(`音频信息: 类型=${mimeType}, 时长=${duration}秒`);
 
       // 验证响应流
       if (!response.body) {
         throw new Error('服务器未返回音频流');
       }
 
-      // 关键：使用 MediaSource API 处理流式数据
-      const mediaSource = new MediaSource();
-      const audioUrl = URL.createObjectURL(mediaSource); // 创建媒体源 URL
+      // 等待MediaSource就绪
+      if (!this.mediaSource || this.mediaSource.readyState !== 'open') {
+        throw new Error('MediaSource未就绪');
+      }
 
-      // 等待 MediaSource 就绪
-      await new Promise<void>((resolve, reject) => {
-        mediaSource.addEventListener('sourceopen', () => resolve());
-        mediaSource.addEventListener('error', reject);
-      });
+      // 确保SourceBuffer已创建
+      if (!this.sourceBuffer) {
+        throw new Error('SourceBuffer未创建');
+      }
 
-      // 创建音频缓冲区
-      const sourceBuffer = mediaSource.addSourceBuffer(mimeType);
-      sourceBuffer.mode = 'sequence'; // 顺序模式（适合流式传输）
+      console.log('开始处理音频流数据');
 
       // 读取并处理分块数据
       const reader = response.body.getReader();
@@ -278,51 +298,59 @@ class StreamingEngine implements PlayerEngine {
       const cleanup = () => {
         isSourceOpen = false;
         reader.cancel().catch(err => console.error('流取消错误:', err));
-        if (mediaSource.readyState !== 'closed') {
-          mediaSource.endOfStream();
-        }
       };
 
       // 逐块读取并添加到缓冲区
       const processChunks = async () => {
-        while (isSourceOpen) {
+        let chunkCount = 0;
+        while (isSourceOpen && this.mediaSource?.readyState === 'open') {
           const { done, value } = await reader.read();
           if (done) {
             // 流结束，标记媒体源完成
-            if (mediaSource.readyState === 'open') {
-              mediaSource.endOfStream();
+            if (this.mediaSource?.readyState === 'open') {
+              this.mediaSource.endOfStream();
             }
+            this.isLoadingComplete = true;
+            console.log(`音频流处理完成，共处理 ${chunkCount} 个数据块`);
             break;
           }
 
+          chunkCount++;
+          console.log(`处理第 ${chunkCount} 个数据块，大小: ${value.byteLength} 字节`);
+
           // 等待缓冲区可用（避免缓冲区满导致的错误）
-          if (sourceBuffer.updating) {
-            await new Promise(resolve => sourceBuffer.addEventListener('updateend', resolve, { once: true }));
+          if (this.sourceBuffer?.updating) {
+            await new Promise(resolve => this.sourceBuffer?.addEventListener('updateend', resolve, { once: true }));
           }
 
           // 将数据块添加到缓冲区
           try {
-            sourceBuffer.appendBuffer(value);
+            if (this.sourceBuffer && this.mediaSource?.readyState === 'open') {
+              this.sourceBuffer.appendBuffer(value);
+              console.log(`第 ${chunkCount} 个数据块已添加到缓冲区`);
+            }
           } catch (err) {
-            
+            console.error('添加缓冲区错误:', err);
             cleanup();
             break;
           }
         }
       };
 
-      // 启动分块处理（不阻塞当前函数）
-      processChunks().catch(err => console.error('流处理错误:', err));
+      // 启动分块处理
+      processChunks().catch(err => {
+        console.error('流处理错误:', err);
+        this.handleError(`Stream processing error: ${err}`);
+      });
 
-      // 返回媒体源信息（音频可立即通过 audioUrl 播放）
+      // 返回时长信息
       return {
-        audioUrl,
-        duration,
-        mediaSource
+        duration
       };
     } catch (error) {
+      console.error('加载音频数据失败:', error);
       this.handleLoadError(error as Error, url);
-      return { audioUrl: '', duration: null, mediaSource: null as any };
+      return { duration: null };
     }
   }
 
@@ -337,7 +365,13 @@ class StreamingEngine implements PlayerEngine {
     if (this.retryCount < this.maxRetries) {
       // 指数退避重试
       const delay = Math.pow(2, this.retryCount) * 1000;
-      setTimeout(() => this.startLoading(url), delay);
+      setTimeout(async () => {
+        try {
+          await this.startLoading(url);
+        } catch (retryError) {
+          console.error('重试失败:', retryError);
+        }
+      }, delay);
     } else {
       this.handleError(`Max retries reached: ${error.message}`);
     }
@@ -377,18 +411,28 @@ class StreamingEngine implements PlayerEngine {
    */
   play(): boolean {
     if (this.isPlaying || this.bufferingState === BufferingState.ERROR) {
+      console.warn('无法播放：正在播放中或存在错误');
+      return false;
+    }
+
+    if (!this.audioElement.src) {
+      console.warn('无法播放：音频源未设置');
       return false;
     }
 
     try {
+      console.log('尝试播放音频，源:', this.audioElement.src);
       this.audioElement.play().then(() => {
         this.isPlaying = true;
+        console.log('音频播放成功');
         this.events.play.forEach((listener: any) => listener(this.getCurrentTime()));
       }).catch(error => {
+        console.error('播放失败:', error);
         this.handleError(`Playback failed: ${error}`);
       });
       return true;
     } catch (error) {
+      console.error('播放错误:', error);
       this.handleError(`Play error: ${error}`);
       return false;
     }
@@ -542,7 +586,9 @@ class TraditionalEngine implements PlayerEngine {
     this.cleanup();
 
     try {
-      const response = await fetch(track.src);
+      // 检查是否是API路径，如果是则添加前缀
+      const url = track.src.startsWith('/api') ? track.src : `/api${track.src}`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);
       }
@@ -817,6 +863,7 @@ export class MusicPlayer {
 
     // 使用当前引擎加载
     const result = await this.currentEngine!.load(track);
+    console.log('result', result);
     if (result) {
       this.events.trackchange.forEach((listener: any) => listener(track));
     }
@@ -829,6 +876,7 @@ export class MusicPlayer {
    */
   play(): boolean {
     if (!this.currentEngine || !this.currentTrack) {
+      console.warn('无法播放：引擎或轨道未准备好');
       return false;
     }
 
@@ -837,7 +885,13 @@ export class MusicPlayer {
       this.audioContext.resume();
     }
 
-    return this.currentEngine.play();
+    const result = this.currentEngine.play();
+    if (result) {
+      console.log('开始播放音频');
+    } else {
+      console.warn('播放失败');
+    }
+    return result;
   }
 
   /**
