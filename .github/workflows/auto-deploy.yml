@@ -156,16 +156,29 @@ jobs:
           export NEXT_PUBLIC_API_URL="http://223.4.248.176:3001"
           export NEXT_PUBLIC_LOCAL_HOST="http://223.4.248.176:3001"
           export NEXT_PUBLIC_APP_ID="9527"
-          npm run build
+          
+          # 确保构建成功
+          echo "🏗️ 开始构建..."
+          if npm run build; then
+            echo "✅ 构建成功！"
+          else
+            echo "❌ 构建失败！"
+            exit 1
+          fi
 
           # 验证构建产物
           echo "📦 构建产物信息："
-          ls -la .next
-          du -sh .next
+          if [ -d ".next" ]; then
+            ls -la .next
+            du -sh .next
+          else
+            echo "❌ .next 目录不存在，构建失败！"
+            exit 1
+          fi
 
           # 重启应用
           echo "🚀 重启应用..."
-          npm run pm2:delete nextjs-app || true
+          npm run pm2:delete || true
           npm run pm2:start:prod
 
 
