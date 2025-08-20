@@ -91,7 +91,6 @@ export default async function MonitoringPage({ params }: MonitoringPageProps) {
   } catch (error) {
     console.error('Failed to load data:', error);
   }
-  console.log('frontendPerformanceData-----------', frontendPerformanceData);
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       {/* Top Navigation Bar */}

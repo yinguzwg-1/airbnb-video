@@ -95,7 +95,6 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    console.log('-------------NODE_ENV-----',process.env.NODE_ENV)
     return [
       {
         source: "/api/:path*",
