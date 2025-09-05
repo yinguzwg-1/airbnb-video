@@ -1,5 +1,5 @@
-# 使用官方 Node.js 18 镜像作为基础镜像（使用完整版本避免网络问题）
-FROM node:18
+# 多阶段构建：构建阶段
+FROM node:18-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -16,25 +16,45 @@ RUN npm ci --no-audit --no-fund
 # 复制源代码
 COPY . .
 
+# 设置构建参数
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_LOCAL_HOST
+ARG NEXT_PUBLIC_APP_ID
+ARG NODE_ENV=production
+
+# 设置环境变量
+ENV NODE_ENV=$NODE_ENV
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_LOCAL_HOST=$NEXT_PUBLIC_LOCAL_HOST
+ENV NEXT_PUBLIC_APP_ID=$NEXT_PUBLIC_APP_ID
+
 # 构建应用
 RUN npm run build
 
-# 删除开发依赖，只保留生产依赖
-RUN npm prune --production
+# 生产阶段
+FROM node:18-alpine AS runner
+
+# 设置工作目录
+WORKDIR /app
 
 # 创建非 root 用户
-RUN groupadd -r nodejs && useradd -r -g nodejs nextjs
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# 更改文件所有权
-RUN chown -R nextjs:nodejs /app
+# 复制构建产物
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# 切换到非 root 用户
 USER nextjs
 
 # 暴露端口
-EXPOSE 8080
+EXPOSE 3000
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080 || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
 # 启动应用
-CMD ["npm", "start"] 
+CMD ["node", "server.js"] 

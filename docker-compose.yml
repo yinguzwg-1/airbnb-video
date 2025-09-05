@@ -1,26 +1,27 @@
-# 使用版本 1 格式，兼容最老的 Docker Compose
-nextjs-app:
-  build:
-    context: .
-    dockerfile: Dockerfile
-  container_name: airbnb_nextjs_app
-  restart: unless-stopped
-  ports:
-    - "8080:8080"
-  environment:
-    NODE_ENV: production
-    PORT: 8080
-    NEXT_PUBLIC_API_URL: /api  # 使用相对路径，让nginx处理代理
-    NEXT_PUBLIC_APP_ID: 9527
-  volumes:
-    - nextjs_logs:/app/logs
-  networks:
-    - app-network
+version: '3.8'
 
-volumes:
-  nextjs_logs:
-    driver: local
-
-networks:
-  app-network:
-    driver: bridge 
+services:
+  airbnb-video:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://223.4.248.176:3001
+        - NEXT_PUBLIC_LOCAL_HOST=http://223.4.248.176:3001
+        - NEXT_PUBLIC_APP_ID=9527
+        - NODE_ENV=production
+    ports:
+      - "8080:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://223.4.248.176:3001
+      - NEXT_PUBLIC_LOCAL_HOST=http://223.4.248.176:3001
+      - NEXT_PUBLIC_APP_ID=9527
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    container_name: airbnb-video-app

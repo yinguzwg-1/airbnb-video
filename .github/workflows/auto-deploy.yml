@@ -1,4 +1,4 @@
-name: 🚀 Next.js Auto Build and Deploy with PM2
+name: 🚀 Next.js Auto Build and Deploy with Docker
 
 on:
   push:
@@ -23,8 +23,8 @@ permissions:
   packages: write
 
 jobs:
-  # 构建和推送镜像
-  build:
+  # 构建和推送 Docker 镜像
+  build-and-push:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     
@@ -32,59 +32,47 @@ jobs:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
 
-    - name: 🔧 Setup Node.js
-      uses: actions/setup-node@v4
+    - name: 🔧 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: 🔐 Log in to Container Registry
+      uses: docker/login-action@v3
       with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: './package-lock.json'
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: 📦 Install dependencies
-      run: npm ci
+    - name: 🏷️ Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: 🔍 Run linting
-      run: npm run lint
-
-    - name: 🏗️ Build Next.js application
-      run: |
-        echo "🏗️ 开始构建 Next.js 应用..."
-        
-        # 使用环境文件设置环境变量
-        if [ -f "env.production" ]; then
-          echo "📁 加载生产环境配置..."
-          export $(cat env.production | xargs)
-        fi
-        
-        # 确保环境变量在构建时可用
-        export NODE_ENV=production
-        export NEXT_PUBLIC_NODE_ENV=production
-        export PORT=8080
-        export NEXT_PUBLIC_API_URL="http://223.4.248.176:3001"
-        export NEXT_PUBLIC_LOCAL_HOST="http://223.4.248.176:3001"
-        export NEXT_PUBLIC_APP_ID="9527"
-        
-        echo "🔧 当前环境变量:"
-        echo "  - NODE_ENV: $NODE_ENV"
-        echo "  - NEXT_PUBLIC_NODE_ENV: $NEXT_PUBLIC_NODE_ENV"
-        echo "  - NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL"
-        echo "  - NEXT_PUBLIC_LOCAL_HOST: $NEXT_PUBLIC_LOCAL_HOST"
-        echo "  - NEXT_PUBLIC_APP_ID: $NEXT_PUBLIC_APP_ID"
-        # 执行构建
-        npm run build
-
-    - name: ✅ Verify build output
-      run: |
-        echo "✅ Build completed successfully"
-        echo "📁 Current directory: $(pwd)"
-        echo "📁 .next directory contents:"
-        ls -la .next/
-        echo "📁 Total .next size:"
-        du -sh .next/
+    - name: 🏗️ Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          NEXT_PUBLIC_API_URL=http://223.4.248.176:3001
+          NEXT_PUBLIC_LOCAL_HOST=http://223.4.248.176:3001
+          NEXT_PUBLIC_APP_ID=9527
+          NODE_ENV=production
 
   # 部署到服务器
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-and-push
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     
     steps:
@@ -103,13 +91,13 @@ jobs:
           echo "🔍 测试服务器连接..."
           echo "服务器信息:"
           uname -a
-          echo "SSH 服务状态:"
-          systemctl status ssh --no-pager
-          echo "网络连接:"
-          netstat -tlnp | grep :22 || echo "SSH 端口未监听"
+          echo "Docker 服务状态:"
+          systemctl status docker --no-pager
+          echo "Docker 版本:"
+          docker --version
           echo "✅ 连接测试完成"
 
-    - name: 🚀 Deploy Next.js with PM2
+    - name: 🚀 Deploy with Docker
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.HOST }}
@@ -118,76 +106,83 @@ jobs:
         port: ${{ secrets.PORT }}
         command_timeout: "600s"
         script: |
-          echo "🚀 开始自动化部署 Next.js 应用..."
+          echo "🚀 开始 Docker 部署 Next.js 应用..."
           echo "🌍 环境: ${{ github.event.inputs.environment || 'production' }}"
-          echo "📦 触发分支: ${{ github.ref_name }}"  # 输出当前分支
-          echo "📦 最新提交: ${{ github.sha }}"      # 输出最新 commit hash
+          echo "📦 触发分支: ${{ github.ref_name }}"
+          echo "📦 最新提交: ${{ github.sha }}"
+          echo "🐳 镜像标签: ${{ github.ref_name }}-${{ github.sha }}"
 
-          PROJECT_DIR="$HOME/airbnb-video"
-          echo "📁 项目目录: $PROJECT_DIR"
+          # 设置变量
+          IMAGE_NAME="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/airbnb-video"
+          CONTAINER_NAME="airbnb-video-app"
+          PORT="8080"
           
-          if [ ! -d "$PROJECT_DIR" ]; then
-            echo "📥 首次克隆项目..."
-            mkdir -p "$PROJECT_DIR"
-            cd "$PROJECT_DIR"
-            git clone https://github.com/${{ github.repository }}.git .
+          echo "📁 镜像名称: $IMAGE_NAME"
+          echo "📦 容器名称: $CONTAINER_NAME"
+          echo "🌐 端口: $PORT"
+
+          # 登录到 GitHub Container Registry
+          echo "🔐 登录到 GitHub Container Registry..."
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+          # 拉取最新镜像
+          echo "📥 拉取最新镜像..."
+          docker pull $IMAGE_NAME:${{ github.ref_name }}-${{ github.sha }} || docker pull $IMAGE_NAME:latest
+
+          # 停止并删除旧容器
+          echo "🛑 停止旧容器..."
+          if docker ps -q -f name=$CONTAINER_NAME | grep -q .; then
+            docker stop $CONTAINER_NAME
+            echo "✅ 旧容器已停止"
           else
-            cd "$PROJECT_DIR"
-            echo "📥 拉取最新代码（分支：${{ github.ref_name }}）..."
-            #  stash 本地更改（如有）
-            git stash push -m "Auto stash before pull - $(date)" || echo "无本地更改需保存"
-            # 拉取当前分支的最新代码
-            git fetch origin ${{ github.ref_name }}
-            # 强制重置到远程分支的最新提交
-            git reset --hard origin/${{ github.ref_name }}
-            # 清理未跟踪文件（如旧的构建产物）
-            git clean -fd
-            # 验证拉取结果
-            echo "✅ 当前代码 commit：$(git rev-parse HEAD)"
+            echo "ℹ️ 没有运行中的旧容器"
           fi
 
-          # 安装依赖
-          echo "📦 安装依赖..."
-          npm ci
-
-          # 服务器上重新构建（关键步骤）
-          echo "🏗️ 重新构建应用..."
-          export NODE_ENV=production
-          export NEXT_PUBLIC_API_URL="http://223.4.248.176:3001"
-          export NEXT_PUBLIC_LOCAL_HOST="http://223.4.248.176:3001"
-          export NEXT_PUBLIC_APP_ID="9527"
-          
-          # 确保构建成功
-          echo "🏗️ 开始构建..."
-          if npm run build; then
-            echo "✅ 构建成功！"
+          if docker ps -aq -f name=$CONTAINER_NAME | grep -q .; then
+            docker rm $CONTAINER_NAME
+            echo "✅ 旧容器已删除"
           else
-            echo "❌ 构建失败！"
+            echo "ℹ️ 没有旧容器需要删除"
+          fi
+
+          # 清理悬空镜像
+          echo "🧹 清理悬空镜像..."
+          docker image prune -f
+
+          # 启动新容器
+          echo "🚀 启动新容器..."
+          docker run -d \
+            --name $CONTAINER_NAME \
+            --restart unless-stopped \
+            -p $PORT:3000 \
+            -e NODE_ENV=production \
+            -e NEXT_PUBLIC_API_URL="http://223.4.248.176:3001" \
+            -e NEXT_PUBLIC_LOCAL_HOST="http://223.4.248.176:3001" \
+            -e NEXT_PUBLIC_APP_ID="9527" \
+            $IMAGE_NAME:${{ github.ref_name }}-${{ github.sha }} || $IMAGE_NAME:latest
+
+          # 等待容器启动
+          echo "⏳ 等待容器启动..."
+          sleep 10
+
+          # 检查容器状态
+          echo "🔍 检查容器状态..."
+          if docker ps | grep -q $CONTAINER_NAME; then
+            echo "✅ 容器启动成功"
+            docker ps | grep $CONTAINER_NAME
+          else
+            echo "❌ 容器启动失败"
+            echo "📋 容器日志:"
+            docker logs $CONTAINER_NAME
             exit 1
           fi
-
-          # 验证构建产物
-          echo "📦 构建产物信息："
-          if [ -d ".next" ]; then
-            ls -la .next
-            du -sh .next
-          else
-            echo "❌ .next 目录不存在，构建失败！"
-            exit 1
-          fi
-
-          # 重启应用
-          echo "🚀 重启应用..."
-          npm run pm2:delete || true
-          npm run pm2:start:prod
-
 
           # 健康检查
           echo "🔍 开始健康检查..."
           HEALTH_CHECK_PASSED=false
-          for i in {1..5}; do
+          for i in {1..10}; do
             echo "🔍 第 $i 次健康检查..."
-            if curl -f -m 30 http://localhost:8080 > /dev/null 2>&1; then
+            if curl -f -m 30 http://localhost:$PORT > /dev/null 2>&1; then
               echo "✅ 健康检查通过！"
               HEALTH_CHECK_PASSED=true
               break
@@ -199,13 +194,17 @@ jobs:
 
           if [ "$HEALTH_CHECK_PASSED" = true ]; then
             echo "✅ 部署成功！"
-            echo "🌐 应用地址: http://${{ secrets.HOST }}:8080"
+            echo "🌐 应用地址: http://${{ secrets.HOST }}:$PORT"
             echo "📦 部署版本: ${{ github.sha }}"
+            echo "🐳 容器状态:"
+            docker ps | grep $CONTAINER_NAME
+            echo "📊 容器资源使用:"
+            docker stats $CONTAINER_NAME --no-stream
           else
             echo "❌ 健康检查失败"
             echo "📋 查看详细日志:"
-            npm run pm2:logs
+            docker logs $CONTAINER_NAME --tail 50
             exit 1
           fi
 
-          echo "🎉 自动化部署完成！"
+          echo "🎉 Docker 自动化部署完成！"
