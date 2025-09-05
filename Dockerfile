@@ -23,7 +23,7 @@ RUN npm run build
 FROM node:18-alpine AS runner
 WORKDIR /airbnb-video
 # 复制构建产物和依赖（仅复制必要文件，减小镜像体积）
-COPY --from=builder ./next.config.js ./
+COPY --from=builder ./next.config.mjs ./
 COPY --from=builder ./public ./public
 COPY --from=builder ./.next ./.next
 COPY --from=builder ./node_modules ./node_modules
