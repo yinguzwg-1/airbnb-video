@@ -1,8 +1,8 @@
 # 阶段1：构建 Next.js 应用
 FROM node:18-alpine AS builder
-WORKDIR /app
+WORKDIR /
 # 复制依赖文件并安装
-COPY package*.json ./
+COPY ./package*.json ./
 RUN npm ci
 # 复制项目代码
 COPY . .
@@ -21,7 +21,7 @@ RUN npm run build
 
 # 阶段2：生产环境运行（轻量化镜像）
 FROM node:18-alpine AS runner
-WORKDIR /
+WORKDIR /airbnb-video
 # 复制构建产物和依赖（仅复制必要文件，减小镜像体积）
 COPY --from=builder ./next.config.js ./
 COPY --from=builder ./public ./public
