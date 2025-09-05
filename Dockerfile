@@ -21,13 +21,13 @@ RUN npm run build
 
 # 阶段2：生产环境运行（轻量化镜像）
 FROM node:18-alpine AS runner
-WORKDIR /app
+WORKDIR /
 # 复制构建产物和依赖（仅复制必要文件，减小镜像体积）
-COPY --from=builder /app/next.config.js ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder ./next.config.js ./
+COPY --from=builder ./public ./public
+COPY --from=builder ./.next ./.next
+COPY --from=builder ./node_modules ./node_modules
+COPY --from=builder ./package.json ./package.json
 # 暴露应用内部端口（需与部署配置中的 `-p $PORT:3000` 中的 `3000` 一致）
 EXPOSE 3000
 # 启动命令（Next.js 生产环境启动命令）
