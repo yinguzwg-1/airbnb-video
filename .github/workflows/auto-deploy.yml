@@ -186,9 +186,9 @@ jobs:
             echo "🚀 启动新容器: $CONTAINER_NAME..."
             docker run -d \
               --name $CONTAINER_NAME \
-              --restart unless-stopped \  # 服务器重启后自动启动容器
-              -p $PORT:3000 \             # 端口映射（服务器端口:容器内部端口，需与应用匹配）
-              -e NODE_ENV=production \    # 容器内环境变量
+              --restart unless-stopped \
+              -p $PORT:3000 \
+              -e NODE_ENV=production \
               -e NEXT_PUBLIC_API_URL="http://223.4.248.176:3001" \
               -e NEXT_PUBLIC_LOCAL_HOST="http://223.4.248.176:3001" \
               -e NEXT_PUBLIC_APP_ID="9527" \
