@@ -1,60 +1,34 @@
-# 多阶段构建：构建阶段
+# 阶段1：构建 Next.js 应用
 FROM node:18-alpine AS builder
-
-# 设置工作目录
 WORKDIR /app
-
-# 设置 npm 配置，使用淘宝镜像源
-RUN npm config set registry https://registry.npmmirror.com
-
-# 复制 package.json 和 package-lock.json
+# 复制依赖文件并安装
 COPY package*.json ./
-
-# 安装所有依赖（包括开发依赖）
-RUN npm ci --no-audit --no-fund
-
-# 复制源代码
+RUN npm ci
+# 复制项目代码
 COPY . .
-
-# 设置构建参数
+# 构建应用（使用构建参数）
+ARG NODE_ENV=production
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_LOCAL_HOST
 ARG NEXT_PUBLIC_APP_ID
-ARG NODE_ENV=production
-
-# 设置环境变量
+# 注入环境变量（构建时生效）
 ENV NODE_ENV=$NODE_ENV
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_LOCAL_HOST=$NEXT_PUBLIC_LOCAL_HOST
 ENV NEXT_PUBLIC_APP_ID=$NEXT_PUBLIC_APP_ID
-
-# 构建应用
+# 执行构建
 RUN npm run build
 
-# 生产阶段
+# 阶段2：生产环境运行（轻量化镜像）
 FROM node:18-alpine AS runner
-
-# 设置工作目录
 WORKDIR /app
-
-# 创建非 root 用户
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# 复制构建产物
+# 复制构建产物和依赖（仅复制必要文件，减小镜像体积）
+COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# 切换到非 root 用户
-USER nextjs
-
-# 暴露端口
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+# 暴露应用内部端口（需与部署配置中的 `-p $PORT:3000` 中的 `3000` 一致）
 EXPOSE 3000
-
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
-
-# 启动应用
-CMD ["node", "server.js"] 
+# 启动命令（Next.js 生产环境启动命令）
+CMD ["npm", "start"]
