@@ -209,7 +209,6 @@ class StreamingEngine implements PlayerEngine {
       return false;
     }
 
-    console.log('开始创建SourceBuffer');
 
     // 尝试多种音频格式
     const supportedMimeTypes = [
@@ -220,11 +219,9 @@ class StreamingEngine implements PlayerEngine {
     ];
 
     for (const mimeType of supportedMimeTypes) {
-      console.log('尝试MIME类型:', mimeType);
       if (MediaSource.isTypeSupported(mimeType)) {
         try {
           this.sourceBuffer = this.mediaSource.addSourceBuffer(mimeType);
-          console.log('SourceBuffer创建成功，MIME类型:', mimeType);
           this.setupSourceBufferEvents();
           return true;
         } catch (error) {
