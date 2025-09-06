@@ -187,7 +187,7 @@ jobs:
             docker run -d \
               --name $CONTAINER_NAME \
               --restart unless-stopped \
-              -p $PORT:3000 \
+              -p $PORT:8080 \
               -e NODE_ENV=production \
               -e NEXT_PUBLIC_API_URL="http://223.4.248.176:3001" \
               -e NEXT_PUBLIC_LOCAL_HOST="http://223.4.248.176:3001" \
