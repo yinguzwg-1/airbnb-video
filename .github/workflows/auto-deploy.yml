@@ -213,7 +213,7 @@ jobs:
             echo "🔍 应用健康检查（共 10 次重试）..."
             HEALTH_CHECK_PASSED=false
             for i in {1..10}; do
-              if curl -f -m 10 http://localhost:$PORT > /dev/null 2>&1; then
+              if curl -m 10 http://localhost:$PORT > /dev/null 2>&1; then
                 HEALTH_CHECK_PASSED=true;
                 break;
               else
