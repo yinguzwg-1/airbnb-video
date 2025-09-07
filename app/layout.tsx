@@ -93,14 +93,8 @@ export default function RootLayout({
         )}
       </head>
       <body className={inter.className}>
-        <ThemeProvider>
-          <TranslationProvider>
-            <TrackerInitializer userId={userId}>
-              {children}
-              <NotificationManager />
-            </TrackerInitializer>
-          </TranslationProvider>
-        </ThemeProvider>
+
+        {children}
       </body>
     </html>
   );
