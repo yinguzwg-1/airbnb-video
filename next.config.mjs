@@ -3,6 +3,7 @@ const nextConfig = {
   output: 'standalone',
   // 生产环境错误处理
   experimental: {
+    optimizeCss: false, // 禁用 CSS 优化（生产构建可能因此失败）
     // 启用更详细的错误信息
     serverComponentsExternalPackages: [],
   },
