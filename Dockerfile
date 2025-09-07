@@ -3,6 +3,7 @@ FROM node:18-alpine AS builder
 WORKDIR /
 # 复制依赖文件并安装
 COPY ./package*.json ./
+RUN rm -rf node_modules
 RUN npm ci
 # 复制项目代码
 COPY . .
