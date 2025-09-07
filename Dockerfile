@@ -32,4 +32,4 @@ COPY --from=builder ./package.json ./package.json
 # 暴露应用内部端口（需与部署配置中的 `-p $PORT:3000` 中的 `3000` 一致）
 EXPOSE 8080
 # 启动命令（Next.js 生产环境启动命令）
-CMD ["npm", "start"]
+CMD ["npx", "next", "start", "-p", "8080"]
