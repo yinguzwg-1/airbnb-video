@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -93,8 +93,14 @@ export default function RootLayout({
         )}
       </head>
       <body className={inter.className}>
-
-        {children}
+        <ThemeProvider>
+          <TranslationProvider>
+            <TrackerInitializer userId={userId}>
+              {children}
+              <NotificationManager />
+            </TrackerInitializer>
+          </TranslationProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

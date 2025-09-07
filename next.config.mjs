@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: 'standalone',
+  output: 'standalone',
   // 生产环境错误处理
   experimental: {
     optimizeCss: false, // 禁用 CSS 优化（生产构建可能因此失败）
