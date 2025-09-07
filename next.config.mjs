@@ -98,15 +98,15 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/api/:path*" : "https://223.4.248.176/api/:path*" // 转发到 NestJS 端口
+        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/api/:path*" : "http://223.4.248.176/api/:path*" // 转发到 NestJS 端口
       },
       {
         source: "/music_files/:path*",
-        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/music_files/:path*" : "https://223.4.248.176/music_files/:path*" // 转发音乐文件
+        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/music_files/:path*" : "http://223.4.248.176/music_files/:path*" // 转发音乐文件
       },
       {
         source: "/cover_files/:path*",
-        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/cover_files/:path*" : "https://223.4.248.176/cover_files/:path*" // 转发封面文件
+        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/cover_files/:path*" : "http://223.4.248.176/cover_files/:path*" // 转发封面文件
       }
     ];
   }
