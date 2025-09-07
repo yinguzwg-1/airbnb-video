@@ -49,7 +49,7 @@ const nextConfig = {
       },
     ],
     // 添加更多图片域名
-    domains: ['localhost', 'zwg.autos'],
+    domains: ['localhost', '223.4.248.176'],
   },
   // 环境变量处理
   env: {
@@ -98,15 +98,15 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/api/:path*" : "https://zwg.autos/api/:path*" // 转发到 NestJS 端口
+        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/api/:path*" : "https://223.4.248.176/api/:path*" // 转发到 NestJS 端口
       },
       {
         source: "/music_files/:path*",
-        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/music_files/:path*" : "https://zwg.autos/music_files/:path*" // 转发音乐文件
+        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/music_files/:path*" : "https://223.4.248.176/music_files/:path*" // 转发音乐文件
       },
       {
         source: "/cover_files/:path*",
-        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/cover_files/:path*" : "https://zwg.autos/cover_files/:path*" // 转发封面文件
+        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/cover_files/:path*" : "https://223.4.248.176/cover_files/:path*" // 转发封面文件
       }
     ];
   }
