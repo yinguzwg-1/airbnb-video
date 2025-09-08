@@ -1,6 +1,6 @@
 # 阶段1：构建 Next.js 应用
 FROM node:18-alpine AS builder
-WORKDIR /
+WORKDIR /app
 # 复制依赖文件并安装
 COPY ./package*.json ./
 RUN rm -rf node_modules
@@ -22,13 +22,13 @@ RUN npm run build
 
 # 阶段2：生产环境运行（轻量化镜像）
 FROM node:18-alpine AS runner
-WORKDIR /airbnb-video
+WORKDIR /app
 # 复制构建产物和依赖（仅复制必要文件，减小镜像体积）
-COPY --from=builder ./next.config.mjs ./
-COPY --from=builder ./public ./public
-COPY --from=builder ./.next ./.next
-COPY --from=builder ./node_modules ./node_modules
-COPY --from=builder ./package.json ./package.json
+COPY --from=builder /app/next.config.mjs ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 # 暴露应用内部端口（需与部署配置中的 `-p $PORT:3000` 中的 `3000` 一致）
 EXPOSE 8080
 # 启动命令（Next.js 生产环境启动命令）

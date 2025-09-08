@@ -67,6 +67,12 @@ const nextConfig = {
   
   // 自定义分包策略
   webpack: (config, { isServer }) => {
+    // 添加路径别名解析
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': process.cwd(),
+    };
+    
     if (!isServer) {
       config.optimization.splitChunks = {
         chunks: 'all',
