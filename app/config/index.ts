@@ -8,6 +8,6 @@ const isProduction = () => {
 
 
 export const config = {
-  NEXT_PUBLIC_API_URL: isProduction() ? 'http://223.4.248.176:3001/api' : 'http://localhost:3000/api',
+  NEXT_PUBLIC_API_URL: isProduction() ? 'https://zwg.autos/api' : 'http://localhost:3000/api',
   NEXT_PUBLIC_APP_ID: '9527',
 }
