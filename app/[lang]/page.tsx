@@ -19,15 +19,6 @@ export default async function HomePage({ params }: HomePageProps) {
   }
   const modules = [
     {
-      id: 'media',
-      icon: '🎬',
-      route: `/${lang}/media`,
-      gradient: 'bg-gradient-to-br from-purple-500 via-pink-500 to-red-500',
-      title: t.home.modules.media.title,
-      description: t.home.modules.media.description,
-      position: 'top' // 顶部
-    },
-    {
       id: 'blog',
       icon: '📝',
       route: `/${lang}/blog`,
@@ -45,24 +36,24 @@ export default async function HomePage({ params }: HomePageProps) {
       description: '搜索你喜欢的音乐',
       position: 'center' // 中心
     },
-    {
-      id: 'burrypoint',
-      icon: '📊',
-      route: `/${lang}/burrypoint`,
-      gradient: 'bg-gradient-to-br from-green-500 via-teal-500 to-cyan-500',
-      title: t.home.modules.burrypoint.title,
-      description: t.home.modules.burrypoint.description,
-      position: 'bottom-right' // 右下
-    },
-    {
-      id: 'monitoring',
-      icon: '🔍',
-      route: `/${lang}/monitoring`,
-      gradient: 'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500',
-      title: t.home.modules.monitoring.title,
-      description: t.home.modules.monitoring.description,
-      position: 'bottom-left' // 左下
-    },
+    // {
+    //   id: 'burrypoint',
+    //   icon: '📊',
+    //   route: `/${lang}/burrypoint`,
+    //   gradient: 'bg-gradient-to-br from-green-500 via-teal-500 to-cyan-500',
+    //   title: t.home.modules.burrypoint.title,
+    //   description: t.home.modules.burrypoint.description,
+    //   position: 'bottom-right' // 右下
+    // },
+    // {
+    //   id: 'monitoring',
+    //   icon: '🔍',
+    //   route: `/${lang}/monitoring`,
+    //   gradient: 'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500',
+    //   title: t.home.modules.monitoring.title,
+    //   description: t.home.modules.monitoring.description,
+    //   position: 'bottom-left' // 左下
+    // },
     // {
     //   id: 'about',
     //   icon: 'ℹ️',
@@ -73,43 +64,10 @@ export default async function HomePage({ params }: HomePageProps) {
     //   position: 'top-left' // 左上
     // }
   ];
-  const carouselItems = [
-    {
-      id: 1,
-      content: (
-        <div className="h-64 bg-blue-500 flex items-center justify-center text-white text-2xl">
-          Slide 1 Content
-        </div>
-      ),
-    },
-    {
-      id: 2,
-      content: (
-        <div className="h-64 bg-green-500 flex items-center justify-center text-white text-2xl">
-          Slide 2 Content
-        </div>
-      ),
-    },
-    {
-      id: 3,
-      content: (
-        <div className="h-64 bg-purple-500 flex items-center justify-center text-white text-2xl">
-          Slide 3 Content
-        </div>
-      ),
-    },
-  ];
+  
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      {/* <div className="max-w-4xl mx-auto mt-10">
-        <Swiper
-          items={carouselItems}
-          autoPlay={true}
-          interval={2000}
-          showArrows={true}
-          showDots={true}
-        />
-      </div> */}
+    
       {/* 语言和主题切换器 */}
       <div className="absolute top-6 right-6 z-10 md:top-8 md:right-8 flex gap-3">
         <CircularLanguageSwitcher />
