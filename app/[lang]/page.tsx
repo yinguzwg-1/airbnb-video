@@ -36,7 +36,7 @@ export default async function HomePage({ params: { lang } }: HomePageProps) {
         <link 
           rel="preload" 
           as="image" 
-          href={initialPhotos[0].url} 
+          href={initialPhotos[0].url.startsWith('http') ? initialPhotos[0].url : `https://zwg.autos${initialPhotos[0].url}`} 
         />
       )}
       

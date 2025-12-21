@@ -147,6 +147,15 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
   const hasMore = data ? data[data.length - 1].hasMore : initialHasMore;
   const isFetchingMore = isLoading || (size > 0 && data && typeof data[size - 1] === "undefined");
 
+  // 获取基础图片路径
+  const getFullImageUrl = (url: string) => {
+    if (url.startsWith('http')) return url;
+    const baseUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : (process.env.BACKEND_URL || 'https://zwg.autos');
+    return `${baseUrl}${url}`;
+  };
+
   useEffect(() => {
     if (!isMounted) return;
 
@@ -268,8 +277,8 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
                   {photo.type === 'video' ? (
                     <div className="relative w-full h-full cursor-pointer bg-black">
                       <video
-                        src={photo.url}
-                        poster={photo.coverUrl}
+                        src={getFullImageUrl(photo.url)}
+                        poster={photo.coverUrl ? getFullImageUrl(photo.coverUrl) : undefined}
                         className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                         playsInline
                         preload="metadata"
@@ -287,7 +296,7 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
                     </div>
                   ) : (
                     <Image
-                      src={photo.url}
+                      src={getFullImageUrl(photo.url)}
                       alt={photo.title || t.grid.photography}
                       fill
                       className="object-cover transition-all duration-700 group-hover:scale-105 group-hover:brightness-110"
@@ -361,48 +370,48 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
                   {/* 第一行：左往右 */}
                   <div className="film-strip overflow-hidden">
                     <div className="flex animate-scroll-right whitespace-nowrap">
-                      {[...row1, ...row1, ...row1].map((photo, i) => (
-                        <div 
-                          key={`${photo.id}-r1-${i}`} 
-                          className="inline-block px-2 sm:px-4 h-48 sm:h-72 aspect-[3/4] relative group"
-                        >
-                          <div className="relative w-full h-full">
-                            <Image 
-                              src={photo.url} 
-                              alt="" 
-                              fill
-                              unoptimized={true}
-                              loading="lazy"
-                              className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
-                            />
-                          </div>
-                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-2xl mx-2 sm:mx-4" />
-                        </div>
-                      ))}
+                  {[...row1, ...row1, ...row1].map((photo, i) => (
+                    <div 
+                      key={`${photo.id}-r1-${i}`} 
+                      className="inline-block px-2 sm:px-4 h-48 sm:h-72 aspect-[3/4] relative group"
+                    >
+                      <div className="relative w-full h-full">
+                        <Image 
+                          src={getFullImageUrl(photo.url)} 
+                          alt="" 
+                          fill
+                          unoptimized={true}
+                          loading="lazy"
+                          className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-2xl mx-2 sm:mx-4" />
+                    </div>
+                  ))}
                     </div>
                   </div>
 
                   {/* 第二行：右往左 */}
                   <div className="film-strip overflow-hidden">
                     <div className="flex animate-scroll-left whitespace-nowrap">
-                      {[...row2, ...row2, ...row2].map((photo, i) => (
-                        <div 
-                          key={`${photo.id}-r2-${i}`} 
-                          className="inline-block px-2 sm:px-4 h-48 sm:h-72 aspect-[3/4] relative group"
-                        >
-                          <div className="relative w-full h-full">
-                            <Image 
-                              src={photo.url} 
-                              alt="" 
-                              fill
-                              unoptimized={true}
-                              loading="lazy"
-                              className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
-                            />
-                          </div>
-                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-2xl mx-2 sm:mx-4" />
-                        </div>
-                      ))}
+                  {[...row2, ...row2, ...row2].map((photo, i) => (
+                    <div 
+                      key={`${photo.id}-r2-${i}`} 
+                      className="inline-block px-2 sm:px-4 h-48 sm:h-72 aspect-[3/4] relative group"
+                    >
+                      <div className="relative w-full h-full">
+                        <Image 
+                          src={getFullImageUrl(photo.url)} 
+                          alt="" 
+                          fill
+                          unoptimized={true}
+                          loading="lazy"
+                          className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-2xl mx-2 sm:mx-4" />
+                    </div>
+                  ))}
                     </div>
                   </div>
                 </div>
@@ -462,7 +471,7 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
                         >
                           <div className="w-24 h-18 sm:w-44 sm:h-32 block relative group select-none">
                             <Image
-                              src={photo.url}
+                              src={getFullImageUrl(photo.url)}
                               alt=""
                               fill
                               unoptimized={true}

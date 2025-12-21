@@ -24,6 +24,7 @@ export default function Navbar({ currentLang }: NavbarProps) {
 
   // 处理主题初始化
   useEffect(() => {
+    console.log(`🚀 Deployment Time: ${process.env.NEXT_PUBLIC_DEPLOY_TIME}`);
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
       setIsDarkMode(true);

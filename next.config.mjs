@@ -42,6 +42,10 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
+        hostname: "zwg.autos",
+        protocol: "https",
+      },
+      {
         hostname: "picsum.photos",
         protocol: "https",
       },
@@ -53,12 +57,13 @@ const nextConfig = {
         protocol: "https",
       },
     ],
-    // 添加更多图片域名
-    domains: ['localhost', '223.4.248.176'],
+    // 允许本地开发和服务器内部访问
+    domains: ['localhost', '127.0.0.1', 'zwg.autos'],
   },
   // 环境变量处理
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
+    NEXT_PUBLIC_DEPLOY_TIME: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
   },
   // 构建优化
   swcMinify: true,
