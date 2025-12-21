@@ -151,8 +151,8 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
   const getFullImageUrl = (url: string) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    // 强制使用生产域名，确保 Next.js 图片优化能正确识别源
-    return `https://zwg.autos${url}`;
+    // 回归相对路径，利用 next.config.mjs 中的 rewrites 实现内网优化获取
+    return url;
   };
 
   useEffect(() => {

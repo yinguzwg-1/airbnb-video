@@ -58,7 +58,7 @@ const nextConfig = {
       },
     ],
     // 允许本地开发和服务器内部访问
-    domains: ['localhost', '127.0.0.1', 'zwg.autos'],
+    domains: ['localhost', '127.0.0.1', 'zwg.autos', '172.17.0.1'],
   },
   // 环境变量处理
   env: {
