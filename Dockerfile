@@ -1,35 +1,42 @@
-# 阶段1：构建 Next.js 应用
-FROM node:18-alpine AS builder
+# 阶段 1: 安装依赖
+FROM node:18-slim AS deps
 WORKDIR /app
-# 复制依赖文件并安装
-COPY ./package*.json ./
-RUN rm -rf node_modules
-RUN npm ci
-# 复制项目代码
+COPY package.json pnpm-lock.yaml* package-lock.json* yarn.lock* ./
+RUN if [ -f pnpm-lock.yaml ]; then npm install -g pnpm && pnpm install --frozen-lockfile; \
+    elif [ -f package-lock.json ]; then npm ci; \
+    else npm install; fi
+
+# 阶段 2: 构建项目
+FROM node:18-slim AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# 构建应用（使用构建参数）
-ARG NODE_ENV=production
+
+# 设置构建时需要的环境变量
 ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_LOCAL_HOST
-ARG NEXT_PUBLIC_APP_ID
-# 注入环境变量（构建时生效）
-ENV NODE_ENV=$NODE_ENV
+ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_LOCAL_HOST=$NEXT_PUBLIC_LOCAL_HOST
-ENV NEXT_PUBLIC_APP_ID=$NEXT_PUBLIC_APP_ID
-# 执行构建
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+ENV NEXT_TELEMETRY_DISABLED=1
+
 RUN npm run build
 
-# 阶段2：生产环境运行（轻量化镜像）
-FROM node:18-alpine AS runner
+# 阶段 3: 运行阶段
+FROM node:18-slim AS runner
 WORKDIR /app
-# 复制构建产物和依赖（仅复制必要文件，减小镜像体积）
-COPY --from=builder /app/next.config.mjs ./
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=8080
+ENV HOSTNAME="0.0.0.0"
+
+# 复制 standalone 模式所需的文件
+# 这里的 standalone 是在 next.config.mjs 中开启 output: 'standalone' 后生成的
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-# 暴露应用内部端口（需与部署配置中的 `-p $PORT:3000` 中的 `3000` 一致）
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
 EXPOSE 8080
-# 启动命令（Next.js 生产环境启动命令）
-CMD ["npx", "next", "start", "-p", "8080"]
+
+# 运行 standalone 模式下的入口文件
+CMD ["node", "server.js"]
