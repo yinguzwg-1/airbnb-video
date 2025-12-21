@@ -29,20 +29,31 @@ export default async function HomePage({ params: { lang } }: HomePageProps) {
     console.error('获取初始图片数据失败:', error);
   }
 
-  return <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 font-sans">
-    {/* 顶部导航栏 (客户端组件) */}
-    <Navbar currentLang={lang} />
+  return (
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 font-sans">
+      {/* 针对 LCP 优化：预加载第一张图片 */}
+      {initialPhotos.length > 0 && initialPhotos[0].type !== 'video' && (
+        <link 
+          rel="preload" 
+          as="image" 
+          href={initialPhotos[0].url} 
+        />
+      )}
+      
+      {/* 顶部导航栏 (客户端组件) */}
+      <Navbar currentLang={lang} />
 
-    {/* 中间照片墙部分 (无限滚动) */}
-    <main className="max-w-7xl mx-auto px-6 py-8">
-      <InfinitePhotoGrid 
-        initialData={initialPhotos} 
-        initialHasMore={initialHasMore} 
-        currentLang={lang}
-      />
-    </main>
+      {/* 中间照片墙部分 (无限滚动) */}
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <InfinitePhotoGrid 
+          initialData={initialPhotos} 
+          initialHasMore={initialHasMore} 
+          currentLang={lang}
+        />
+      </main>
 
-    {/* 悬浮上传按钮 (仅登录后显示) */}
-    <UploadButton currentLang={lang} />
-  </div>;
+      {/* 悬浮上传按钮 (仅登录后显示) */}
+      <UploadButton currentLang={lang} />
+    </div>
+  );
 }
