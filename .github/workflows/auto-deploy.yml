@@ -15,8 +15,8 @@ on:
         - staging
 
 env:
-  # 阿里云 ACR 配置
-  REGISTRY: registry.cn-hangzhou.aliyuncs.com
+  # 阿里云 ACR 配置 - 使用你控制台显示的专属域名
+  REGISTRY: crpi-q2c5la9qn25hswu3.cn-hangzhou.personal.cr.aliyuncs.com
   NAMESPACE: yinguzwg
   APP_NAME: airbnb-video
   CONTAINER_NAME: airbnb-video-app
