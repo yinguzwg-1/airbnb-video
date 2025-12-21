@@ -137,6 +137,9 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
         hasMore: initialHasMore 
       }],
       revalidateFirstPage: false,
+      revalidateOnFocus: false, // 禁止窗口聚焦时重新验证
+      revalidateOnReconnect: false, // 禁止重连时重新验证
+      shouldRetryOnError: false, // 失败时不重试，避免循环加载
     }
   );
 
@@ -247,59 +250,59 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
           ))}
         </div>
       ) : (
-        <div className={`grid ${gridColsClass} gap-4 sm:gap-6 px-4`}>
-          {photos.map((photo, index) => (
-            <div
-              key={`${photo.id}-${index}`}
-              className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-800/50 shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700"
-              onClick={(e) => {
-                if (photo.type === 'video') {
-                  const video = e.currentTarget.querySelector('video');
-                  if (video) {
-                    if (video.paused) video.play();
-                    else video.pause();
-                  }
-                }
-              }}
-            >
-              {photo.type === 'video' ? (
-                <div className="relative w-full h-full cursor-pointer bg-black">
-                  <video
-                    src={photo.url}
-                    poster={photo.coverUrl}
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
-                    playsInline
-                    preload="metadata"
-                    onPlay={(e) => e.currentTarget.parentElement?.querySelector('.play-overlay')?.classList.add('opacity-0')}
-                    onPause={(e) => e.currentTarget.parentElement?.querySelector('.play-overlay')?.classList.remove('opacity-0')}
-                  />
-                  {/* 自定义播放按钮 */}
-                  <div className="play-overlay absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity duration-300 pointer-events-none">
-                    <div className="w-16 h-16 rounded-full bg-rose-500 flex items-center justify-center shadow-xl shadow-rose-500/40 border-4 border-white">
-                      <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
+            <div className={`grid ${gridColsClass} gap-4 sm:gap-6 px-4`}>
+              {photos.map((photo, index) => (
+                <div
+                  key={`${photo.id}-${photo.type}-${index}`}
+                  className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-800/50 shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700"
+                  onClick={(e) => {
+                    if (photo.type === 'video') {
+                      const video = e.currentTarget.querySelector('video');
+                      if (video) {
+                        if (video.paused) video.play();
+                        else video.pause();
+                      }
+                    }
+                  }}
+                >
+                  {photo.type === 'video' ? (
+                    <div className="relative w-full h-full cursor-pointer bg-black">
+                      <video
+                        src={photo.url}
+                        poster={photo.coverUrl}
+                        className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+                        playsInline
+                        preload="metadata"
+                        onPlay={(e) => e.currentTarget.parentElement?.querySelector('.play-overlay')?.classList.add('opacity-0')}
+                        onPause={(e) => e.currentTarget.parentElement?.querySelector('.play-overlay')?.classList.remove('opacity-0')}
+                      />
+                      {/* 自定义播放按钮 */}
+                      <div className="play-overlay absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity duration-300 pointer-events-none">
+                        <div className="w-16 h-16 rounded-full bg-rose-500 flex items-center justify-center shadow-xl shadow-rose-500/40 border-4 border-white">
+                          <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ) : (
-                <Image
-                  src={photo.url}
-                  unoptimized={true} 
-                  alt={photo.title || t.grid.photography}
-                  fill
-                  className="object-cover transition-all duration-700 group-hover:scale-105 group-hover:brightness-110"
-                  sizes={
-                    columnCount === 2 
-                      ? "(max-width: 768px) 50vw, 50vw" 
-                      : columnCount === 4 
-                      ? "(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                      : "(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 16vw"
-                  }
-                  priority={index < 4}
-                  loading={index < 4 ? "eager" : "lazy"}
-                />
-              )}
+                  ) : (
+                    <Image
+                      src={photo.url}
+                      unoptimized={true} 
+                      alt={photo.title || t.grid.photography}
+                      fill
+                      className="object-cover transition-all duration-700 group-hover:scale-105 group-hover:brightness-110"
+                      sizes={
+                        columnCount === 2 
+                          ? "(max-width: 768px) 50vw, 50vw" 
+                          : columnCount === 4 
+                          ? "(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                          : "(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 16vw"
+                      }
+                      priority={index < 4}
+                      loading={index < 4 ? "eager" : "lazy"}
+                    />
+                  )}
 
               {/* 优雅的底部遮罩 */}
               <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
@@ -355,45 +358,55 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
               <MdClose className="w-6 h-6 sm:w-8 h-8" />
             </button>
 
-            <div className="space-y-8 sm:space-y-16 py-12">
-              {/* 第一行：左往右 */}
-              <div className="film-strip overflow-hidden">
-                <div className="flex animate-scroll-right whitespace-nowrap">
-                  {[...row1, ...row1, ...row1].map((photo, i) => (
-                    <div 
-                      key={`${photo.id}-r1-${i}`} 
-                      className="inline-block px-2 sm:px-4 h-48 sm:h-72 aspect-[3/4] relative group"
-                    >
-                      <img 
-                        src={photo.url} 
-                        alt="" 
-                        className="w-full h-full object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
-                      />
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-2xl mx-2 sm:mx-4" />
+                <div className="space-y-8 sm:space-y-16 py-12">
+                  {/* 第一行：左往右 */}
+                  <div className="film-strip overflow-hidden">
+                    <div className="flex animate-scroll-right whitespace-nowrap">
+                      {[...row1, ...row1, ...row1].map((photo, i) => (
+                        <div 
+                          key={`${photo.id}-r1-${i}`} 
+                          className="inline-block px-2 sm:px-4 h-48 sm:h-72 aspect-[3/4] relative group"
+                        >
+                          <div className="relative w-full h-full">
+                            <Image 
+                              src={photo.url} 
+                              alt="" 
+                              fill
+                              unoptimized={true}
+                              loading="lazy"
+                              className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
+                            />
+                          </div>
+                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-2xl mx-2 sm:mx-4" />
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
 
-              {/* 第二行：右往左 */}
-              <div className="film-strip overflow-hidden">
-                <div className="flex animate-scroll-left whitespace-nowrap">
-                  {[...row2, ...row2, ...row2].map((photo, i) => (
-                    <div 
-                      key={`${photo.id}-r2-${i}`} 
-                      className="inline-block px-2 sm:px-4 h-48 sm:h-72 aspect-[3/4] relative group"
-                    >
-                      <img 
-                        src={photo.url} 
-                        alt="" 
-                        className="w-full h-full object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
-                      />
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-2xl mx-2 sm:mx-4" />
+                  {/* 第二行：右往左 */}
+                  <div className="film-strip overflow-hidden">
+                    <div className="flex animate-scroll-left whitespace-nowrap">
+                      {[...row2, ...row2, ...row2].map((photo, i) => (
+                        <div 
+                          key={`${photo.id}-r2-${i}`} 
+                          className="inline-block px-2 sm:px-4 h-48 sm:h-72 aspect-[3/4] relative group"
+                        >
+                          <div className="relative w-full h-full">
+                            <Image 
+                              src={photo.url} 
+                              alt="" 
+                              fill
+                              unoptimized={true}
+                              loading="lazy"
+                              className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
+                            />
+                          </div>
+                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-2xl mx-2 sm:mx-4" />
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
-            </div>
 
             <div className="absolute bottom-8 sm:bottom-12 left-0 right-0 text-center">
               <h2 className="text-white/50 text-sm sm:text-xl font-bold tracking-widest uppercase">{t.grid.slideshowTitle}</h2>
@@ -430,38 +443,41 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
                 id="sphere-gallery"
                 className="sphere-container w-0 h-0 flex items-center justify-center will-change-transform"
               >
-                {photos.slice(0, 50).map((photo, index, array) => {
-                  const total = array.length;
-                  const phi = Math.acos(-1 + (2 * index) / total);
-                  const theta = Math.sqrt(total * Math.PI) * phi;
-                  const radius = isMounted && window.innerWidth < 640 ? 200 : 380;
+                    {photos.slice(0, 50).map((photo, index, array) => {
+                      const total = array.length;
+                      const phi = Math.acos(-1 + (2 * index) / total);
+                      const theta = Math.sqrt(total * Math.PI) * phi;
+                      const radius = isMounted && typeof window !== 'undefined' && window.innerWidth < 640 ? 200 : 380;
 
-                  const x = radius * Math.sin(phi) * Math.cos(theta);
-                  const y = radius * Math.sin(phi) * Math.sin(theta);
-                  const z = radius * Math.cos(phi);
+                      const x = radius * Math.sin(phi) * Math.cos(theta);
+                      const y = radius * Math.sin(phi) * Math.sin(theta);
+                      const z = radius * Math.cos(phi);
 
-                  return (
-                    <div
-                      key={`sphere-${photo.id}-${index}`}
-                      className="sphere-item"
-                      style={{
-                        transform: `translate3d(${x}px, ${y}px, ${z}px)`,
-                      }}
-                    >
-                      <div className="w-24 h-18 sm:w-44 sm:h-32 block relative group select-none">
-                        <img
-                          src={photo.url}
-                          alt=""
-                          className="w-full h-full object-cover rounded-lg sm:rounded-xl border border-white/10 transition-all shadow-2xl group-hover:border-rose-500/50"
+                      return (
+                        <div
+                          key={`sphere-${photo.id}-${index}`}
+                          className="sphere-item"
                           style={{
-                            filter: `brightness(${0.4 + (z / radius) * 0.6 + 0.5}) saturate(${0.8 + (z / radius) * 0.4 + 0.2})`
+                            transform: `translate3d(${x}px, ${y}px, ${z}px)`,
                           }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg sm:rounded-xl" />
-                      </div>
-                    </div>
-                  );
-                })}
+                        >
+                          <div className="w-24 h-18 sm:w-44 sm:h-32 block relative group select-none">
+                            <Image
+                              src={photo.url}
+                              alt=""
+                              fill
+                              unoptimized={true}
+                              loading="lazy"
+                              className="w-full h-full object-cover rounded-lg sm:rounded-xl border border-white/10 transition-all shadow-2xl group-hover:border-rose-500/50"
+                              style={{
+                                filter: `brightness(${0.4 + (z / radius) * 0.6 + 0.5}) saturate(${0.8 + (z / radius) * 0.4 + 0.2})`
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg sm:rounded-xl" />
+                          </div>
+                        </div>
+                      );
+                    })}
               </div>
             </div>
 

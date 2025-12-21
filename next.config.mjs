@@ -106,7 +106,7 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    const backendUrl = process.env.BACKEND_URL || (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "http://zwg.autos");
+    const backendUrl = process.env.BACKEND_URL || (process.env.NODE_ENV === "development" ? "http://localhost:3001" : "http://zwg.autos");
     return [
       {
         source: "/api/:path*",

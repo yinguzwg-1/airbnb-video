@@ -15,7 +15,7 @@ export default async function HomePage({ params: { lang } }: HomePageProps) {
   let initialHasMore = false;
 
   try {
-    const baseUrl = process.env.BACKEND_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'http://zwg.autos');
+    const baseUrl = process.env.BACKEND_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'http://zwg.autos');
     // 初始加载第 1 页，每页 20 条
     const response = await fetch(`${baseUrl}/api/upload/list?page=1&limit=20`, {
       cache: 'no-store',
