@@ -42,6 +42,10 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
+        hostname: "picsum.photos",
+        protocol: "https",
+      },
+      {
         hostname: "avatars.githubusercontent.com",
       },
       {
@@ -102,18 +106,23 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
+    const backendUrl = process.env.BACKEND_URL || (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "http://zwg.autos");
     return [
       {
         source: "/api/:path*",
-        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/api/:path*" : "http://223.4.248.176/api/:path*" // 转发到 NestJS 端口
+        destination: `${backendUrl}/api/:path*`
       },
       {
         source: "/music_files/:path*",
-        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/music_files/:path*" : "http://223.4.248.176/music_files/:path*" // 转发音乐文件
+        destination: `${backendUrl}/music_files/:path*`
       },
       {
         source: "/cover_files/:path*",
-        destination: process.env.NODE_ENV === "development" ? "http://localhost:3000/cover_files/:path*" : "http://223.4.248.176/cover_files/:path*" // 转发封面文件
+        destination: `${backendUrl}/cover_files/:path*`
+      },
+      {
+        source: "/uploads/:path*",
+        destination: `${backendUrl}/uploads/:path*`
       }
     ];
   }

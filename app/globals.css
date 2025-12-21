@@ -727,12 +727,78 @@ body {
   }
 }
 
-/* 加载动画 */
-@keyframes loading {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+/* 胶卷样式 */
+.film-strip {
+  position: relative;
+  border-top: 12px dashed #1a1a1a;
+  border-bottom: 12px dashed #1a1a1a;
+  background: #111;
+  padding: 20px 0;
+}
+
+.dark .film-strip {
+  border-top-color: #333;
+  border-bottom-color: #333;
+}
+
+/* 无尽滚动动画 */
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes scroll-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.animate-scroll-left {
+  animation: scroll-left 40s linear infinite;
+}
+
+.animate-scroll-right {
+  animation: scroll-right 40s linear infinite;
+}
+
+.animate-scroll-left:hover,
+.animate-scroll-right:hover {
+  animation-play-state: paused;
+}
+
+/* 3D 舞台 */
+.stage-3d {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+.sphere-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  /* 移除强制 animation，改为通过 JS 控制或仅作为默认 */
+  transition: transform 0.1s ease-out;
+}
+
+@keyframes rotate-sphere {
+  from { transform: rotateY(0) rotateX(0); }
+  to { transform: rotateY(360deg) rotateX(0); }
+}
+
+.sphere-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.sphere-item img {
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  transition: all 0.5s;
+}
+
+.sphere-item:hover img {
+  box-shadow: 0 0 30px rgba(244, 63, 94, 0.5);
+  transform: scale(1.2);
 }

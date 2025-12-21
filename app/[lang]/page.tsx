@@ -1,87 +1,48 @@
-import { Language, translations } from "../i18n";
-import { CircularLanguageSwitcher, CircularThemeSwitcher, HomePageClient } from "../components";
-import Swiper from "../components/Swiper";
-import { VersionInfo } from "../components/VersionInfo";
+
+import React from "react";
+import Navbar from "../components/Navbar";
+import InfinitePhotoGrid from "../components/InfinitePhotoGrid";
+import UploadButton from "../components/UploadButton";
 
 interface HomePageProps {
-  params: { lang: Language };
+  params: { lang: string };
 }
 
-export default async function HomePage({ params }: HomePageProps) {
-  // 确保语言参数有效，如果无效则使用默认语言
-  const lang = params.lang && translations[params.lang] ? params.lang : 'zh';
-  const t = translations[lang];
-  
-  // 添加防护检查
-  if (!t || !t.home || !t.home.modules) {
-    console.error('Translation object is missing required properties:', { lang, t });
-    throw new Error('Translation configuration error');
-  }
-  const modules = [
-    {
-      id: 'blog',
-      icon: '📝',
-      route: `/${lang}/blog`,
-      gradient: 'bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500',
-      title: t.home.modules.blog.title,
-      description: t.home.modules.blog.description,
-      position: 'top-right' // 右上
-    },
-    {
-      id: 'music',
-      icon: '🎵',
-      route: `/${lang}/music`,
-      gradient: 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-500',
-      title: '音乐',
-      description: '搜索你喜欢的音乐',
-      position: 'center' // 中心
-    },
-    // {
-    //   id: 'burrypoint',
-    //   icon: '📊',
-    //   route: `/${lang}/burrypoint`,
-    //   gradient: 'bg-gradient-to-br from-green-500 via-teal-500 to-cyan-500',
-    //   title: t.home.modules.burrypoint.title,
-    //   description: t.home.modules.burrypoint.description,
-    //   position: 'bottom-right' // 右下
-    // },
-    // {
-    //   id: 'monitoring',
-    //   icon: '🔍',
-    //   route: `/${lang}/monitoring`,
-    //   gradient: 'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500',
-    //   title: t.home.modules.monitoring.title,
-    //   description: t.home.modules.monitoring.description,
-    //   position: 'bottom-left' // 左下
-    // },
-    // {
-    //   id: 'about',
-    //   icon: 'ℹ️',
-    //   route: `/${params.lang}/about`,
-    //   gradient: 'bg-gradient-to-br from-purple-500 via-violet-500 to-indigo-500',
-    //   title: t.home.modules.about.title,
-    //   description: t.home.modules.about.description,
-    //   position: 'top-left' // 左上
-    // }
-  ];
-  
-  return (
-    <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-    
-      {/* 语言和主题切换器 */}
-      <div className="absolute top-6 right-6 z-10 md:top-8 md:right-8 flex gap-3">
-        <CircularLanguageSwitcher />
-        <CircularThemeSwitcher />
-      </div>
+// ✅ SSG: 在构建时执行（生成静态 HTML）
+export default async function HomePage({ params: { lang } }: HomePageProps) {
+  // 从服务端获取初始图片数据
+  let initialPhotos = [];
+  let initialHasMore = false;
 
-      {/* 客户端交互组件 */}
-      <HomePageClient 
-        lang={lang}
-        modules={modules}
-        welcomeTitle={t.home.welcomeTitle}
-        welcomeSubtitle={t.home.welcomeSubtitle}
+  try {
+    const baseUrl = process.env.BACKEND_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'http://zwg.autos');
+    // 初始加载第 1 页，每页 20 条
+    const response = await fetch(`${baseUrl}/api/upload/list?page=1&limit=20`, {
+      cache: 'no-store',
+    });
+    if (response.ok) {
+      const result = await response.json();
+      initialPhotos = result.data;
+      initialHasMore = result.hasMore;
+    }
+  } catch (error) {
+    console.error('获取初始图片数据失败:', error);
+  }
+
+  return <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 font-sans">
+    {/* 顶部导航栏 (客户端组件) */}
+    <Navbar currentLang={lang} />
+
+    {/* 中间照片墙部分 (无限滚动) */}
+    <main className="max-w-7xl mx-auto px-6 py-8">
+      <InfinitePhotoGrid 
+        initialData={initialPhotos} 
+        initialHasMore={initialHasMore} 
+        currentLang={lang}
       />
-      <VersionInfo />
-    </div>
-  );
-} 
+    </main>
+
+    {/* 悬浮上传按钮 (仅登录后显示) */}
+    <UploadButton currentLang={lang} />
+  </div>;
+}
