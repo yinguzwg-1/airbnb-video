@@ -298,6 +298,7 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
                       src={getFullImageUrl(photo.url)}
                       alt={photo.title || t.grid.photography}
                       fill
+                      unoptimized={true}
                       className="object-cover transition-all duration-700 group-hover:scale-105 group-hover:brightness-110"
                       sizes={
                         columnCount === 2 
@@ -379,6 +380,7 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
                           src={getFullImageUrl(photo.url)} 
                           alt="" 
                           fill
+                          unoptimized={true}
                           loading="lazy"
                           className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
                         />
@@ -402,6 +404,7 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
                           src={getFullImageUrl(photo.url)} 
                           alt="" 
                           fill
+                          unoptimized={true}
                           loading="lazy"
                           className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
                         />
