@@ -285,6 +285,7 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
               ) : (
                 <Image
                   src={photo.url}
+                  unoptimized={true} 
                   alt={photo.title || t.grid.photography}
                   fill
                   className="object-cover transition-all duration-700 group-hover:scale-105 group-hover:brightness-110"
