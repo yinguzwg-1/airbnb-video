@@ -111,19 +111,13 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    const backendUrl = process.env.BACKEND_URL || (process.env.NODE_ENV === "development" ? "http://localhost:3001" : "http://zwg.autos");
+    // 关键优化：如果是生产环境，后端地址建议使用内网 IP 或通过环境变量配置
+    // 默认回退到 https://zwg.autos 仅用于浏览器端重写
+    const backendUrl = process.env.BACKEND_URL || (process.env.NODE_ENV === "development" ? "http://localhost:3001" : "https://zwg.autos");
     return [
       {
         source: "/api/:path*",
         destination: `${backendUrl}/api/:path*`
-      },
-      {
-        source: "/music_files/:path*",
-        destination: `${backendUrl}/music_files/:path*`
-      },
-      {
-        source: "/cover_files/:path*",
-        destination: `${backendUrl}/cover_files/:path*`
       },
       {
         source: "/uploads/:path*",

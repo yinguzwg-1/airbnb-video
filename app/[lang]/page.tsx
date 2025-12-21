@@ -15,10 +15,10 @@ export default async function HomePage({ params: { lang } }: HomePageProps) {
   let initialHasMore = false;
 
   try {
-    const baseUrl = process.env.BACKEND_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'http://zwg.autos');
-    // 初始加载第 1 页，每页 20 条
+    const baseUrl = process.env.BACKEND_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'https://zwg.autos');
+    // 性能优化：增加 60 秒缓存，让 HTML 瞬间生成，显著提升 LCP
     const response = await fetch(`${baseUrl}/api/upload/list?page=1&limit=20`, {
-      cache: 'no-store',
+      next: { revalidate: 60 }, 
     });
     if (response.ok) {
       const result = await response.json();

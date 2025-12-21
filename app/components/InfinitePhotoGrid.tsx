@@ -149,11 +149,10 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
 
   // 获取基础图片路径
   const getFullImageUrl = (url: string) => {
+    if (!url) return '';
     if (url.startsWith('http')) return url;
-    const baseUrl = typeof window !== 'undefined' 
-      ? window.location.origin 
-      : (process.env.BACKEND_URL || 'https://zwg.autos');
-    return `${baseUrl}${url}`;
+    // 强制使用生产域名，确保 Next.js 图片优化能正确识别源
+    return `https://zwg.autos${url}`;
   };
 
   useEffect(() => {
@@ -380,7 +379,6 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
                           src={getFullImageUrl(photo.url)} 
                           alt="" 
                           fill
-                          unoptimized={true}
                           loading="lazy"
                           className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
                         />
@@ -404,7 +402,6 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
                           src={getFullImageUrl(photo.url)} 
                           alt="" 
                           fill
-                          unoptimized={true}
                           loading="lazy"
                           className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
                         />

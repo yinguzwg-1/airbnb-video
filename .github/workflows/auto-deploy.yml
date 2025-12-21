@@ -133,6 +133,7 @@ jobs:
               -e NODE_ENV=production \
               -e NEXT_PUBLIC_API_URL="https://zwg.autos/api" \
               -e NEXT_PUBLIC_SITE_URL="https://zwg.autos" \
+              -e BACKEND_URL="http://172.17.0.1:3001" \
               "$TARGET_IMAGE"
 
             echo "🧹 清理旧镜像..."
