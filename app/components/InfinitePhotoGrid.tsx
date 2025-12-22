@@ -2,9 +2,49 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { PropagateLoader } from "react-spinners";
+import useSWRInfinite from "swr/infinite";
+import { MdPlayCircleOutline, MdClose, MdPublic } from "react-icons/md";
+import { motion, AnimatePresence } from "framer-motion";
+import { i18n } from "../config/i18n";
 
 // 真正的小狗 SVG Base64
 const PUPPY_PLACEHOLDER = "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZGNkY2RjIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggZD0iTTEyIDljLTMgMC01LjUgMi41LTUuNSA1LjVzMi41IDUuNSA1LjUgNS41IDUuNS0yLjUgNS41LTUuNVMyIDEyIDkgMTIgOXpNMTEuNSA4YzAtLjguNy0xLjUgMS41LTEuNXMxLjUuNyAxLjUgMS41LS43IDEuNS0xLjUgMS41LTEuNS0uNy0xLjUtMS41ek00LjYgNi4xYy43LTEuNyAyLjUtMyA0LjQtM2guN2MuOCAwIDEuNS43IDEuNSAxLjVzLS43IDEuNS0xLjUgMS41SDEwYy0xLjUgMC0yLjggMS0zLjQgMi40LS4yLjUtLjguNy0xLjIuNS0uNS0uMi0uNy0uOC0uNC0xLjR6TTIwLjUgOGMtLjggMC0xLjUtLjctMS41LTEuNVMxOS43IDUgMjAuNSA1cyAxLjUuNyAxLjUgMS41LS43IDEuNS0xLjUgMS41ek0yMiAxMmMwLTEuMS0uOS0yLTItMmgtNWMtMS4xIDAtMiAuOS0yIDJzLjkgMiAyIDJoNWMxLjEgMCAyLS45IDItMnoiLz48L3N2Zz4=";
+
+const LoadingImage = ({ src, alt, className, sizes, priority = false, style }: { 
+  src: string, 
+  alt: string, 
+  className?: string, 
+  sizes?: string,
+  priority?: boolean,
+  style?: React.CSSProperties
+}) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  return (
+    <div className="relative w-full h-full overflow-hidden">
+      {!isLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 animate-pulse z-10">
+          <img 
+            src={PUPPY_PLACEHOLDER} 
+            className="w-12 h-12 opacity-20" 
+            alt="Loading..." 
+          />
+        </div>
+      )}
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        unoptimized={true}
+        className={`${className} transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+        sizes={sizes}
+        priority={priority}
+        style={style}
+        onLoadingComplete={() => setIsLoaded(true)}
+      />
+    </div>
+  );
+};
 
 const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: { 
   photo: any, 
@@ -13,11 +53,8 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
   t: any, 
   getFullImageUrl: any 
 }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-
   return (
     <div
-      key={`${photo.id}-${photo.type}-${index}`}
       className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-800/50 shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700"
       onClick={(e) => {
         if (photo.type === 'video') {
@@ -29,17 +66,6 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
         }
       }}
     >
-      {/* 站位图层 */}
-      {!isLoaded && photo.type !== 'video' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900 animate-pulse z-10">
-          <img 
-            src={PUPPY_PLACEHOLDER} 
-            className="w-16 h-16 opacity-20" 
-            alt="Loading..." 
-          />
-        </div>
-      )}
-
       {photo.type === 'video' ? (
         <div className="relative w-full h-full cursor-pointer bg-black">
           <video
@@ -51,7 +77,6 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
             onPlay={(e) => e.currentTarget.parentElement?.querySelector('.play-overlay')?.classList.add('opacity-0')}
             onPause={(e) => e.currentTarget.parentElement?.querySelector('.play-overlay')?.classList.remove('opacity-0')}
           />
-          {/* 自定义播放按钮 */}
           <div className="play-overlay absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity duration-300 pointer-events-none">
             <div className="w-16 h-16 rounded-full bg-rose-500 flex items-center justify-center shadow-xl shadow-rose-500/40 border-4 border-white">
               <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
@@ -61,14 +86,10 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
           </div>
         </div>
       ) : (
-        <Image
+        <LoadingImage
           src={getFullImageUrl(photo.url)}
           alt={photo.title || t.grid.photography}
-          fill
-          unoptimized={true}
-          className={`object-cover transition-all duration-700 group-hover:scale-105 group-hover:brightness-110 ${
-            isLoaded ? "opacity-100" : "opacity-0"
-          }`}
+          className="object-cover group-hover:scale-105 group-hover:brightness-110"
           sizes={
             columnCount === 2 
               ? "(max-width: 768px) 50vw, 50vw" 
@@ -77,11 +98,9 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
               : "(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 16vw"
           }
           priority={index < 4}
-          onLoadingComplete={() => setIsLoaded(true)}
         />
       )}
 
-      {/* 优雅的底部遮罩 */}
       <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-20">
           <div className="flex items-center justify-between">
             <div>
@@ -101,7 +120,6 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
           </div>
       </div>
 
-      {/* 红色渐变边框 */}
       <div 
         className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none z-30"
         style={{
@@ -117,11 +135,6 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
     </div>
   );
 };
-import { PropagateLoader } from "react-spinners";
-import useSWRInfinite from "swr/infinite";
-import { MdPlayCircleOutline, MdClose, MdPublic } from "react-icons/md";
-import { motion, AnimatePresence } from "framer-motion";
-import { i18n } from "../config/i18n";
 
 interface Photo {
   id: number;
@@ -164,7 +177,6 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
   const lastMousePos = useRef({ x: 0, y: 0 });
   const rafId = useRef<number | null>(null);
 
-  // 初始化加载本地存储的列数
   useEffect(() => {
     const saved = localStorage.getItem('photo-grid-columns');
     if (saved && [2, 4, 6].includes(parseInt(saved))) {
@@ -173,7 +185,6 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
     setIsMounted(true);
   }, []);
 
-  // 使用 requestAnimationFrame 实现更符合直觉的球体自转（基于鼠标位置）
   useEffect(() => {
     if (!isSphereOpen) {
       if (rafId.current) cancelAnimationFrame(rafId.current);
@@ -181,8 +192,6 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
     }
 
     const animate = () => {
-      // 只有在非拖拽状态下才根据鼠标位置自动旋转，或者你可以合并两者
-      // 这里采用更“球形”的逻辑：鼠标位置决定旋转速度和轴向
       if (!isDragging.current) {
         rotationRef.current.y += targetRotationRef.current.y * 0.5;
         rotationRef.current.x += targetRotationRef.current.x * 0.5;
@@ -213,13 +222,10 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
     if (isDragging.current) {
       const deltaX = e.clientX - lastMousePos.current.x;
       const deltaY = e.clientY - lastMousePos.current.y;
-      
       rotationRef.current.y += deltaX * 0.3;
       rotationRef.current.x += deltaY * 0.3;
-      
       lastMousePos.current = { x: e.clientX, y: e.clientY };
     } else {
-      // 鼠标位置决定“目标旋转速度”
       targetRotationRef.current.y = (e.clientX - centerX) / (rect.width / 2);
       targetRotationRef.current.x = (e.clientY - centerY) / (rect.height / 2);
     }
@@ -252,9 +258,9 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
         hasMore: initialHasMore 
       }],
       revalidateFirstPage: false,
-      revalidateOnFocus: false, // 禁止窗口聚焦时重新验证
-      revalidateOnReconnect: false, // 禁止重连时重新验证
-      shouldRetryOnError: false, // 失败时不重试，避免循环加载
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 
@@ -262,11 +268,9 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
   const hasMore = data ? data[data.length - 1].hasMore : initialHasMore;
   const isFetchingMore = isLoading || (size > 0 && data && typeof data[size - 1] === "undefined");
 
-  // 获取基础图片路径
   const getFullImageUrl = (url: string) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    // 回归相对路径，利用 next.config.mjs 中的 rewrites 实现内网优化获取
     return url;
   };
 
@@ -299,20 +303,16 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
     6: "grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6",
   }[columnCount];
 
-  // 准备轮播数据
   const splitIndex = Math.ceil(photos.length / 2);
   const row1 = photos.slice(0, splitIndex);
   const row2 = photos.slice(splitIndex);
 
   return (
     <div className="space-y-8">
-      {/* 隐藏的 H2 用于 SEO 结构 */}
       <h2 className="sr-only">{t.metadata.title} - {t.grid.photography}</h2>
 
-      {/* 顶部工具栏 */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6 sticky top-24 z-30 px-4">
         <div className="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
-          {/* 分类选择 */}
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-1 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center mr-2">
             {(['all', 'photo', 'video'] as const).map((cat) => (
               <button
@@ -329,7 +329,6 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
             ))}
           </div>
 
-          {/* 地球播放按钮 */}
           <button
             onClick={() => setIsSphereOpen(true)}
             className="hidden sm:flex items-center space-x-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:bg-rose-50 dark:hover:bg-rose-900/20 text-rose-500 transition-all font-bold group whitespace-nowrap"
@@ -338,7 +337,6 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
             <span className="text-sm sm:text-base">{t.grid.sphere}</span>
           </button>
 
-          {/* 轮播播放按钮 */}
           <button
             onClick={() => setIsSlideshowOpen(true)}
             className="hidden sm:flex items-center space-x-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:bg-rose-50 dark:hover:bg-rose-900/20 text-rose-500 transition-all font-bold group whitespace-nowrap"
@@ -348,7 +346,6 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
           </button>
         </div>
 
-        {/* 列数选择器 */}
         <div className="hidden sm:flex bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-1 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm items-center self-end sm:self-auto">
           {[2, 4, 6].map((num) => (
             <button
@@ -373,21 +370,20 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
           ))}
         </div>
       ) : (
-            <div className={`grid ${gridColsClass} gap-4 sm:gap-6 px-4`}>
-              {photos.map((photo, index) => (
-                <PhotoCard 
-                  key={`${photo.id}-${photo.type}-${index}`}
-                  photo={photo} 
-                  index={index}
-                  columnCount={columnCount}
-                  t={t}
-                  getFullImageUrl={getFullImageUrl}
-                />
-              ))}
-            </div>
+        <div className={`grid ${gridColsClass} gap-4 sm:gap-6 px-4`}>
+          {photos.map((photo, index) => (
+            <PhotoCard 
+              key={`${photo.id}-${photo.type}-${index}`}
+              photo={photo} 
+              index={index}
+              columnCount={columnCount}
+              t={t}
+              getFullImageUrl={getFullImageUrl}
+            />
+          ))}
+        </div>
       )}
 
-      {/* 轮播播放全屏覆盖层 */}
       <AnimatePresence>
         {isSlideshowOpen && (
           <motion.div
@@ -403,55 +399,41 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
               <MdClose className="w-6 h-6 sm:w-8 h-8" />
             </button>
 
-                <div className="space-y-8 sm:space-y-16 py-12">
-                  {/* 第一行：左往右 */}
-                  <div className="film-strip overflow-hidden">
-                    <div className="flex animate-scroll-right whitespace-nowrap">
+            <div className="space-y-8 sm:space-y-16 py-12">
+              <div className="film-strip overflow-hidden">
+                <div className="flex animate-scroll-right whitespace-nowrap">
                   {[...row1, ...row1, ...row1].map((photo, i) => (
-                    <div 
-                      key={`${photo.id}-r1-${i}`} 
-                      className="inline-block px-2 sm:px-4 h-48 sm:h-72 aspect-[3/4] relative group"
-                    >
+                    <div key={`${photo.id}-r1-${i}`} className="inline-block px-2 sm:px-4 h-48 sm:h-72 aspect-[3/4] relative group">
                       <div className="relative w-full h-full">
-                        <Image 
+                        <LoadingImage 
                           src={getFullImageUrl(photo.url)} 
                           alt="" 
-                          fill
-                          unoptimized={true}
-                          loading="lazy"
                           className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
                         />
                       </div>
                       <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-2xl mx-2 sm:mx-4" />
                     </div>
                   ))}
-                    </div>
-                  </div>
-
-                  {/* 第二行：右往左 */}
-                  <div className="film-strip overflow-hidden">
-                    <div className="flex animate-scroll-left whitespace-nowrap">
-                  {[...row2, ...row2, ...row2].map((photo, i) => (
-                    <div 
-                      key={`${photo.id}-r2-${i}`} 
-                      className="inline-block px-2 sm:px-4 h-48 sm:h-72 aspect-[3/4] relative group"
-                    >
-                      <div className="relative w-full h-full">
-                        <Image 
-                          src={getFullImageUrl(photo.url)} 
-                          alt="" 
-                          fill
-                          unoptimized={true}
-                          loading="lazy"
-                          className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
-                        />
-                      </div>
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-2xl mx-2 sm:mx-4" />
-                    </div>
-                  ))}
-                    </div>
-                  </div>
                 </div>
+              </div>
+
+              <div className="film-strip overflow-hidden">
+                <div className="flex animate-scroll-left whitespace-nowrap">
+                  {[...row2, ...row2, ...row2].map((photo, i) => (
+                    <div key={`${photo.id}-r2-${i}`} className="inline-block px-2 sm:px-4 h-48 sm:h-72 aspect-[3/4] relative group">
+                      <div className="relative w-full h-full">
+                        <LoadingImage 
+                          src={getFullImageUrl(photo.url)} 
+                          alt="" 
+                          className="object-cover rounded-xl sm:rounded-2xl shadow-2xl border-2 sm:border-4 border-white/5 transition-transform duration-500 group-hover:scale-105" 
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl sm:rounded-2xl mx-2 sm:mx-4" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
             <div className="absolute bottom-8 sm:bottom-12 left-0 right-0 text-center">
               <h2 className="text-white/50 text-sm sm:text-xl font-bold tracking-widest uppercase">{t.grid.slideshowTitle}</h2>
@@ -460,7 +442,6 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
         )}
       </AnimatePresence>
 
-      {/* 3D 地球全屏覆盖层 */}
       <AnimatePresence>
         {isSphereOpen && (
           <motion.div
@@ -488,41 +469,37 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
                 id="sphere-gallery"
                 className="sphere-container w-0 h-0 flex items-center justify-center will-change-transform"
               >
-                    {photos.slice(0, 50).map((photo, index, array) => {
-                      const total = array.length;
-                      const phi = Math.acos(-1 + (2 * index) / total);
-                      const theta = Math.sqrt(total * Math.PI) * phi;
-                      const radius = isMounted && typeof window !== 'undefined' && window.innerWidth < 640 ? 200 : 380;
+                {photos.slice(0, 50).map((photo, index, array) => {
+                  const total = array.length;
+                  const phi = Math.acos(-1 + (2 * index) / total);
+                  const theta = Math.sqrt(total * Math.PI) * phi;
+                  const radius = isMounted && typeof window !== 'undefined' && window.innerWidth < 640 ? 200 : 380;
+                  const x = radius * Math.sin(phi) * Math.cos(theta);
+                  const y = radius * Math.sin(phi) * Math.sin(theta);
+                  const z = radius * Math.cos(phi);
 
-                      const x = radius * Math.sin(phi) * Math.cos(theta);
-                      const y = radius * Math.sin(phi) * Math.sin(theta);
-                      const z = radius * Math.cos(phi);
-
-                      return (
-                        <div
-                          key={`sphere-${photo.id}-${index}`}
-                          className="sphere-item"
+                  return (
+                    <div
+                      key={`sphere-${photo.id}-${index}`}
+                      className="sphere-item"
+                      style={{
+                        transform: `translate3d(${x}px, ${y}px, ${z}px)`,
+                      }}
+                    >
+                      <div className="w-24 h-18 sm:w-44 sm:h-32 block relative group select-none">
+                        <LoadingImage
+                          src={getFullImageUrl(photo.url)}
+                          alt=""
+                          className="w-full h-full object-cover rounded-lg sm:rounded-xl border border-white/10 transition-all shadow-2xl group-hover:border-rose-500/50"
                           style={{
-                            transform: `translate3d(${x}px, ${y}px, ${z}px)`,
+                            filter: `brightness(${0.4 + (z / radius) * 0.6 + 0.5}) saturate(${0.8 + (z / radius) * 0.4 + 0.2})`
                           }}
-                        >
-                          <div className="w-24 h-18 sm:w-44 sm:h-32 block relative group select-none">
-                            <Image
-                              src={getFullImageUrl(photo.url)}
-                              alt=""
-                              fill
-                              unoptimized={true}
-                              loading="lazy"
-                              className="w-full h-full object-cover rounded-lg sm:rounded-xl border border-white/10 transition-all shadow-2xl group-hover:border-rose-500/50"
-                              style={{
-                                filter: `brightness(${0.4 + (z / radius) * 0.6 + 0.5}) saturate(${0.8 + (z / radius) * 0.4 + 0.2})`
-                              }}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg sm:rounded-xl" />
-                          </div>
-                        </div>
-                      );
-                    })}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg sm:rounded-xl" />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
