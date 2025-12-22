@@ -2,6 +2,121 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+
+// 真正的小狗 SVG Base64
+const PUPPY_PLACEHOLDER = "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZGNkY2RjIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggZD0iTTEyIDljLTMgMC01LjUgMi41LTUuNSA1LjVzMi41IDUuNSA1LjUgNS41IDUuNS0yLjUgNS41LTUuNVMyIDEyIDkgMTIgOXpNMTEuNSA4YzAtLjguNy0xLjUgMS41LTEuNXMxLjUuNyAxLjUgMS41LS43IDEuNS0xLjUgMS41LTEuNS0uNy0xLjUtMS41ek00LjYgNi4xYy43LTEuNyAyLjUtMyA0LjQtM2guN2MuOCAwIDEuNS43IDEuNSAxLjVzLS43IDEuNS0xLjUgMS41SDEwYy0xLjUgMC0yLjggMS0zLjQgMi40LS4yLjUtLjguNy0xLjIuNS0uNS0uMi0uNy0uOC0uNC0xLjR6TTIwLjUgOGMtLjggMC0xLjUtLjctMS41LTEuNVMxOS43IDUgMjAuNSA1cyAxLjUuNyAxLjUgMS41LS43IDEuNS0xLjUgMS41ek0yMiAxMmMwLTEuMS0uOS0yLTItMmgtNWMtMS4xIDAtMiAuOS0yIDJzLjkgMiAyIDJoNWMxLjEgMCAyLS45IDItMnoiLz48L3N2Zz4=";
+
+const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: { 
+  photo: any, 
+  index: number, 
+  columnCount: number, 
+  t: any, 
+  getFullImageUrl: any 
+}) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <div
+      key={`${photo.id}-${photo.type}-${index}`}
+      className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-800/50 shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700"
+      onClick={(e) => {
+        if (photo.type === 'video') {
+          const video = e.currentTarget.querySelector('video');
+          if (video) {
+            if (video.paused) video.play();
+            else video.pause();
+          }
+        }
+      }}
+    >
+      {/* 站位图层 */}
+      {!isLoaded && photo.type !== 'video' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900 animate-pulse z-10">
+          <img 
+            src={PUPPY_PLACEHOLDER} 
+            className="w-16 h-16 opacity-20" 
+            alt="Loading..." 
+          />
+        </div>
+      )}
+
+      {photo.type === 'video' ? (
+        <div className="relative w-full h-full cursor-pointer bg-black">
+          <video
+            src={getFullImageUrl(photo.url)}
+            poster={photo.coverUrl ? getFullImageUrl(photo.coverUrl) : undefined}
+            className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+            playsInline
+            preload="metadata"
+            onPlay={(e) => e.currentTarget.parentElement?.querySelector('.play-overlay')?.classList.add('opacity-0')}
+            onPause={(e) => e.currentTarget.parentElement?.querySelector('.play-overlay')?.classList.remove('opacity-0')}
+          />
+          {/* 自定义播放按钮 */}
+          <div className="play-overlay absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity duration-300 pointer-events-none">
+            <div className="w-16 h-16 rounded-full bg-rose-500 flex items-center justify-center shadow-xl shadow-rose-500/40 border-4 border-white">
+              <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <Image
+          src={getFullImageUrl(photo.url)}
+          alt={photo.title || t.grid.photography}
+          fill
+          unoptimized={true}
+          className={`object-cover transition-all duration-700 group-hover:scale-105 group-hover:brightness-110 ${
+            isLoaded ? "opacity-100" : "opacity-0"
+          }`}
+          sizes={
+            columnCount === 2 
+              ? "(max-width: 768px) 50vw, 50vw" 
+              : columnCount === 4 
+              ? "(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              : "(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 16vw"
+          }
+          priority={index < 4}
+          onLoadingComplete={() => setIsLoaded(true)}
+        />
+      )}
+
+      {/* 优雅的底部遮罩 */}
+      <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-20">
+          <div className="flex items-center justify-between">
+            <div>
+              {photo.type !== 'video' && (
+                <>
+                  <h3 className="text-white font-bold text-xs sm:text-sm tracking-wide line-clamp-1">
+                    {photo.title || t.grid.untitled}
+                  </h3>
+                  {photo.width && photo.height && (
+                    <p className="text-white/70 text-[8px] sm:text-[10px] mt-0.5">
+                      {photo.width} × {photo.height}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+      </div>
+
+      {/* 红色渐变边框 */}
+      <div 
+        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none z-30"
+        style={{
+          border: '3px solid transparent',
+          backgroundImage: 'linear-gradient(to bottom right, #e11d48, #f43f5e, #fb923c)',
+          backgroundOrigin: 'border-box',
+          WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
+          WebkitMaskComposite: 'destination-out',
+          maskComposite: 'exclude',
+          boxShadow: '0 0 20px rgba(244, 63, 94, 0.4)'
+        }}
+      />
+    </div>
+  );
+};
 import { PropagateLoader } from "react-spinners";
 import useSWRInfinite from "swr/infinite";
 import { MdPlayCircleOutline, MdClose, MdPublic } from "react-icons/md";
@@ -260,94 +375,16 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
       ) : (
             <div className={`grid ${gridColsClass} gap-4 sm:gap-6 px-4`}>
               {photos.map((photo, index) => (
-                <div
+                <PhotoCard 
                   key={`${photo.id}-${photo.type}-${index}`}
-                  className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-800/50 shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700"
-                  onClick={(e) => {
-                    if (photo.type === 'video') {
-                      const video = e.currentTarget.querySelector('video');
-                      if (video) {
-                        if (video.paused) video.play();
-                        else video.pause();
-                      }
-                    }
-                  }}
-                >
-                  {photo.type === 'video' ? (
-                    <div className="relative w-full h-full cursor-pointer bg-black">
-                      <video
-                        src={getFullImageUrl(photo.url)}
-                        poster={photo.coverUrl ? getFullImageUrl(photo.coverUrl) : undefined}
-                        className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
-                        playsInline
-                        preload="metadata"
-                        onPlay={(e) => e.currentTarget.parentElement?.querySelector('.play-overlay')?.classList.add('opacity-0')}
-                        onPause={(e) => e.currentTarget.parentElement?.querySelector('.play-overlay')?.classList.remove('opacity-0')}
-                      />
-                      {/* 自定义播放按钮 */}
-                      <div className="play-overlay absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity duration-300 pointer-events-none">
-                        <div className="w-16 h-16 rounded-full bg-rose-500 flex items-center justify-center shadow-xl shadow-rose-500/40 border-4 border-white">
-                          <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <Image
-                      src={getFullImageUrl(photo.url)}
-                      alt={photo.title || t.grid.photography}
-                      fill
-                      unoptimized={true}
-                      className="object-cover transition-all duration-700 group-hover:scale-105 group-hover:brightness-110"
-                      sizes={
-                        columnCount === 2 
-                          ? "(max-width: 768px) 50vw, 50vw" 
-                          : columnCount === 4 
-                          ? "(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                          : "(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 16vw"
-                      }
-                      priority={index < 4}
-                      loading={index < 4 ? "eager" : "lazy"}
-                    />
-                  )}
-
-              {/* 优雅的底部遮罩 */}
-              <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      {photo.type !== 'video' && (
-                        <>
-                          <h3 className="text-white font-bold text-xs sm:text-sm tracking-wide line-clamp-1">
-                            {photo.title || t.grid.untitled}
-                          </h3>
-                          {photo.width && photo.height && (
-                            <p className="text-white/70 text-[8px] sm:text-[10px] mt-0.5">
-                              {photo.width} × {photo.height}
-                            </p>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-              </div>
-
-              {/* 红色渐变边框 - 最终修复版 */}
-              <div 
-                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none"
-                style={{
-                  border: '3px solid transparent',
-                  backgroundImage: 'linear-gradient(to bottom right, #e11d48, #f43f5e, #fb923c)',
-                  backgroundOrigin: 'border-box',
-                  WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
-                  WebkitMaskComposite: 'destination-out',
-                  maskComposite: 'exclude',
-                  boxShadow: '0 0 20px rgba(244, 63, 94, 0.4)'
-                }}
-              />
+                  photo={photo} 
+                  index={index}
+                  columnCount={columnCount}
+                  t={t}
+                  getFullImageUrl={getFullImageUrl}
+                />
+              ))}
             </div>
-          ))}
-        </div>
       )}
 
       {/* 轮播播放全屏覆盖层 */}
