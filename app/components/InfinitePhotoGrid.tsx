@@ -20,8 +20,12 @@ const LoadingImage = ({ src, alt, className, sizes, priority = false, style }: {
   style?: React.CSSProperties
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  
+  // 提取圆角相关的类名，应用到外层容器上
+  const roundedClasses = className?.split(' ').filter(c => c.startsWith('rounded-') || c.startsWith('sm:rounded-') || c.startsWith('md:rounded-') || c.startsWith('lg:rounded-')).join(' ') || '';
+
   return (
-    <div className="relative w-full h-full overflow-hidden">
+    <div className={`relative w-full h-full overflow-hidden ${roundedClasses}`}>
       {!isLoaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 animate-pulse z-10">
           <img 
