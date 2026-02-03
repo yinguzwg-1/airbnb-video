@@ -80,7 +80,7 @@ jobs:
             NODE_ENV=production
             NEXT_PUBLIC_API_URL=https://zwg.autos/api
             NEXT_PUBLIC_SITE_URL=https://zwg.autos
-            NEXT_PUBLIC_MIRCO_FE_URL=https://zwg.autos/micro-fe
+            NEXT_PUBLIC_MIRCO_FE_URL=https://www.zwg.autos/micro-fe/
           platforms: linux/amd64
 
   deploy:
