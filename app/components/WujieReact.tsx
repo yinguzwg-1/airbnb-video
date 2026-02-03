@@ -43,15 +43,35 @@ export default function WujieReact({
       
       startedRef.current = true;
 
+      console.log('[wujie] 开始加载微前端:', name, url);
+
       startApp({
         name,
         url,
         el: containerRef.current,
         alive,
         props,
-        beforeLoad,
-        afterMount,
-        beforeUnmount,
+        beforeLoad: () => {
+          console.log('[wujie] beforeLoad');
+          beforeLoad?.();
+        },
+        afterMount: () => {
+          console.log('[wujie] afterMount - 微前端挂载成功');
+          afterMount?.();
+        },
+        beforeUnmount: () => {
+          console.log('[wujie] beforeUnmount');
+          beforeUnmount?.();
+        },
+        // 加载完成后的回调
+        activated: () => {
+          console.log('[wujie] activated - 微前端激活');
+          afterMount?.();
+        },
+      }).then(() => {
+        console.log('[wujie] startApp Promise resolved');
+      }).catch((err: Error) => {
+        console.error('[wujie] startApp 失败:', err);
       });
     });
 

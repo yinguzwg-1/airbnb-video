@@ -40,14 +40,28 @@ export default function NewsDrawer() {
   }, []);
 
   const handleAfterMount = useCallback(() => {
+    console.log('[NewsDrawer] afterMount 回调触发');
     setIsLoading(false);
     setHasError(false);
   }, []);
 
   const handleBeforeLoad = useCallback(() => {
+    console.log('[NewsDrawer] beforeLoad 回调触发');
     setIsLoading(true);
     setHasError(false);
   }, []);
+
+  // 超时机制：如果 5 秒后还在 loading，自动关闭（可能是回调没触发）
+  useEffect(() => {
+    if (!isOpen || !isLoading) return;
+    
+    const timer = setTimeout(() => {
+      console.log('[NewsDrawer] 加载超时，自动关闭 loading');
+      setIsLoading(false);
+    }, 5000);
+    
+    return () => clearTimeout(timer);
+  }, [isOpen, isLoading]);
 
   return (
     <>
