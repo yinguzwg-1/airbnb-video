@@ -52,12 +52,6 @@ export default function WujieReact({
         beforeLoad,
         afterMount,
         beforeUnmount,
-        fetch: (fetchUrl: string, options: RequestInit) => {
-          return window.fetch(fetchUrl, {
-            ...options,
-            credentials: 'omit',
-          });
-        },
       });
     });
 
