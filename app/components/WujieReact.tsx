@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
-import { startApp, destroyApp, preloadApp } from 'wujie';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface WujieReactProps {
   name: string;
@@ -28,36 +27,48 @@ export default function WujieReact({
 }: WujieReactProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const startedRef = useRef(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // 确保只在客户端渲染
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
-    if (!containerRef.current || startedRef.current) return;
+    if (!isClient || !containerRef.current || startedRef.current) return;
 
-    startedRef.current = true;
+    // 动态导入 wujie，确保只在客户端加载
+    import('wujie').then(({ startApp, destroyApp }) => {
+      if (!containerRef.current || startedRef.current) return;
+      
+      startedRef.current = true;
 
-    startApp({
-      name,
-      url,
-      el: containerRef.current,
-      alive,
-      props,
-      beforeLoad,
-      afterMount,
-      beforeUnmount,
-      // 允许跨域
-      fetch: (url, options) => {
-        return window.fetch(url, {
-          ...options,
-          credentials: 'omit',
-        });
-      },
+      startApp({
+        name,
+        url,
+        el: containerRef.current,
+        alive,
+        props,
+        beforeLoad,
+        afterMount,
+        beforeUnmount,
+        fetch: (fetchUrl: string, options: RequestInit) => {
+          return window.fetch(fetchUrl, {
+            ...options,
+            credentials: 'omit',
+          });
+        },
+      });
     });
 
     return () => {
-      if (!alive) {
-        destroyApp(name);
+      if (!alive && startedRef.current) {
+        import('wujie').then(({ destroyApp }) => {
+          destroyApp(name);
+        });
       }
     };
-  }, [name, url, alive, props, beforeLoad, afterMount, beforeUnmount]);
+  }, [isClient, name, url, alive, props, beforeLoad, afterMount, beforeUnmount]);
 
   return (
     <div
@@ -70,9 +81,13 @@ export default function WujieReact({
 
 // 预加载函数，可在应用空闲时调用
 export function preloadMicroApp(name: string, url: string) {
-  preloadApp({
-    name,
-    url,
-    exec: true, // 预执行 JS
+  if (typeof window === 'undefined') return;
+  
+  import('wujie').then(({ preloadApp }) => {
+    preloadApp({
+      name,
+      url,
+      exec: true,
+    });
   });
 }

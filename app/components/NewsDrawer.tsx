@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { IoNewspaper, IoClose, IoChevronBack, IoRefresh } from 'react-icons/io5';
 import dynamic from 'next/dynamic';
-import { preloadMicroApp } from './WujieReact';
 
 // 动态导入 wujie 组件（避免 SSR 问题）
 const WujieReact = dynamic(() => import('./WujieReact'), {
@@ -28,13 +27,17 @@ export default function NewsDrawer() {
 
   // 预加载微前端（首屏渲染后空闲时执行）
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // 延迟预加载，不影响首屏
-      const timer = setTimeout(() => {
+    if (typeof window === 'undefined') return;
+    
+    // 延迟预加载，不影响首屏
+    const timer = setTimeout(() => {
+      // 动态导入 preloadMicroApp
+      import('./WujieReact').then(({ preloadMicroApp }) => {
         preloadMicroApp('mirco-fe-news', MIRCO_FE_URL);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
+      });
+    }, 3000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const handleAfterMount = useCallback(() => {
