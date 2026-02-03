@@ -17,7 +17,7 @@ const WujieReact = dynamic(() => import('./WujieReact'), {
 
 // 微前端地址配置
 // 开发环境：http://localhost:3002
-// 生产环境：通过环境变量配置，如 https://news.zwg.autos
+// 生产环境：通过 Nginx 代理，使用相对路径或主站域名
 const MIRCO_FE_URL = process.env.NEXT_PUBLIC_MIRCO_FE_URL || 'http://localhost:3002';
 
 export default function NewsDrawer() {
@@ -31,7 +31,6 @@ export default function NewsDrawer() {
     
     // 延迟预加载，不影响首屏
     const timer = setTimeout(() => {
-      // 动态导入 preloadMicroApp
       import('./WujieReact').then(({ preloadMicroApp }) => {
         preloadMicroApp('mirco-fe-news', MIRCO_FE_URL);
       });
@@ -82,14 +81,14 @@ export default function NewsDrawer() {
             >
               <IoClose className="w-4 h-4" />
             </button>
-            <span className="text-xs font-medium text-slate-600">微前端新闻</span>
+            <span className="text-xs font-medium text-slate-600">前端资讯</span>
           </div>
           <div className="flex items-center gap-2">
             {isLoading && (
               <IoRefresh className="w-4 h-4 text-slate-400 animate-spin" />
             )}
             <span className="text-[10px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full font-medium">
-              wujie
+              LIVE
             </span>
           </div>
         </div>
@@ -98,12 +97,11 @@ export default function NewsDrawer() {
         <div className="h-full w-[380px] pt-12 bg-white shadow-2xl">
           {isOpen && (
             <>
-              {/* 加载状态 */}
+              {/* 加载状态 - 不显示地址 */}
               {isLoading && (
                 <div className="absolute inset-0 pt-12 flex flex-col items-center justify-center bg-white z-5">
                   <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-sm font-medium text-slate-400 mt-4">正在加载微前端...</p>
-                  <p className="text-xs text-slate-300 mt-1">{MIRCO_FE_URL}</p>
+                  <p className="text-sm font-medium text-slate-400 mt-4">正在加载...</p>
                 </div>
               )}
 
@@ -111,7 +109,7 @@ export default function NewsDrawer() {
               {hasError && (
                 <div className="absolute inset-0 pt-12 flex flex-col items-center justify-center bg-white z-5">
                   <p className="text-sm font-medium text-red-500">加载失败</p>
-                  <p className="text-xs text-slate-400 mt-1">请检查微前端服务是否启动</p>
+                  <p className="text-xs text-slate-400 mt-1">请稍后重试</p>
                 </div>
               )}
 
