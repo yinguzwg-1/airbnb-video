@@ -32,6 +32,8 @@
     "react-spinners": "^0.14.1",
     "sharp": "^0.34.5",
     "swr": "^2.3.8",
+    "wujie": "^1.0.22",
+    "wujie-react": "^1.0.14",
     "zustand": "^4.5.4"
   },
   "devDependencies": {

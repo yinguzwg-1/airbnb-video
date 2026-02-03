@@ -89,6 +89,8 @@ export async function generateStaticParams() {
   }));
 }
 
+import NewsDrawer from "../components/NewsDrawer";
+
 export default async function RootLayout({
   children,
   params,
@@ -100,6 +102,7 @@ export default async function RootLayout({
   return (
     <div className={inter.className}>
       {children}
+      <NewsDrawer />
     </div>
   );
 } 
