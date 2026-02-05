@@ -16,9 +16,10 @@ const WujieReact = dynamic(() => import('./WujieReact'), {
 });
 
 // 微前端地址配置
-// 开发环境：http://localhost:3002
-// 生产环境：通过 Nginx 代理，使用相对路径或主站域名
 const MIRCO_FE_URL = process.env.NEXT_PUBLIC_MIRCO_FE_URL || 'http://localhost:3002';
+
+// 开发环境使用 iframe，生产环境使用 wujie
+const isDev = process.env.NODE_ENV === 'development';
 
 export default function NewsDrawer() {
   const [isOpen, setIsOpen] = useState(false);
@@ -107,38 +108,55 @@ export default function NewsDrawer() {
           </div>
         </div>
 
-        {/* 微前端容器 */}
-        <div className="h-full w-[380px] pt-12 bg-white shadow-2xl">
-          {isOpen && (
-            <>
-              {/* 加载状态 - 不显示地址 */}
-              {isLoading && (
-                <div className="absolute inset-0 pt-12 flex flex-col items-center justify-center bg-white z-5">
-                  <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-sm font-medium text-slate-400 mt-4">正在加载...</p>
-                </div>
-              )}
+        {/* 微前端容器 - 使用 flex 布局确保高度正确 */}
+        <div className="h-full w-[380px] bg-white shadow-2xl flex flex-col">
+          {/* 顶部占位（与工具栏高度一致） */}
+          <div className="h-12 flex-shrink-0" />
+          
+          {/* 内容区域 */}
+          <div className="flex-1 relative overflow-hidden">
+            {isOpen && (
+              <>
+                {/* 加载状态 */}
+                {isLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10">
+                    <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-sm font-medium text-slate-400 mt-4">正在加载...</p>
+                  </div>
+                )}
 
-              {/* 错误状态 */}
-              {hasError && (
-                <div className="absolute inset-0 pt-12 flex flex-col items-center justify-center bg-white z-5">
-                  <p className="text-sm font-medium text-red-500">加载失败</p>
-                  <p className="text-xs text-slate-400 mt-1">请稍后重试</p>
-                </div>
-              )}
+                {/* 错误状态 */}
+                {hasError && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10">
+                    <p className="text-sm font-medium text-red-500">加载失败</p>
+                    <p className="text-xs text-slate-400 mt-1">请稍后重试</p>
+                  </div>
+                )}
 
-              {/* wujie 微前端 */}
-              <WujieReact
-                name="mirco-fe-news"
-                url={MIRCO_FE_URL}
-                width="100%"
-                height="100%"
-                alive={true}
-                beforeLoad={handleBeforeLoad}
-                afterMount={handleAfterMount}
-              />
-            </>
-          )}
+                {/* 微前端：开发用 iframe，生产用 wujie */}
+                {isDev ? (
+                  <iframe
+                    src={MIRCO_FE_URL}
+                    style={{ width: '100%', height: '100%', border: 'none' }}
+                    onLoad={() => {
+                      console.log('[NewsDrawer] iframe 加载完成');
+                      setIsLoading(false);
+                    }}
+                  />
+                ) : (
+                  <WujieReact
+                    name="mirco-fe-news"
+                    url={MIRCO_FE_URL}
+                    width="100%"
+                    height="100%"
+                    alive={true}
+                    beforeLoad={handleBeforeLoad}
+                    afterMount={handleAfterMount}
+                  />
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 

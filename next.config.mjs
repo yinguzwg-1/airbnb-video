@@ -74,11 +74,33 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    const backendUrl = process.env.BACKEND_URL || (process.env.NODE_ENV === "development" ? "http://localhost:3001" : "https://zwg.autos");
-    return [
-      { source: "/api/:path*", destination: `${backendUrl}/api/:path*` },
-      { source: "/uploads/:path*", destination: `${backendUrl}/uploads/:path*` }
+    // 优先使用环境变量，确保开发和生产环境都能正确配置
+    const isDev = process.env.NODE_ENV === 'development';
+    const backendUrl = process.env.BACKEND_URL || (isDev ? 'http://localhost:3001' : 'http://172.17.0.1:3001');
+    
+    console.log(`[Next.js] 环境: ${process.env.NODE_ENV}, 后端地址: ${backendUrl}`);
+    
+    const rewrites = [
+      { source: '/api/:path*', destination: `${backendUrl}/api/:path*` },
+      { source: '/uploads/:path*', destination: `${backendUrl}/uploads/:path*` }
     ];
+    
+    // 开发环境：代理微前端，实现同源访问
+    if (isDev) {
+      // 处理带语言前缀的路由（如 /zh/micro-fe, /en/micro-fe）
+      rewrites.push({
+        source: '/:lang(zh|en)/micro-fe/:path*',
+        destination: 'http://localhost:3002/:path*'
+      });
+      // 处理不带语言前缀的路由
+      rewrites.push({
+        source: '/micro-fe/:path*',
+        destination: 'http://localhost:3002/:path*'
+      });
+      console.log('[Next.js] 开发环境：已配置微前端代理');
+    }
+    
+    return rewrites;
   }
 };
 

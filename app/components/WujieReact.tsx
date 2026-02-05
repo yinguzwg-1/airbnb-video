@@ -38,12 +38,22 @@ export default function WujieReact({
     if (!isClient || !containerRef.current || startedRef.current) return;
 
     // 动态导入 wujie，确保只在客户端加载
+    console.log('[WujieReact] 准备加载 wujie, url:', url);
+    
     import('wujie').then(({ startApp, destroyApp }) => {
-      if (!containerRef.current || startedRef.current) return;
+      console.log('[WujieReact] wujie 模块已加载');
+      
+      if (!containerRef.current) {
+        console.error('[WujieReact] 容器不存在');
+        return;
+      }
+      if (startedRef.current) {
+        console.log('[WujieReact] 已经启动过，跳过');
+        return;
+      }
       
       startedRef.current = true;
-
-      console.log('[wujie] 开始加载微前端:', name, url);
+      console.log('[WujieReact] 调用 startApp:', name, url);
 
       startApp({
         name,
@@ -52,27 +62,43 @@ export default function WujieReact({
         alive,
         props,
         beforeLoad: () => {
-          console.log('[wujie] beforeLoad');
+          console.log('[WujieReact] beforeLoad 触发');
           beforeLoad?.();
         },
         afterMount: () => {
-          console.log('[wujie] afterMount - 微前端挂载成功');
+          console.log('[WujieReact] afterMount 触发');
           afterMount?.();
         },
         beforeUnmount: () => {
-          console.log('[wujie] beforeUnmount');
+          console.log('[WujieReact] beforeUnmount 触发');
           beforeUnmount?.();
         },
-        // 加载完成后的回调
+        // 子应用激活时的回调
         activated: () => {
-          console.log('[wujie] activated - 微前端激活');
+          console.log('[WujieReact] activated 触发');
           afterMount?.();
         },
+        // 子应用加载完成后的回调
+        deactivated: () => {
+          console.log('[WujieReact] deactivated 触发');
+        },
       }).then(() => {
-        console.log('[wujie] startApp Promise resolved');
+        console.log('[WujieReact] startApp 完成');
+        
+        // 备用方案：startApp 完成后，延迟检测 iframe 并触发 afterMount
+        setTimeout(() => {
+          const iframe = containerRef.current?.querySelector('iframe');
+          console.log('[WujieReact] 延迟检测 iframe:', iframe);
+          if (iframe) {
+            console.log('[WujieReact] iframe 存在，手动触发 afterMount');
+            afterMount?.();
+          }
+        }, 500);
       }).catch((err: Error) => {
-        console.error('[wujie] startApp 失败:', err);
+        console.error('[WujieReact] startApp 失败:', err);
       });
+    }).catch((err) => {
+      console.error('[WujieReact] wujie 模块加载失败:', err);
     });
 
     return () => {
