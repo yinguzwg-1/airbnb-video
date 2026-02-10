@@ -24,7 +24,7 @@ export default function UploadButton({ currentLang }: UploadButtonProps) {
   if (!mounted || !isLoggedIn) return null;
 
   return (
-    <>
+    <div>
       <button 
         onClick={() => setIsOpen(true)}
         className="fixed bottom-8 right-8 w-14 h-14 bg-rose-500 hover:bg-rose-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 z-40 group"
@@ -34,7 +34,7 @@ export default function UploadButton({ currentLang }: UploadButtonProps) {
       </button>
 
       <UploadModal isOpen={isOpen} onClose={() => setIsOpen(false)} currentLang={currentLang} />
-    </>
+    </div>
   );
 }
 

@@ -1,5 +1,5 @@
 {
-  "name": "nextjs",
+  "name": "@demo/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -21,6 +21,7 @@
     "pm2:startup": "pm2 startup"
   },
   "dependencies": {
+    "@demo/shared": "workspace:*",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.24",
