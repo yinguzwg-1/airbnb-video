@@ -32,7 +32,6 @@ export default function UploadButton({ currentLang }: UploadButtonProps) {
       >
         <MdAdd className="w-8 h-8 transition-transform group-hover:rotate-90" />
       </button>
-
       <UploadModal isOpen={isOpen} onClose={() => setIsOpen(false)} currentLang={currentLang} />
     </div>
   );
