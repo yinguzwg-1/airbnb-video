@@ -1,0 +1,132 @@
+
+export const i18n = {
+  zh: {
+    navbar: {
+      lang: "中文",
+      toggleLang: "切换语言",
+      toggleTheme: "切换主题",
+      login: "登录",
+      logout: "退出登录",
+      logoutConfirm: "确定要退出登录吗？",
+      loginSuccess: "登录成功！",
+    },
+    auth: {
+      login: "登录",
+      welcome: "欢迎回来",
+      email: "邮箱",
+      password: "密码",
+      loginFailed: "登录失败",
+      invitationOnly: "目前仅支持邀请制登录",
+    },
+    upload: {
+      title: "上传文件",
+      limitReached: "最多只能上传 20 个文件",
+      success: "成功上传 {count} 个文件！",
+      partialSuccess: "上传完成：{success} 个成功，{failed} 个失败",
+      retry: "重试",
+      addMore: "继续添加",
+      dropzone: "点击或拖拽图片/视频到这里",
+      support: "支持 JPG, PNG, WEBP, MP4 (最多 20 个)",
+      cancel: "取消",
+      uploading: "正在并发上传...",
+      confirmUpload: "确认上传 {count} 个文件",
+      failed: "上传失败",
+    },
+    grid: {
+      all: "全部",
+      photo: "图片",
+      video: "视频",
+      slideshow: "照片墙播放",
+      sphere: "3D 地球",
+      columns: "{num} 列",
+      noMore: "已经到底啦 ~",
+      loading: "正在加载...",
+      untitled: "未命名",
+      photography: "摄影作品",
+      sphereTitle: "Sphere Gallery",
+      sphereDesc: "3D 空间感应播放",
+      slideshowTitle: "Photo Gallery Slideshow",
+      clickToSpin: "移动鼠标控制旋转方向与速度",
+    },
+    error: {
+      title: "出现了一些问题",
+      desc: "抱歉，页面加载时出现了错误。请尝试刷新页面或稍后再试。",
+      retry: "重试",
+      home: "返回首页",
+      details: "错误详情 (仅开发环境)"
+    },
+    metadata: {
+      title: "豆沙包 - 摄影作品集",
+      desc: "探索专业摄影师的精选作品集，提供高质量的视觉享受。包含人像、风光、纪实等多种风格的摄影作品。",
+      keywords: "摄影, 摄影集, 人像摄影, 风光摄影, 豆沙包, 摄影作品展示",
+      ogTitle: "豆沙包摄影作品集 - 专业视觉艺术展示",
+      ogDesc: "在这里发现光影之美，探索每一个镜头背后的故事。",
+    }
+  },
+  en: {
+    navbar: {
+      lang: "EN",
+      toggleLang: "Switch Language",
+      toggleTheme: "Toggle Theme",
+      login: "Login",
+      logout: "Logout",
+      logoutConfirm: "Are you sure you want to logout?",
+      loginSuccess: "Login Successful!",
+    },
+    auth: {
+      login: "Login",
+      welcome: "Welcome Back",
+      email: "Email",
+      password: "Password",
+      loginFailed: "Login Failed",
+      invitationOnly: "Invitation only for now",
+    },
+    upload: {
+      title: "Upload Files",
+      limitReached: "Maximum 20 files allowed",
+      success: "Successfully uploaded {count} files!",
+      partialSuccess: "Upload completed: {success} success, {failed} failed",
+      retry: "Retry",
+      addMore: "Add More",
+      dropzone: "Click or drag images/videos here",
+      support: "Support JPG, PNG, WEBP, MP4 (Max 20)",
+      cancel: "Cancel",
+      uploading: "Uploading...",
+      confirmUpload: "Upload {count} files",
+      failed: "Upload Failed",
+    },
+    grid: {
+      all: "All",
+      photo: "Photos",
+      video: "Videos",
+      slideshow: "Slideshow",
+      sphere: "3D Sphere",
+      columns: "{num} Cols",
+      noMore: "No more photos ~",
+      loading: "Loading...",
+      untitled: "Untitled",
+      photography: "Photography",
+      sphereTitle: "Sphere Gallery",
+      sphereDesc: "3D Spatial Motion Playback",
+      slideshowTitle: "Photo Gallery Slideshow",
+      clickToSpin: "Move mouse to control rotation direction and speed",
+    },
+    error: {
+      title: "Something went wrong",
+      desc: "Sorry, an error occurred while loading the page. Please try refreshing or try again later.",
+      retry: "Retry",
+      home: "Go to Home",
+      details: "Error Details (Dev Only)"
+    },
+    metadata: {
+      title: "Doushabao - Photography Portfolio",
+      desc: "Explore curated professional photography collections with high-quality visual experiences. Featuring portraits, landscapes, and documentary styles.",
+      keywords: "Photography, Portfolio, Portrait, Landscape, Doushabao, Photo Gallery",
+      ogTitle: "Doushabao Photography Portfolio - Professional Visual Arts",
+      ogDesc: "Discover the beauty of light and shadow, exploring stories behind every lens.",
+    }
+  }
+};
+
+export type Lang = keyof typeof i18n;
+
