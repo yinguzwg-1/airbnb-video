@@ -18,8 +18,17 @@ const WujieReact = dynamic(() => import('./WujieReact'), {
 // 微前端地址配置
 const MIRCO_FE_URL = process.env.NEXT_PUBLIC_MIRCO_FE_URL || 'http://localhost:3002';
 
-// 开发环境使用 iframe，生产环境使用 wujie
-const isDev = process.env.NODE_ENV === 'development';
+// 检测是否在 App WebView 内（JSBridge 注入后会有此标识）
+const isInAppWebView = () => {
+  if (typeof window === 'undefined') return false;
+  return !!(window as any).ReactNativeWebView || !!(window as any).JSBridge?.isInApp;
+};
+
+// 开发环境 或 App WebView 内使用 iframe（wujie 在 WebView 中不兼容 shadowDOM）
+// 生产环境浏览器中使用 wujie
+const shouldUseIframe = () => {
+  return process.env.NODE_ENV === 'development' || isInAppWebView();
+};
 
 export default function NewsDrawer() {
   const [isOpen, setIsOpen] = useState(false);
@@ -133,8 +142,8 @@ export default function NewsDrawer() {
                   </div>
                 )}
 
-                {/* 微前端：开发用 iframe，生产用 wujie */}
-                {isDev ? (
+                {/* 微前端：WebView/开发用 iframe，生产浏览器用 wujie */}
+                {shouldUseIframe() ? (
                   <iframe
                     src={MIRCO_FE_URL}
                     style={{ width: '100%', height: '100%', border: 'none' }}
