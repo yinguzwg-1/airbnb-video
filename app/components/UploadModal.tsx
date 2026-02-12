@@ -104,13 +104,16 @@ export default function UploadModal({ isOpen, onClose, currentLang }: UploadModa
     const successCount = results.filter(Boolean).length;
 
     if (successCount === files.length) {
-      alert(t.upload.success.replace('{count}', successCount.toString()));
-      // 刷新 SWR 缓存
-      mutate((key: string | any[]) => 
-        (Array.isArray(key) && typeof key[0] === 'string' && key[0].includes('/api/upload/list')) || 
-        (typeof key === 'string' && key.includes('/api/upload/list'))
-      );
+      // 先关闭弹窗，再刷新列表（避免 alert 阻塞刷新）
       handleClose();
+      // 刷新 SWR 缓存：强制重新验证所有匹配的 key
+      mutate(
+        (key: string | any[]) => 
+          (Array.isArray(key) && typeof key[0] === 'string' && key[0].includes('/api/upload/list')) || 
+          (typeof key === 'string' && key.includes('/api/upload/list')),
+        undefined,
+        { revalidate: true }
+      );
     } else {
       const failedCount = files.length - successCount;
       alert(t.upload.partialSuccess.replace('{success}', successCount.toString()).replace('{failed}', failedCount.toString()));
