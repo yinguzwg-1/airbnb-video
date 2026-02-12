@@ -37,7 +37,7 @@ export default function Error({
           <div className="space-y-3">
             <button
               onClick={reset}
-              className="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-rose-500/20"
+              className="w-full bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-sky-500/20"
             >
               {t.error.retry}
             </button>

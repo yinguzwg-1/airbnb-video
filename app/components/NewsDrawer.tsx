@@ -9,7 +9,7 @@ const WujieReact = dynamic(() => import('./WujieReact'), {
   ssr: false,
   loading: () => (
     <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-400">
-      <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-8 h-8 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
       <p className="text-sm font-medium">正在加载微前端引擎...</p>
     </div>
   ),
@@ -78,11 +78,11 @@ export default function NewsDrawer() {
       {/* 入口按钮 - 固定在右侧 */}
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-white border border-r-0 border-slate-200 p-2 rounded-l-2xl shadow-xl hover:bg-rose-50 transition-colors group"
+        className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-white/90 backdrop-blur-md border border-r-0 border-sky-100 p-2 rounded-l-2xl shadow-xl hover:bg-sky-50 transition-all group"
         title="打开前端新闻"
       >
         <div className="flex flex-col items-center gap-1">
-          <IoNewspaper className="w-5 h-5 text-rose-500 group-hover:scale-110 transition-transform" />
+          <IoNewspaper className="w-5 h-5 text-sky-500 group-hover:scale-110 transition-transform" />
           <span className="[writing-mode:vertical-lr] text-[10px] font-bold text-slate-600 tracking-widest py-1">
             实时新闻
           </span>
@@ -129,7 +129,7 @@ export default function NewsDrawer() {
                 {/* 加载状态 */}
                 {isLoading && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10">
-                    <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-sm font-medium text-slate-400 mt-4">正在加载...</p>
                   </div>
                 )}

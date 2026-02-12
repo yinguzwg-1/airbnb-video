@@ -53,10 +53,11 @@ export default function AuthModal({
             onClick={onClose}
           />
           <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden"
+            initial={{ opacity: 0, scale: 0.92, y: 20, filter: "blur(8px)" }}
+            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, scale: 0.92, y: 20, filter: "blur(8px)" }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="relative w-full max-w-md bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-sky-100/40 dark:border-sky-900/20"
           >
             {/* 头部 */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
@@ -85,7 +86,7 @@ export default function AuthModal({
                     name="email"
                     required
                     placeholder="example@mail.com"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent focus:ring-2 focus:ring-rose-500 focus:border-transparent outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent focus:ring-2 focus:ring-sky-400 focus:border-transparent outline-none transition-all"
                   />
                 </div>
                 <div className="space-y-1">
@@ -95,13 +96,13 @@ export default function AuthModal({
                     name="password"
                     required
                     placeholder="••••••••"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent focus:ring-2 focus:ring-rose-500 focus:border-transparent outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent focus:ring-2 focus:ring-sky-400 focus:border-transparent outline-none transition-all"
                   />
                 </div>
                 
                 <button 
                   type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rose-500/30"
+                  className="w-full py-3 bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-sky-500/30"
                 >
                   {t.auth.login}
                 </button>

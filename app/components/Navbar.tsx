@@ -68,55 +68,64 @@ export default function Navbar({ currentLang }: NavbarProps) {
 
   return (
     <div>
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-4">
+      <header className="sticky top-0 z-40 bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-sky-100/60 dark:border-sky-900/30 px-4 sm:px-6 py-4 transition-colors duration-300">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
-          <h1 
-            className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-rose-500 to-orange-500 bg-clip-text text-transparent cursor-pointer whitespace-nowrap"
+          <motion.h1 
+            className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent cursor-pointer whitespace-nowrap"
             onClick={() => router.push(`/${currentLang}`)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
             {t.metadata.title}
-          </h1>
+          </motion.h1>
 
           {/* 右侧功能区 */}
           <div className="flex items-center space-x-2 sm:space-x-4">
             {/* 多语言切换 */}
-            <button 
+            <motion.button 
               onClick={toggleLanguage}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full flex items-center space-x-1 transition-colors"
+              className="p-2 hover:bg-sky-50 dark:hover:bg-sky-900/20 rounded-full flex items-center space-x-1 transition-colors"
               title={t.navbar.toggleLang}
+              whileTap={{ scale: 0.92 }}
             >
               <MdLanguage className="w-5 h-5" />
               <span className="text-xs sm:text-sm font-medium">{t.navbar.lang}</span>
-            </button>
+            </motion.button>
 
             {/* 黑白主题切换 */}
-            <button 
+            <motion.button 
               onClick={toggleTheme}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              className="p-2 hover:bg-sky-50 dark:hover:bg-sky-900/20 rounded-full transition-colors"
               title={t.navbar.toggleTheme}
+              whileTap={{ scale: 0.92, rotate: 180 }}
+              transition={{ type: "spring", stiffness: 300, damping: 15 }}
             >
               {isDarkMode ? (
-                <MdOutlineLightMode className="w-5 h-5 text-yellow-500" />
+                <MdOutlineLightMode className="w-5 h-5 text-amber-400" />
               ) : (
                 <MdOutlineDarkMode className="w-5 h-5" />
               )}
-            </button>
+            </motion.button>
 
             {/* 用户操作按钮 */}
-            <div 
+            <motion.div 
               className={`flex items-center space-x-1 sm:space-x-2 border rounded-full px-3 sm:px-4 py-1.5 sm:py-2 transition-all cursor-pointer shadow-sm hover:shadow-md ${
                 isLoggedIn 
-                ? "border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-800 text-rose-600 dark:text-rose-400" 
+                ? "border-sky-200 bg-sky-50 dark:bg-sky-900/20 dark:border-sky-800 text-sky-600 dark:text-sky-400" 
                 : "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
               }`}
               onClick={handleUserClick}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
               <div className="text-xs sm:text-sm font-bold whitespace-nowrap">
                 {isLoggedIn ? t.navbar.logout : t.navbar.login}
               </div>
-              <FaUserCircle className={`w-5 h-5 sm:w-6 h-6 ${isLoggedIn ? "text-rose-500" : "text-gray-500"}`} />
-            </div>
+              <FaUserCircle className={`w-5 h-5 sm:w-6 h-6 ${isLoggedIn ? "text-sky-500" : "text-gray-500"}`} />
+            </motion.div>
           </div>
         </div>
       </header>

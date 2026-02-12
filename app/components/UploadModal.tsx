@@ -140,10 +140,11 @@ export default function UploadModal({ isOpen, onClose, currentLang }: UploadModa
             onClick={isUploading ? undefined : handleClose}
           />
           <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            initial={{ opacity: 0, scale: 0.92, y: 20, filter: "blur(8px)" }}
+            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, scale: 0.92, y: 20, filter: "blur(8px)" }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="relative w-full max-w-2xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border border-sky-100/40 dark:border-sky-900/20"
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
               <button 
@@ -217,7 +218,7 @@ export default function UploadModal({ isOpen, onClose, currentLang }: UploadModa
                     ))}
                     
                     {files.length < 20 && !isUploading && (
-                      <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl cursor-pointer hover:border-rose-500 transition-colors bg-gray-50 dark:bg-gray-900/50">
+                      <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl cursor-pointer hover:border-sky-400 hover:bg-sky-50/50 dark:hover:bg-sky-900/10 transition-all duration-300 bg-gray-50 dark:bg-gray-900/50">
                         <MdCloudUpload className="w-8 h-8 text-gray-400" />
                         <span className="text-xs text-gray-400 mt-1">{t.upload.addMore}</span>
                         <input type="file" multiple accept="image/*,video/*" onChange={handleFileChange} className="hidden" />
@@ -238,7 +239,7 @@ export default function UploadModal({ isOpen, onClose, currentLang }: UploadModa
                       />
                       <label 
                         htmlFor="file-upload"
-                        className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl cursor-pointer hover:border-rose-500 dark:hover:border-rose-500 transition-colors bg-gray-50 dark:bg-gray-900/50"
+                        className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl cursor-pointer hover:border-sky-400 dark:hover:border-sky-400 hover:bg-sky-50/50 dark:hover:bg-sky-900/10 transition-all duration-300 bg-gray-50 dark:bg-gray-900/50"
                       >
                         <MdCloudUpload className="w-12 h-12 text-gray-400 mb-2" />
                         <p className="text-sm text-gray-400 font-medium">{t.upload.dropzone}</p>
@@ -260,7 +261,7 @@ export default function UploadModal({ isOpen, onClose, currentLang }: UploadModa
                   <button 
                     type="submit"
                     disabled={files.length === 0 || isUploading}
-                    className="flex-[2] py-3 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rose-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-[2] py-3 bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUploading ? t.upload.uploading : t.upload.confirmUpload.replace('{count}', files.length.toString())}
                   </button>

@@ -27,7 +27,7 @@ const LoadingImage = ({ src, alt, className, sizes, priority = false, style }: {
   return (
     <div className={`relative w-full h-full overflow-hidden ${roundedClasses}`}>
       {!isLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 animate-pulse z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-800 animate-shimmer z-10">
           <img 
             src={PUPPY_PLACEHOLDER} 
             className="w-12 h-12 opacity-20" 
@@ -58,11 +58,20 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
   getFullImageUrl: any 
 }) => {
   return (
-    <div
-      className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-800/50 shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700"
+    <motion.div
+      className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-800/50 shadow-sm hover:shadow-2xl transition-shadow duration-500 border border-gray-100/80 dark:border-gray-700/50"
+      initial={{ opacity: 0, y: 24, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ 
+        type: "spring", 
+        stiffness: 260, 
+        damping: 20,
+        delay: Math.min(index * 0.04, 0.4) 
+      }}
+      whileHover={{ scale: 1.03, y: -4 }}
       onClick={(e) => {
         if (photo.type === 'video') {
-          const video = e.currentTarget.querySelector('video');
+          const video = (e.currentTarget as HTMLElement).querySelector('video');
           if (video) {
             if (video.paused) video.play();
             else video.pause();
@@ -82,7 +91,7 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
             onPause={(e) => e.currentTarget.parentElement?.querySelector('.play-overlay')?.classList.remove('opacity-0')}
           />
           <div className="play-overlay absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity duration-300 pointer-events-none">
-            <div className="w-16 h-16 rounded-full bg-rose-500 flex items-center justify-center shadow-xl shadow-rose-500/40 border-4 border-white">
+            <div className="w-16 h-16 rounded-full bg-sky-500 flex items-center justify-center shadow-xl shadow-sky-500/40 border-4 border-white">
               <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
@@ -128,15 +137,15 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
         className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none z-30"
         style={{
           border: '3px solid transparent',
-          backgroundImage: 'linear-gradient(to bottom right, #e11d48, #f43f5e, #fb923c)',
+          backgroundImage: 'linear-gradient(to bottom right, #0EA5E9, #38BDF8, #3B82F6)',
           backgroundOrigin: 'border-box',
           WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
           WebkitMaskComposite: 'destination-out',
           maskComposite: 'exclude',
-          boxShadow: '0 0 20px rgba(244, 63, 94, 0.4)'
+          boxShadow: '0 0 20px rgba(56, 189, 248, 0.4)'
         }}
       />
-    </div>
+    </motion.div>
   );
 };
 
@@ -317,15 +326,15 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
 
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6 sticky top-24 z-30 px-4">
         <div className="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-1 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center mr-2">
+          <div className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl p-1 rounded-2xl border border-sky-100/60 dark:border-sky-900/30 shadow-sm flex items-center mr-2">
             {(['all', 'photo', 'video'] as const).map((cat) => (
               <button
                 key={cat}
                 onClick={() => setCategory(cat)}
-                className={`px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                className={`relative px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
                   category === cat
-                    ? "bg-rose-500 text-white shadow-md"
-                    : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    ? "bg-sky-500 text-white shadow-md shadow-sky-500/25"
+                    : "text-gray-500 hover:bg-sky-50 dark:hover:bg-sky-900/20"
                 }`}
               >
                 {t.grid[cat]}
@@ -335,7 +344,7 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
 
           <button
             onClick={() => setIsSphereOpen(true)}
-            className="hidden sm:flex items-center space-x-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:bg-rose-50 dark:hover:bg-rose-900/20 text-rose-500 transition-all font-bold group whitespace-nowrap"
+            className="hidden sm:flex items-center space-x-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl px-4 py-2 rounded-2xl border border-sky-100/60 dark:border-sky-900/30 shadow-sm hover:shadow-md hover:bg-sky-50 dark:hover:bg-sky-900/20 text-sky-500 transition-all font-bold group whitespace-nowrap"
           >
             <MdPublic className="w-5 h-5 sm:w-6 h-6 group-hover:rotate-12 transition-transform" />
             <span className="text-sm sm:text-base">{t.grid.sphere}</span>
@@ -343,22 +352,22 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
 
           <button
             onClick={() => setIsSlideshowOpen(true)}
-            className="hidden sm:flex items-center space-x-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:bg-rose-50 dark:hover:bg-rose-900/20 text-rose-500 transition-all font-bold group whitespace-nowrap"
+            className="hidden sm:flex items-center space-x-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl px-4 py-2 rounded-2xl border border-sky-100/60 dark:border-sky-900/30 shadow-sm hover:shadow-md hover:bg-sky-50 dark:hover:bg-sky-900/20 text-sky-500 transition-all font-bold group whitespace-nowrap"
           >
             <MdPlayCircleOutline className="w-5 h-5 sm:w-6 h-6 group-hover:scale-110 transition-transform" />
             <span className="text-sm sm:text-base">{t.grid.slideshow}</span>
           </button>
         </div>
 
-        <div className="hidden sm:flex bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-1 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm items-center self-end sm:self-auto">
+        <div className="hidden sm:flex bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl p-1 rounded-2xl border border-sky-100/60 dark:border-sky-900/30 shadow-sm items-center self-end sm:self-auto">
           {[2, 4, 6].map((num) => (
             <button
               key={num}
               onClick={() => handleColumnCountChange(num as 2 | 4 | 6)}
               className={`px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                 columnCount === num
-                  ? "bg-rose-500 text-white shadow-md scale-105"
-                  : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  ? "bg-sky-500 text-white shadow-md shadow-sky-500/25 scale-105"
+                  : "text-gray-500 hover:bg-sky-50 dark:hover:bg-sky-900/20"
               }`}
             >
               {t.grid.columns.replace('{num}', num.toString())}
@@ -370,7 +379,7 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
       {!isMounted ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 px-4">
           {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="aspect-[3/4] rounded-2xl bg-gray-200 dark:bg-gray-800 animate-pulse" />
+            <div key={i} className="aspect-[3/4] rounded-2xl bg-gray-100 dark:bg-gray-800 animate-shimmer" />
           ))}
         </div>
       ) : (
@@ -494,12 +503,12 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
                         <LoadingImage
                           src={getFullImageUrl(photo.url)}
                           alt=""
-                          className="w-full h-full object-cover rounded-lg sm:rounded-xl border border-white/10 transition-all shadow-2xl group-hover:border-rose-500/50"
+                          className="w-full h-full object-cover rounded-lg sm:rounded-xl border border-white/10 transition-all shadow-2xl group-hover:border-sky-500/50"
                           style={{
                             filter: `brightness(${0.4 + (z / radius) * 0.6 + 0.5}) saturate(${0.8 + (z / radius) * 0.4 + 0.2})`
                           }}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg sm:rounded-xl" />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-sky-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg sm:rounded-xl" />
                       </div>
                     </div>
                   );
@@ -518,7 +527,7 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
 
       <div ref={observerTarget} className="flex justify-center py-6 sm:py-10 min-h-[80px] sm:min-h-[100px]">
         {(isValidating || isFetchingMore) ? (
-          <PropagateLoader color="#F43F5E" size={10} />
+          <PropagateLoader color="#38BDF8" size={10} />
         ) : !hasMore && photos.length > 0 ? (
           <p className="text-gray-400 text-xs sm:text-sm">{t.grid.noMore}</p>
         ) : null}
