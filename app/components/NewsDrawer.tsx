@@ -25,11 +25,6 @@ const shouldUseIframe = () => {
   return process.env.NODE_ENV === 'development' || isInAppWebView();
 };
 
-// 全局事件：供 PhotoCard 等组件调用
-export function sendPhotoToAi(imageUrl: string) {
-  window.dispatchEvent(new CustomEvent('ai-analyze-photo', { detail: { imageUrl } }));
-}
-
 // 默认尺寸
 const DEFAULT_W = 380;
 const DEFAULT_H = 520;
@@ -198,14 +193,13 @@ export default function AiChatWindow() {
       {!isOpen && (
         <button
           onClick={() => { setIsOpen(true); setIsMinimized(false); }}
-          className="fixed bottom-[136px] right-8 z-40 w-14 h-14 bg-gradient-to-br from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white rounded-full shadow-2xl shadow-sky-500/30 flex items-center justify-center group transition-all hover:scale-110"
+          className="fixed bottom-[96px] right-8 z-40 w-14 h-14 bg-gradient-to-br from-sky-400 to-blue-500 text-white rounded-full shadow-lg shadow-sky-500/30 flex items-center justify-center group hover:shadow-sky-500/50 hover:scale-105 transition-all"
           title="AI 摄影助手"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 transition-transform group-hover:scale-110">
             <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" />
             <line x1="9" y1="22" x2="15" y2="22" />
           </svg>
-          <span className="absolute inset-0 rounded-full animate-breathe opacity-60 pointer-events-none" />
         </button>
       )}
 

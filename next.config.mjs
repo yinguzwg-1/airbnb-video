@@ -67,11 +67,19 @@ const nextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
   
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': process.cwd(),
     };
+
+    // Windows 下 fs.watch 可能不可靠，启用轮询确保文件变更能被及时检测
+    if (dev) {
+      config.watchOptions = {
+        poll: 1000,        // 每秒轮询一次
+        aggregateTimeout: 300, // 聚合 300ms 内的连续改动
+      };
+    }
     
     // 保留 Next.js 默认拆包策略，仅将大型非首屏关键库单独拆出
     if (!isServer && config.optimization.splitChunks) {

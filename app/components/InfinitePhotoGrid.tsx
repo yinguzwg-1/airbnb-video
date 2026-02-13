@@ -5,11 +5,11 @@ import Image from "next/image";
 import { PropagateLoader } from "react-spinners";
 import useSWR from "swr";
 import useSWRInfinite from "swr/infinite";
-import { MdPlayCircleOutline, MdClose, MdPublic, MdKeyboardArrowUp, MdVolumeUp, MdVolumeOff } from "react-icons/md";
+import { MdPlayCircleOutline, MdClose, MdPublic, MdKeyboardArrowUp, MdVolumeUp, MdVolumeOff, MdTune, MdViewColumn, MdCalendarMonth } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import { i18n } from "../config/i18n";
 import { format } from "date-fns";
-import { sendPhotoToAi } from "./NewsDrawer";
+import { sendPhotoToAi } from "../lib/ai-events";
 
 // 真正的小狗 SVG Base64
 const PUPPY_PLACEHOLDER = "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZGNkY2RjIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggZD0iTTEyIDljLTMgMC01LjUgMi41LTUuNSA1LjVzMi41IDUuNSA1LjUgNS41IDUuNS0yLjUgNS41LTUuNVMyIDEyIDkgMTIgOXpNMTEuNSA4YzAtLjguNy0xLjUgMS41LTEuNXMxLjUuNyAxLjUgMS41LS43IDEuNS0xLjUgMS41LTEuNS0uNy0xLjUtMS41ek00LjYgNi4xYy43LTEuNyAyLjUtMyA0LjQtM2guN2MuOCAwIDEuNS43IDEuNSAxLjVzLS43IDEuNS0xLjUgMS41SDEwYy0xLjUgMC0yLjggMS0zLjQgMi40LS4yLjUtLjguNy0xLjIuNS0uNS0uMi0uNy0uOC0uNC0xLjR6TTIwLjUgOGMtLjggMC0xLjUtLjctMS41LTEuNVMxOS43IDUgMjAuNSA1cyAxLjUuNyAxLjUgMS41LS43IDEuNS0xLjUgMS41ek0yMiAxMmMwLTEuMS0uOS0yLTItMmgtNWMtMS4xIDAtMiAuOS0yIDJzLjkgMiAyIDJoNWMxLjEgMCAyLS45IDItMnoiLz48L3N2Zz4=";
@@ -447,6 +447,9 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
   const [isSlideshowOpen, setIsSlideshowOpen] = useState(false);
   const [isSphereOpen, setIsSphereOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isFilterScrolled, setIsFilterScrolled] = useState(false);
+  const [sideFilterExpanded, setSideFilterExpanded] = useState(false);
+  const filterBarRef = useRef<HTMLDivElement>(null);
   const sphereContainerRef = useRef<HTMLDivElement>(null);
   const rotationRef = useRef({ x: 0, y: 0 });
   const targetRotationRef = useRef({ x: 0, y: 0 });
@@ -476,9 +479,37 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // 检测顶部过滤栏是否滚出视口 → 切换到左侧浮动面板
+  useEffect(() => {
+    const el = filterBarRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsFilterScrolled(!entry.isIntersecting);
+        if (entry.isIntersecting) setSideFilterExpanded(false);
+      },
+      { threshold: 0, rootMargin: '-80px 0px 0px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // 点击外部时收起左侧展开面板
+  useEffect(() => {
+    if (!sideFilterExpanded) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-side-filter]')) {
+        setSideFilterExpanded(false);
+      }
+    };
+    document.addEventListener('click', handleClick, { capture: true });
+    return () => document.removeEventListener('click', handleClick, { capture: true });
+  }, [sideFilterExpanded]);
 
   useEffect(() => {
     if (!isSphereOpen) {
@@ -607,7 +638,8 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
     <div className="space-y-8">
       <h2 className="sr-only">{t.metadata.title} - {t.grid.photography}</h2>
 
-      <div className="sticky top-24 z-30 px-4 space-y-3 mb-6">
+      {/* ===== 顶部过滤栏（正常文档流，不再 sticky） ===== */}
+      <div ref={filterBarRef} className="px-4 space-y-3 mb-6">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div className="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
             <div className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl p-1 rounded-2xl border border-sky-100/60 dark:border-sky-900/30 shadow-sm flex items-center mr-2">
@@ -694,6 +726,178 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
           </div>
         )}
       </div>
+
+      {/* ===== 左侧浮动过滤面板（滚动后出现） ===== */}
+      <AnimatePresence>
+        {isFilterScrolled && (
+          <motion.div
+            initial={{ opacity: 0, x: -48 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -48 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="fixed left-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center"
+            data-side-filter
+          >
+            {/* 收起状态：竖向小药丸 */}
+            {!sideFilterExpanded ? (
+              <motion.div
+                layout
+                className="flex flex-col items-center gap-1.5 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-sky-200/80 dark:border-sky-800/50 shadow-lg shadow-sky-500/15 p-1.5"
+              >
+                {/* 分类快速切换 */}
+                {(['all', 'photo', 'video'] as const).map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategory(cat)}
+                    className={`w-9 h-9 rounded-xl text-[10px] font-bold flex items-center justify-center transition-all ${
+                      category === cat
+                        ? "bg-sky-500 text-white shadow-md shadow-sky-500/30"
+                        : "text-gray-400 hover:bg-sky-50 dark:hover:bg-sky-900/30 hover:text-sky-500"
+                    }`}
+                    title={t.grid[cat]}
+                  >
+                    {cat === 'all' ? '全' : cat === 'photo' ? '📷' : '🎬'}
+                  </button>
+                ))}
+
+                {/* 分隔线 */}
+                <div className="w-5 h-px bg-gray-200 dark:bg-gray-700" />
+
+                {/* 月份指示器 */}
+                {availableMonths && availableMonths.length > 0 && (
+                  <button
+                    onClick={() => setSideFilterExpanded(true)}
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                      month
+                        ? "bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400"
+                        : "text-gray-400 hover:bg-sky-50 dark:hover:bg-sky-900/30 hover:text-sky-500"
+                    }`}
+                    title={month || (t.grid as any).allTime}
+                  >
+                    <MdCalendarMonth className="w-4 h-4" />
+                  </button>
+                )}
+
+                {/* 列数 */}
+                <button
+                  onClick={() => {
+                    const next = columnCount === 2 ? 4 : columnCount === 4 ? 6 : 2;
+                    handleColumnCountChange(next as 2 | 4 | 6);
+                  }}
+                  className="hidden sm:flex w-9 h-9 rounded-xl text-[10px] font-bold items-center justify-center text-gray-400 hover:bg-sky-50 dark:hover:bg-sky-900/30 hover:text-sky-500 transition-all"
+                  title={t.grid.columns.replace('{num}', columnCount.toString())}
+                >
+                  <MdViewColumn className="w-4 h-4" />
+                </button>
+
+                {/* 展开按钮 */}
+                <div className="w-5 h-px bg-gray-200 dark:bg-gray-700" />
+                <button
+                  onClick={() => setSideFilterExpanded(true)}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-400 hover:bg-sky-50 dark:hover:bg-sky-900/30 hover:text-sky-500 transition-all"
+                  title="展开筛选"
+                >
+                  <MdTune className="w-4 h-4" />
+                </button>
+              </motion.div>
+            ) : (
+              /* 展开状态：完整筛选面板 */
+              <motion.div
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl border border-sky-200/80 dark:border-sky-800/50 shadow-xl shadow-sky-500/15 p-3 min-w-[200px] max-w-[260px] space-y-3"
+              >
+                {/* 标题栏 + 关闭 */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-600 dark:text-gray-300 flex items-center gap-1.5">
+                    <MdTune className="w-3.5 h-3.5 text-sky-500" />
+                    筛选
+                  </span>
+                  <button
+                    onClick={() => setSideFilterExpanded(false)}
+                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <MdClose className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* 分类 */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] text-gray-400 font-medium">分类</span>
+                  <div className="flex gap-1">
+                    {(['all', 'photo', 'video'] as const).map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setCategory(cat)}
+                        className={`flex-1 px-2 py-1.5 rounded-xl text-[11px] font-bold transition-all ${
+                          category === cat
+                            ? "bg-sky-500 text-white shadow-md shadow-sky-500/25"
+                            : "text-gray-500 hover:bg-sky-50 dark:hover:bg-sky-900/20 bg-gray-50 dark:bg-gray-700/50"
+                        }`}
+                      >
+                        {t.grid[cat]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 月份 */}
+                {availableMonths && availableMonths.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] text-gray-400 font-medium">{(t.grid as any).monthFilter}</span>
+                    <div className="flex flex-wrap gap-1">
+                      <button
+                        onClick={() => setMonth(null)}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                          month === null
+                            ? "bg-sky-500 text-white shadow-sm"
+                            : "text-gray-500 bg-gray-50 dark:bg-gray-700/50 hover:bg-sky-50"
+                        }`}
+                      >
+                        {(t.grid as any).allTime}
+                      </button>
+                      {availableMonths.map((m) => (
+                        <button
+                          key={m}
+                          onClick={() => setMonth(m)}
+                          className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                            month === m
+                              ? "bg-sky-500 text-white shadow-sm"
+                              : "text-gray-500 bg-gray-50 dark:bg-gray-700/50 hover:bg-sky-50"
+                          }`}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 列数 */}
+                <div className="hidden sm:block space-y-1.5">
+                  <span className="text-[10px] text-gray-400 font-medium">布局</span>
+                  <div className="flex gap-1">
+                    {[2, 4, 6].map((num) => (
+                      <button
+                        key={num}
+                        onClick={() => handleColumnCountChange(num as 2 | 4 | 6)}
+                        className={`flex-1 px-2 py-1.5 rounded-xl text-[11px] font-bold transition-all ${
+                          columnCount === num
+                            ? "bg-sky-500 text-white shadow-sm"
+                            : "text-gray-500 bg-gray-50 dark:bg-gray-700/50 hover:bg-sky-50"
+                        }`}
+                      >
+                        {num}列
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {!isMounted ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 px-4">
@@ -856,17 +1060,16 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
       <AnimatePresence>
         {showScrollTop && (
           <motion.button
-            initial={{ opacity: 0, scale: 0.4, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.4, y: 20 }}
-            transition={{ type: "spring", stiffness: 400, damping: 22 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
             onClick={scrollToTop}
-            className="fixed bottom-24 right-8 z-40 w-14 h-14 bg-gradient-to-br from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white rounded-full shadow-2xl shadow-sky-500/30 flex items-center justify-center cursor-pointer group"
-            whileHover={{ scale: 1.12, boxShadow: "0 20px 40px -8px rgba(56, 189, 248, 0.45)" }}
+            className="fixed top-24 right-8 z-40 w-14 h-14 bg-gradient-to-br from-sky-400 to-blue-500 text-white rounded-full shadow-lg shadow-sky-500/30 flex items-center justify-center cursor-pointer group hover:shadow-sky-500/50 hover:scale-105 transition-all"
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
             <MdKeyboardArrowUp className="w-7 h-7 transition-transform group-hover:-translate-y-0.5" />
-            <span className="absolute inset-0 rounded-full animate-breathe opacity-60 pointer-events-none" />
           </motion.button>
         )}
       </AnimatePresence>
