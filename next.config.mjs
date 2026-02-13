@@ -8,6 +8,18 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // 全局安全和性能头
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+      {
         source: '/favicon.svg',
         headers: [
           { key: 'Content-Type', value: 'image/svg+xml' },
@@ -19,6 +31,20 @@ const nextConfig = {
         headers: [
           { key: 'Content-Type', value: 'image/x-icon' },
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        // 静态资源长缓存
+        source: '/_next/static/(.*)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        // 图片和视频资源缓存
+        source: '/uploads/(.*)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
         ],
       },
     ];
@@ -47,28 +73,25 @@ const nextConfig = {
       '@': process.cwd(),
     };
     
-    if (!isServer) {
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        maxInitialRequests: 25,
-        minSize: 20000,
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name(module) {
-              const match = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/);
-              if (!match) return 'vendor';
-              const packageName = match[1];
-              return `npm.${packageName.replace('@', '')}`;
-            },
-            priority: 10
-          },
-          default: {
-            minChunks: 2,
-            priority: -20,
-            reuseExistingChunk: true
-          }
-        }
+    // 保留 Next.js 默认拆包策略，仅将大型非首屏关键库单独拆出
+    if (!isServer && config.optimization.splitChunks) {
+      const existingCacheGroups = config.optimization.splitChunks.cacheGroups || {};
+      config.optimization.splitChunks.cacheGroups = {
+        ...existingCacheGroups,
+        // framer-motion (~130KB) 非首屏关键，单独拆出利于缓存
+        animation: {
+          test: /[\\/]node_modules[\\/](framer-motion)[\\/]/,
+          name: 'animation',
+          chunks: 'all',
+          priority: 30,
+        },
+        // wujie 微前端运行时，仅打开抽屉时需要
+        wujie: {
+          test: /[\\/]node_modules[\\/](wujie|wujie-react)[\\/]/,
+          name: 'wujie',
+          chunks: 'all',
+          priority: 30,
+        },
       };
     }
     return config;

@@ -39,21 +39,14 @@ export async function generateMetadata({ params }: { params: { lang: string } })
       siteName: t.metadata.title,
       locale: params.lang === 'zh' ? 'zh_CN' : 'en_US',
       type: 'website',
-      images: [
-        {
-          url: '/favicon.png',
-          width: 512,
-          height: 512,
-          alt: t.metadata.title,
-        },
-      ],
+      // OG image 由 app/[lang]/opengraph-image.tsx 自动生成
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       site: '@zwgautos',
       title: t.metadata.ogTitle,
       description: t.metadata.ogDesc,
-      images: ['/favicon.png'],
+      // Twitter image 由 opengraph-image.tsx 自动提供
     },
     robots: {
       index: true,
@@ -99,8 +92,52 @@ export default async function RootLayout({
   if (!['en', 'zh'].includes(params.lang)) {
     notFound();
   }
+
+  const t = i18n[params.lang as "zh" | "en"] || i18n.zh;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://zwg.autos";
+
+  // JSON-LD 结构化数据
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: t.metadata.title,
+    url: siteUrl,
+    description: t.metadata.desc,
+    inLanguage: params.lang === 'zh' ? 'zh-CN' : 'en-US',
+    author: {
+      "@type": "Person",
+      name: "Doushabao",
+    },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/${params.lang}?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
+  const galleryJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ImageGallery",
+    name: t.metadata.ogTitle,
+    description: t.metadata.ogDesc,
+    url: `${siteUrl}/${params.lang}`,
+    creator: {
+      "@type": "Person",
+      name: "Doushabao",
+    },
+    inLanguage: params.lang === 'zh' ? 'zh-CN' : 'en-US',
+  };
+
   return (
     <div className={inter.className}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(galleryJsonLd) }}
+      />
       {children}
       <NewsDrawer />
     </div>

@@ -23,13 +23,21 @@ export default function UploadModal({ isOpen, onClose, currentLang }: UploadModa
   const t = i18n[currentLang as "zh" | "en"] || i18n.zh;
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isInApp, setIsInApp] = useState(false);
+  const [livePhotoStatus, setLivePhotoStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const { token } = useAuthStore();
+
+  // 检测是否在 App WebView 内
+  useEffect(() => {
+    setIsInApp(!!(window as any).JSBridge?.isInApp || !!(window as any).ReactNativeWebView);
+  }, []);
 
   // 清理预览 URL 防止内存泄漏
   useEffect(() => {
     if (!isOpen) {
       files.forEach(f => URL.revokeObjectURL(f.preview));
       setFiles([]);
+      setLivePhotoStatus('idle');
     }
   }, [isOpen]);
 
@@ -126,6 +134,34 @@ export default function UploadModal({ isOpen, onClose, currentLang }: UploadModa
     files.forEach(f => URL.revokeObjectURL(f.preview));
     setFiles([]);
     onClose();
+  };
+
+  const handleLivePhotoUpload = async () => {
+    if (!(window as any).JSBridge?.call) return;
+    setLivePhotoStatus('uploading');
+    try {
+      const result = await (window as any).JSBridge.call('uploadLivePhoto');
+      if (result?.canceled) {
+        setLivePhotoStatus('idle');
+        return;
+      }
+      setLivePhotoStatus('success');
+      // 关闭弹窗并刷新列表
+      setTimeout(() => {
+        handleClose();
+        mutate(
+          (key: string | any[]) =>
+            (Array.isArray(key) && typeof key[0] === 'string' && key[0].includes('/api/upload/list')) ||
+            (typeof key === 'string' && key.includes('/api/upload/list')),
+          undefined,
+          { revalidate: true }
+        );
+      }, 600);
+    } catch (err: any) {
+      console.error('[LivePhoto] Upload failed:', err);
+      setLivePhotoStatus('error');
+      setTimeout(() => setLivePhotoStatus('idle'), 2000);
+    }
   };
 
   return (
@@ -246,6 +282,38 @@ export default function UploadModal({ isOpen, onClose, currentLang }: UploadModa
                         <p className="text-xs text-gray-500 mt-1">{t.upload.support}</p>
                       </label>
                     </div>
+                  </div>
+                )}
+
+                {/* Live Photo 上传按钮 — 仅 App WebView 内显示 */}
+                {isInApp && (
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={handleLivePhotoUpload}
+                      disabled={livePhotoStatus === 'uploading'}
+                      className="w-full py-3 border-2 border-dashed border-sky-300 dark:border-sky-700 rounded-xl font-bold text-sky-600 dark:text-sky-400 hover:bg-sky-50/50 dark:hover:bg-sky-900/10 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                    >
+                      {livePhotoStatus === 'uploading' ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+                          <span>{t.upload.uploading}</span>
+                        </>
+                      ) : livePhotoStatus === 'success' ? (
+                        <span>{(t.upload as any).livePhotoSuccess || 'Live Photo 上传成功'}</span>
+                      ) : livePhotoStatus === 'error' ? (
+                        <span className="text-rose-500">{t.upload.failed}</span>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                          <span>{(t.upload as any).livePhoto || '上传 Live Photo'}</span>
+                          <span className="text-xs text-sky-400 dark:text-sky-500">({(t.upload as any).livePhotoDesc || '仅限 App'})</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 )}
 
