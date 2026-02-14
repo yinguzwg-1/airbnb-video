@@ -62,6 +62,16 @@ export default function AiChatWindow() {
     setInitialized(true);
   }, []);
 
+  // 判断微前端是否已加载就绪（iframe 模式或 Wujie 模式）
+  const isMicroFeReady = useCallback(() => {
+    // 开发模式：iframe
+    if (iframeRef.current?.contentWindow) return true;
+    // 生产模式：Wujie（检查 DOM 中是否已有 Wujie iframe）
+    const container = document.querySelector('[data-wujie-app="mirco-fe-ai"]');
+    const wujieIframe = container?.querySelector('iframe');
+    return !!(wujieIframe && (wujieIframe as HTMLIFrameElement).contentWindow);
+  }, []);
+
   // === 向微前端发送图片（含重试机制） ===
   const sendImageToMicroFe = useCallback((imageUrl: string, retries = 3) => {
     const message = { type: 'SELECT_PHOTO', imageUrl };
@@ -112,19 +122,19 @@ export default function AiChatWindow() {
       const detail = (e as CustomEvent).detail;
       if (detail?.imageUrl) {
         pendingImageRef.current = detail.imageUrl;
-        if (isOpen && iframeRef.current?.contentWindow) {
-          // 窗口已打开，直接发送（含重试）
+        if (isOpen && isMicroFeReady()) {
+          // 窗口已打开且微前端就绪，直接发送
           sendImageToMicroFe(detail.imageUrl);
           pendingImageRef.current = null;
         } else {
-          // 窗口未打开，等 iframe onLoad 后发送
+          // 窗口未打开，等加载完成后发送
           setIsOpen(true);
         }
       }
     };
     window.addEventListener('ai-analyze-photo', handler);
     return () => window.removeEventListener('ai-analyze-photo', handler);
-  }, [isOpen, sendImageToMicroFe]);
+  }, [isOpen, isMicroFeReady, sendImageToMicroFe]);
 
   // 监听全局拖拽状态（来自 PhotoCard 的 photo-drag-state 事件）
   useEffect(() => {
@@ -158,15 +168,15 @@ export default function AiChatWindow() {
     const imageUrl = e.dataTransfer.getData('application/x-photo-ai') || e.dataTransfer.getData('text/plain');
     if (!imageUrl) return;
 
-    if (isOpen && iframeRef.current?.contentWindow) {
-      // 窗口已打开且 iframe 已加载，直接发送（含重试）
+    if (isOpen && isMicroFeReady()) {
+      // 窗口已打开且微前端已加载（iframe 或 Wujie），直接发送
       sendImageToMicroFe(imageUrl);
     } else {
-      // 窗口未打开，标记 pending，等 iframe onLoad 后发送
+      // 窗口未打开，标记 pending，等加载完成后发送
       pendingImageRef.current = imageUrl;
       setIsOpen(true);
     }
-  }, [isOpen, sendImageToMicroFe]);
+  }, [isOpen, isMicroFeReady, sendImageToMicroFe]);
 
   const handleAfterMount = useCallback(() => {
     setIsLoading(false);
