@@ -66,12 +66,26 @@ export default function AiChatWindow() {
   const sendImageToMicroFe = useCallback((imageUrl: string, retries = 3) => {
     const message = { type: 'SELECT_PHOTO', imageUrl };
     const doSend = () => {
+      let sent = false;
+      // 方式1：直接 iframe（开发模式）
       if (iframeRef.current?.contentWindow) {
         iframeRef.current.contentWindow.postMessage(message, '*');
+        sent = true;
       }
+      // 方式2：Wujie 模式 — 通过 DOM 找到 Wujie 创建的 iframe
+      if (!sent) {
+        const container = document.querySelector('[data-wujie-app="mirco-fe-ai"]');
+        const wujieIframe = container?.querySelector('iframe');
+        if (wujieIframe && (wujieIframe as HTMLIFrameElement).contentWindow) {
+          (wujieIframe as HTMLIFrameElement).contentWindow!.postMessage(message, '*');
+          sent = true;
+        }
+      }
+      // 方式3：Wujie bus（备用）
       try {
-        const wujie = (window as any).__WUJIE;
-        if (wujie) wujie.bus.$emit('select-photo', imageUrl);
+        import('wujie').then(({ bus }) => {
+          bus.$emit('select-photo', imageUrl);
+        }).catch(() => {});
       } catch {}
     };
     doSend();
