@@ -105,6 +105,34 @@ export default function AiChatWindow() {
     }
   }, []);
 
+  // === 向微前端发送 RESET_STATE（清空子应用状态） ===
+  const sendResetToMicroFe = useCallback(() => {
+    const message = { type: 'RESET_STATE' };
+    // 方式1：直接 iframe（开发模式）
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(message, '*');
+    }
+    // 方式2：Wujie 模式 — 通过 DOM 找到 Wujie 创建的 iframe
+    const container = document.querySelector('[data-wujie-app="mirco-fe-ai"]');
+    const wujieIframe = container?.querySelector('iframe');
+    if (wujieIframe && (wujieIframe as HTMLIFrameElement).contentWindow) {
+      (wujieIframe as HTMLIFrameElement).contentWindow!.postMessage(message, '*');
+    }
+    // 方式3：Wujie bus（备用）
+    try {
+      import('wujie').then(({ bus }) => {
+        bus.$emit('reset-state');
+      }).catch(() => {});
+    } catch {}
+  }, []);
+
+  // === 关闭窗口：发送重置消息 + 清理 ref ===
+  const handleClose = useCallback(() => {
+    sendResetToMicroFe();
+    pendingImageRef.current = null;
+    setIsOpen(false);
+  }, [sendResetToMicroFe]);
+
   // 预加载微前端
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -121,20 +149,19 @@ export default function AiChatWindow() {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (detail?.imageUrl) {
-        pendingImageRef.current = detail.imageUrl;
-        if (isOpen && isMicroFeReady()) {
-          // 窗口已打开且微前端就绪，直接发送
+        if (isOpen) {
+          // 窗口已打开，直接发送（重试机制兜底，不依赖 isMicroFeReady）
           sendImageToMicroFe(detail.imageUrl);
-          pendingImageRef.current = null;
         } else {
-          // 窗口未打开，等加载完成后发送
+          // 窗口未打开，标记 pending，等加载完成后发送
+          pendingImageRef.current = detail.imageUrl;
           setIsOpen(true);
         }
       }
     };
     window.addEventListener('ai-analyze-photo', handler);
     return () => window.removeEventListener('ai-analyze-photo', handler);
-  }, [isOpen, isMicroFeReady, sendImageToMicroFe]);
+  }, [isOpen, sendImageToMicroFe]);
 
   // 监听全局拖拽状态（来自 PhotoCard 的 photo-drag-state 事件）
   useEffect(() => {
@@ -168,15 +195,15 @@ export default function AiChatWindow() {
     const imageUrl = e.dataTransfer.getData('application/x-photo-ai') || e.dataTransfer.getData('text/plain');
     if (!imageUrl) return;
 
-    if (isOpen && isMicroFeReady()) {
-      // 窗口已打开且微前端已加载（iframe 或 Wujie），直接发送
+    if (isOpen) {
+      // 窗口已打开，直接发送（重试机制兜底）
       sendImageToMicroFe(imageUrl);
     } else {
       // 窗口未打开，标记 pending，等加载完成后发送
       pendingImageRef.current = imageUrl;
       setIsOpen(true);
     }
-  }, [isOpen, isMicroFeReady, sendImageToMicroFe]);
+  }, [isOpen, sendImageToMicroFe]);
 
   const handleAfterMount = useCallback(() => {
     setIsLoading(false);
@@ -376,9 +403,9 @@ export default function AiChatWindow() {
             </div>
 
             <div className="flex items-center gap-1">
-              {/* 最小化（隐藏窗口，显示 FAB 按钮） */}
+              {/* 最小化（隐藏窗口，重置子应用状态） */}
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
                 className="p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white transition-colors"
                 title="最小化"
               >
@@ -394,7 +421,7 @@ export default function AiChatWindow() {
               </button>
               {/* 关闭 */}
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
                 className="p-1.5 rounded-lg hover:bg-red-500/60 text-white/80 hover:text-white transition-colors"
                 title="关闭"
               >
