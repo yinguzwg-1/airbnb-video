@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { PropagateLoader } from "react-spinners";
 import useSWR from "swr";
@@ -10,6 +10,30 @@ import { motion, AnimatePresence } from "framer-motion";
 import { i18n } from "../config/i18n";
 import { format } from "date-fns";
 import { sendPhotoToAi } from "../lib/ai-events";
+
+// === 视口懒渲染 Hook：卡片进入视口附近才真正挂载内容 ===
+const useInView = (rootMargin = '200px') => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect(); // 一旦进入视口就不再监听
+        }
+      },
+      { rootMargin }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [rootMargin]);
+
+  return { ref, isInView };
+};
 
 // 真正的小狗 SVG Base64
 const PUPPY_PLACEHOLDER = "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZGNkY2RjIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggZD0iTTEyIDljLTMgMC01LjUgMi41LTUuNSA1LjVzMi41IDUuNSA1LjUgNS41IDUuNS0yLjUgNS41LTUuNVMyIDEyIDkgMTIgOXpNMTEuNSA4YzAtLjguNy0xLjUgMS41LTEuNXMxLjUuNyAxLjUgMS41LS43IDEuNS0xLjUgMS41LTEuNS0uNy0xLjUtMS41ek00LjYgNi4xYy43LTEuNyAyLjUtMyA0LjQtM2guN2MuOCAwIDEuNS43IDEuNSAxLjVzLS43IDEuNS0xLjUgMS41SDEwYy0xLjUgMC0yLjggMS0zLjQgMi40LS4yLjUtLjguNy0xLjIuNS0uNS0uMi0uNy0uOC0uNC0xLjR6TTIwLjUgOGMtLjggMC0xLjUtLjctMS41LTEuNVMxOS43IDUgMjAuNSA1cyAxLjUuNyAxLjUgMS41LS43IDEuNS0xLjUgMS41ek0yMiAxMmMwLTEuMS0uOS0yLTItMmgtNWMtMS4xIDAtMiAuOS0yIDJzLjkgMiAyIDJoNWMxLjEgMCAyLS45IDItMnoiLz48L3N2Zz4=";
@@ -42,7 +66,6 @@ const LoadingImage = ({ src, alt, className, sizes, priority = false, style }: {
         src={src}
         alt={alt}
         fill
-        unoptimized={true}
         className={`${className} transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         sizes={sizes}
         priority={priority}
@@ -68,6 +91,10 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
   t: any, 
   getFullImageUrl: any 
 }) => {
+  // === 视口懒渲染：首屏前 4 张直接渲染，其余进入视口附近才挂载 ===
+  const { ref: inViewRef, isInView } = useInView('200px');
+  const shouldRender = index < 4 || isInView;
+
   // === 拖拽到 AI 助手 ===
   const isVideo = photo.type === 'video';
   const canDrag = !isVideo; // 只有图片可拖拽
@@ -138,17 +165,25 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
 
   // === 视频播放状态 ===
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoMounted, setVideoMounted] = useState(false); // 延迟挂载 <video>
   const [videoState, setVideoState] = useState<'idle' | 'previewing' | 'playing' | 'paused'>('idle');
   const [isMuted, setIsMuted] = useState(true);
   const [progress, setProgress] = useState(0);
 
-  // Live Photo 长按处理
+  // Live Photo 长按处理（延迟加载：长按时才设置 src 并播放）
   const handleLivePressStart = (e: React.PointerEvent | React.TouchEvent) => {
     if (photo.type !== 'live' || !photo.liveVideoUrl) return;
     e.preventDefault?.();
     longPressTimer.current = setTimeout(() => {
+      const video = liveVideoRef.current;
+      if (video) {
+        // 首次长按时才设置 src，避免预加载整个视频
+        if (!video.src) {
+          video.src = getFullImageUrl(photo.liveVideoUrl);
+        }
+        video.play().catch(() => {});
+      }
       setIsLivePlaying(true);
-      liveVideoRef.current?.play().catch(() => {});
     }, 300);
   };
 
@@ -166,9 +201,22 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
     }
   };
 
-  // 视频 hover 进入：静音自动预览
+  // 视频 hover 进入：先挂载 <video>，再静音自动预览
   const handleVideoMouseEnter = () => {
-    if (!isVideo || !videoRef.current) return;
+    if (!isVideo) return;
+    if (!videoMounted) {
+      setVideoMounted(true);
+      // video 元素下一帧才存在，延迟播放
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.muted = true;
+          videoRef.current.play().catch(() => {});
+          setVideoState('previewing');
+        }
+      }, 50);
+      return;
+    }
+    if (!videoRef.current) return;
     videoRef.current.muted = true;
     setIsMuted(true);
     videoRef.current.play().catch(() => {});
@@ -239,8 +287,19 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
   // Live Photo / 非视频时的 hover 动画
   const hoverAnimation = (isLivePlaying || isVideoActive) ? {} : { scale: 1.03, y: -4 };
 
+  // 未进入视口时渲染轻量占位符（保持宽高比，不加载任何资源）
+  if (!shouldRender) {
+    return (
+      <div
+        ref={inViewRef}
+        className="aspect-[3/4] rounded-2xl bg-gray-100 dark:bg-gray-800/50 border border-gray-100/80 dark:border-gray-700/50 animate-pulse"
+      />
+    );
+  }
+
   return (
     <motion.div
+      ref={inViewRef}
       className={`group relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-800/50 shadow-sm hover:shadow-2xl transition-shadow duration-500 border border-gray-100/80 dark:border-gray-700/50 ${canDrag ? 'cursor-grab active:cursor-grabbing' : ''}`}
       draggable={canDrag}
       onDragStart={handleDragStart as any}
@@ -266,20 +325,30 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
     >
       {isVideo ? (
         <div className="relative w-full h-full cursor-pointer bg-black">
-          <video
-            ref={videoRef}
-            src={getFullImageUrl(photo.url)}
-            poster={photo.coverUrl ? getFullImageUrl(photo.coverUrl) : undefined}
-            className={`w-full h-full object-cover transition-transform duration-700 ${isVideoActive ? 'scale-100' : 'group-hover:scale-105'}`}
-            playsInline
-            muted
-            preload="metadata"
-            onTimeUpdate={handleTimeUpdate}
-            onEnded={() => {
-              setVideoState('paused');
-              setProgress(0);
-            }}
-          />
+          {/* 默认只渲染 poster 图片，hover 时才挂载 <video> */}
+          {!videoMounted && photo.coverUrl && (
+            <img
+              src={getFullImageUrl(photo.coverUrl)}
+              alt={photo.title || ''}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            />
+          )}
+          {videoMounted && (
+            <video
+              ref={videoRef}
+              src={getFullImageUrl(photo.url)}
+              poster={photo.coverUrl ? getFullImageUrl(photo.coverUrl) : undefined}
+              className={`w-full h-full object-cover transition-transform duration-700 ${isVideoActive ? 'scale-100' : 'group-hover:scale-105'}`}
+              playsInline
+              muted
+              preload="metadata"
+              onTimeUpdate={handleTimeUpdate}
+              onEnded={() => {
+                setVideoState('paused');
+                setProgress(0);
+              }}
+            />
+          )}
 
           {/* 播放按钮覆盖层 */}
           <div className={`absolute inset-0 flex items-center justify-center bg-black/20 transition-all duration-300 pointer-events-none ${
@@ -359,18 +428,17 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
             priority={index < 4}
           />
 
-          {/* Live Photo 视频覆盖层 */}
+          {/* Live Photo 视频覆盖层（src 在长按时才设置，避免预加载） */}
           {photo.type === 'live' && photo.liveVideoUrl && (
             <video
               ref={liveVideoRef}
-              src={getFullImageUrl(photo.liveVideoUrl)}
               className={`live-video absolute inset-0 w-full h-full object-cover transition-opacity duration-200 ${
                 isLivePlaying ? 'opacity-100 z-10' : 'opacity-0'
               }`}
               playsInline
               muted
               loop
-              preload="auto"
+              preload="none"
             />
           )}
         </>
@@ -632,9 +700,11 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
 
   const getKey = (pageIndex: number, previousPageData: ApiResponse) => {
     const monthParam = month ? `&month=${month}` : '';
-    if (pageIndex === 0) return `/api/upload/list?page=1&limit=20&category=${category}${monthParam}`;
+    // 首屏只加载 12 条（减少首屏资源请求），后续分页用 20 条
+    const limit = pageIndex === 0 ? 12 : 20;
+    if (pageIndex === 0) return `/api/upload/list?page=1&limit=${limit}&category=${category}${monthParam}`;
     if (previousPageData && !previousPageData.hasMore) return null;
-    return `/api/upload/list?page=${pageIndex + 1}&limit=20&category=${category}${monthParam}`;
+    return `/api/upload/list?page=${pageIndex + 1}&limit=${limit}&category=${category}${monthParam}`;
   };
 
   const { data, size, setSize, isValidating, isLoading } = useSWRInfinite<ApiResponse>(
@@ -645,7 +715,7 @@ const InfinitePhotoGrid = ({ initialData, initialHasMore, currentLang }: Infinit
         data: initialData, 
         total: 0, 
         page: 1, 
-        limit: 20, 
+        limit: 12, 
         hasMore: initialHasMore 
       }],
       revalidateFirstPage: false,

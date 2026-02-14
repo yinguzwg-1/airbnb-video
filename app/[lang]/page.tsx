@@ -17,7 +17,7 @@ export default async function HomePage({ params: { lang } }: HomePageProps) {
   try {
     const baseUrl = process.env.BACKEND_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'https://zwg.autos');
     // 性能优化：增加 60 秒缓存，让 HTML 瞬间生成，显著提升 LCP
-    const response = await fetch(`${baseUrl}/api/upload/list?page=1&limit=20`, {
+    const response = await fetch(`${baseUrl}/api/upload/list?page=1&limit=12`, {
       next: { revalidate: 60 }, 
     });
     if (response.ok) {

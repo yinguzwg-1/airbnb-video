@@ -57,6 +57,11 @@ const nextConfig = {
       { hostname: "res.cloudinary.com", protocol: "https" },
     ],
     domains: ['localhost', '127.0.0.1', 'zwg.autos', '172.17.0.1'],
+    // 适配网格布局的响应式尺寸
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [128, 256, 384, 512],
+    // 优先使用 WebP（体积比原图减少 30-70%）
+    formats: ['image/webp'],
   },
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
