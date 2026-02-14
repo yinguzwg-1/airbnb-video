@@ -30,16 +30,17 @@ const DEFAULT_W = 380;
 const DEFAULT_H = 520;
 const MIN_W = 320;
 const MIN_H = 400;
-const COLLAPSED_H = 48;
-
 export default function AiChatWindow() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const pendingImageRef = useRef<string | null>(null);
+
+  // === 拖拽放置状态 ===
+  const [isPhotoDragging, setIsPhotoDragging] = useState(false); // 全局：有图片正在被拖拽
+  const [isDragOver, setIsDragOver] = useState(false);           // 局部：拖拽悬浮在 drop zone 上
 
   // 位置和尺寸
   const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -61,6 +62,25 @@ export default function AiChatWindow() {
     setInitialized(true);
   }, []);
 
+  // === 向微前端发送图片（含重试机制） ===
+  const sendImageToMicroFe = useCallback((imageUrl: string, retries = 3) => {
+    const message = { type: 'SELECT_PHOTO', imageUrl };
+    const doSend = () => {
+      if (iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(message, '*');
+      }
+      try {
+        const wujie = (window as any).__WUJIE;
+        if (wujie) wujie.bus.$emit('select-photo', imageUrl);
+      } catch {}
+    };
+    doSend();
+    // 重试机制：iframe 中 React 可能尚未水合，多发几次确保收到
+    for (let i = 1; i <= retries; i++) {
+      setTimeout(doSend, i * 600);
+    }
+  }, []);
+
   // 预加载微前端
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -72,40 +92,77 @@ export default function AiChatWindow() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 监听全局事件
+  // 监听全局事件（从 PhotoCard 点击 AI 分析按钮触发）
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (detail?.imageUrl) {
         pendingImageRef.current = detail.imageUrl;
-        setIsOpen(true);
-        setIsMinimized(false);
-        setTimeout(() => sendImageToMicroFe(detail.imageUrl), 500);
+        if (isOpen && iframeRef.current?.contentWindow) {
+          // 窗口已打开，直接发送（含重试）
+          sendImageToMicroFe(detail.imageUrl);
+          pendingImageRef.current = null;
+        } else {
+          // 窗口未打开，等 iframe onLoad 后发送
+          setIsOpen(true);
+        }
       }
     };
     window.addEventListener('ai-analyze-photo', handler);
     return () => window.removeEventListener('ai-analyze-photo', handler);
+  }, [isOpen, sendImageToMicroFe]);
+
+  // 监听全局拖拽状态（来自 PhotoCard 的 photo-drag-state 事件）
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const dragging = (e as CustomEvent).detail?.dragging;
+      setIsPhotoDragging(!!dragging);
+      if (!dragging) setIsDragOver(false);
+    };
+    window.addEventListener('photo-drag-state', handler);
+    return () => window.removeEventListener('photo-drag-state', handler);
   }, []);
 
-  const sendImageToMicroFe = useCallback((imageUrl: string) => {
-    const message = { type: 'SELECT_PHOTO', imageUrl };
-    if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(message, '*');
-    }
-    try {
-      const wujie = (window as any).__WUJIE;
-      if (wujie) wujie.bus.$emit('select-photo', imageUrl);
-    } catch {}
+  // Drop zone 事件处理
+  const handleDropZoneDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    setIsDragOver(true);
   }, []);
+
+  const handleDropZoneDragLeave = useCallback((e: React.DragEvent) => {
+    // 避免子元素触发 dragleave
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    setIsPhotoDragging(false);
+    const imageUrl = e.dataTransfer.getData('application/x-photo-ai') || e.dataTransfer.getData('text/plain');
+    if (!imageUrl) return;
+
+    if (isOpen && iframeRef.current?.contentWindow) {
+      // 窗口已打开且 iframe 已加载，直接发送（含重试）
+      sendImageToMicroFe(imageUrl);
+    } else {
+      // 窗口未打开，标记 pending，等 iframe onLoad 后发送
+      pendingImageRef.current = imageUrl;
+      setIsOpen(true);
+    }
+  }, [isOpen, sendImageToMicroFe]);
 
   const handleAfterMount = useCallback(() => {
     setIsLoading(false);
     setHasError(false);
     if (pendingImageRef.current) {
+      // Wujie 挂载后也需等待微前端 React 初始化
       setTimeout(() => {
         sendImageToMicroFe(pendingImageRef.current!);
         pendingImageRef.current = null;
-      }, 300);
+      }, 800);
     }
   }, [sendImageToMicroFe]);
 
@@ -143,7 +200,7 @@ export default function AiChatWindow() {
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
 
       const newX = Math.max(0, Math.min(window.innerWidth - 60, clientX - dragOffset.current.x));
-      const newY = Math.max(0, Math.min(window.innerHeight - COLLAPSED_H, clientY - dragOffset.current.y));
+      const newY = Math.max(0, Math.min(window.innerHeight - 48, clientY - dragOffset.current.y));
       setPos({ x: newX, y: newY });
     };
 
@@ -178,29 +235,59 @@ export default function AiChatWindow() {
       setPos({ x: Math.max(24, (window.innerWidth - 600) / 2), y: 40 });
     }
     setIsExpanded(!isExpanded);
-    setIsMinimized(false);
   };
 
-  // 当前窗口高度
-  const currentH = isMinimized ? COLLAPSED_H : size.h;
+  const currentH = size.h;
   const currentW = size.w;
 
   if (!initialized) return null;
 
   return (
     <>
-      {/* 入口按钮 — 悬浮在右下角，与上传按钮上方对齐 */}
+      {/* 入口按钮 + 拖拽放置区 — 悬浮在右下角 */}
       {!isOpen && (
-        <button
-          onClick={() => { setIsOpen(true); setIsMinimized(false); }}
-          className="fixed bottom-[96px] right-8 z-40 w-14 h-14 bg-gradient-to-br from-sky-400 to-blue-500 text-white rounded-full shadow-lg shadow-sky-500/30 flex items-center justify-center group hover:shadow-sky-500/50 hover:scale-105 transition-all"
-          title="AI 摄影助手"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 transition-transform group-hover:scale-110">
-            <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" />
-            <line x1="9" y1="22" x2="15" y2="22" />
-          </svg>
-        </button>
+        <>
+          {/* 拖拽中：放大的 Drop Zone（覆盖右下角大区域，更容易命中） */}
+          {isPhotoDragging && (
+            <div
+              className={`fixed z-50 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center ${
+                isDragOver
+                  ? 'border-sky-400 bg-sky-50/95 shadow-2xl shadow-sky-400/40'
+                  : 'border-sky-300/60 bg-sky-50/80 shadow-lg'
+              }`}
+              style={{ bottom: 24, right: 24, width: 160, height: 140 }}
+              onDragOver={handleDropZoneDragOver}
+              onDragLeave={handleDropZoneDragLeave}
+              onDrop={handleDrop}
+            >
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition-all ${
+                isDragOver ? 'bg-sky-500 text-white scale-110' : 'bg-sky-200 text-sky-600'
+              }`}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7,10 12,15 17,10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </div>
+              <span className={`text-xs font-bold transition-colors ${isDragOver ? 'text-sky-600' : 'text-sky-400'}`}>
+                {isDragOver ? '松手开始分析' : '拖到这里分析'}
+              </span>
+            </div>
+          )}
+          {/* 常规 FAB 按钮 */}
+          <button
+            onClick={() => setIsOpen(true)}
+            className={`fixed bottom-[96px] right-8 z-40 w-14 h-14 bg-gradient-to-br from-sky-400 to-blue-500 text-white rounded-full shadow-lg shadow-sky-500/30 flex items-center justify-center group hover:shadow-sky-500/50 hover:scale-105 transition-all ${
+              isPhotoDragging ? 'animate-pulse pointer-events-none' : ''
+            }`}
+            title="AI 摄影助手"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 transition-transform group-hover:scale-110">
+              <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" />
+              <line x1="9" y1="22" x2="15" y2="22" />
+            </svg>
+          </button>
+        </>
       )}
 
       {/* 浮动对话窗 */}
@@ -214,8 +301,40 @@ export default function AiChatWindow() {
             width: currentW,
             height: currentH,
             transition: isDragging.current ? 'none' : 'width 0.3s ease, height 0.3s ease',
+            overscrollBehavior: 'contain',
           }}
+          onWheel={(e) => e.stopPropagation()}
+          onDragOver={handleDropZoneDragOver}
+          onDragLeave={handleDropZoneDragLeave}
+          onDrop={handleDrop}
         >
+          {/* 拖拽放置遮罩（窗口打开时）— 必须 pointer-events-auto 以拦截 iframe 的拖拽事件 */}
+          {isPhotoDragging && (
+            <div
+              className={`absolute inset-0 z-[60] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all duration-300 ${
+                isDragOver
+                  ? 'border-sky-400 bg-sky-100/90 backdrop-blur-sm'
+                  : 'border-sky-300/50 bg-sky-50/70'
+              }`}
+              onDragOver={handleDropZoneDragOver}
+              onDragLeave={handleDropZoneDragLeave}
+              onDrop={handleDrop}
+            >
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 transition-all ${
+                isDragOver ? 'bg-sky-500 text-white scale-110' : 'bg-sky-200 text-sky-600'
+              }`}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7,10 12,15 17,10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </div>
+              <p className={`text-sm font-bold ${isDragOver ? 'text-sky-700' : 'text-sky-500'}`}>
+                {isDragOver ? '松手开始 AI 分析' : '拖放照片到此处'}
+              </p>
+            </div>
+          )}
+
           {/* 标题栏 — 可拖拽 */}
           <div
             className="h-12 flex-shrink-0 bg-gradient-to-r from-sky-500 to-blue-500 flex items-center justify-between px-3 cursor-move"
@@ -233,11 +352,11 @@ export default function AiChatWindow() {
             </div>
 
             <div className="flex items-center gap-1">
-              {/* 最小化 */}
+              {/* 最小化（隐藏窗口，显示 FAB 按钮） */}
               <button
-                onClick={() => setIsMinimized(!isMinimized)}
+                onClick={() => setIsOpen(false)}
                 className="p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white transition-colors"
-                title={isMinimized ? '展开' : '最小化'}
+                title="最小化"
               >
                 <IoRemove className="w-4 h-4" />
               </button>
@@ -260,51 +379,50 @@ export default function AiChatWindow() {
             </div>
           </div>
 
-          {/* 内容区 — 最小化时隐藏 */}
-          {!isMinimized && (
-            <div className="flex-1 relative overflow-hidden bg-slate-50">
-              {isLoading && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10">
-                  <div className="w-8 h-8 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-sm font-medium text-slate-400 mt-4">正在加载 AI 引擎...</p>
-                </div>
-              )}
+          {/* 内容区 */}
+          <div className="flex-1 relative overflow-hidden bg-slate-50">
+            {isLoading && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10">
+                <div className="w-8 h-8 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-sm font-medium text-slate-400 mt-4">正在加载 AI 引擎...</p>
+              </div>
+            )}
 
-              {hasError && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10">
-                  <p className="text-sm font-medium text-red-500">加载失败</p>
-                  <p className="text-xs text-slate-400 mt-1">请稍后重试</p>
-                </div>
-              )}
+            {hasError && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10">
+                <p className="text-sm font-medium text-red-500">加载失败</p>
+                <p className="text-xs text-slate-400 mt-1">请稍后重试</p>
+              </div>
+            )}
 
-              {shouldUseIframe() ? (
-                <iframe
-                  ref={iframeRef}
-                  src={MIRCO_FE_URL}
-                  style={{ width: '100%', height: '100%', border: 'none' }}
-                  onLoad={() => {
-                    setIsLoading(false);
-                    if (pendingImageRef.current) {
-                      setTimeout(() => {
-                        sendImageToMicroFe(pendingImageRef.current!);
-                        pendingImageRef.current = null;
-                      }, 300);
-                    }
-                  }}
-                />
-              ) : (
-                <WujieReact
-                  name="mirco-fe-ai"
-                  url={MIRCO_FE_URL}
-                  width="100%"
-                  height="100%"
-                  alive={true}
-                  beforeLoad={handleBeforeLoad}
-                  afterMount={handleAfterMount}
-                />
-              )}
-            </div>
-          )}
+            {shouldUseIframe() ? (
+              <iframe
+                ref={iframeRef}
+                src={MIRCO_FE_URL}
+                style={{ width: '100%', height: '100%', border: 'none' }}
+                onLoad={() => {
+                  setIsLoading(false);
+                  if (pendingImageRef.current) {
+                    // 等待微前端 React 水合完成后再发送（含重试）
+                    setTimeout(() => {
+                      sendImageToMicroFe(pendingImageRef.current!);
+                      pendingImageRef.current = null;
+                    }, 800);
+                  }
+                }}
+              />
+            ) : (
+              <WujieReact
+                name="mirco-fe-ai"
+                url={MIRCO_FE_URL}
+                width="100%"
+                height="100%"
+                alive={true}
+                beforeLoad={handleBeforeLoad}
+                afterMount={handleAfterMount}
+              />
+            )}
+          </div>
         </div>
       )}
     </>

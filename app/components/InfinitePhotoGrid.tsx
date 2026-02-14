@@ -68,6 +68,69 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
   t: any, 
   getFullImageUrl: any 
 }) => {
+  // === 拖拽到 AI 助手 ===
+  const isVideo = photo.type === 'video';
+  const canDrag = !isVideo; // 只有图片可拖拽
+
+  // 预生成拖拽缩略图（60x60 小图 + 圆角 + 阴影）
+  const dragGhostRef = useRef<HTMLCanvasElement | null>(null);
+
+  const handleDragStart = (e: React.DragEvent) => {
+    if (!canDrag) { e.preventDefault(); return; }
+    const imageUrl = getFullImageUrl(photo.url);
+    e.dataTransfer.setData('text/plain', imageUrl);
+    e.dataTransfer.setData('application/x-photo-ai', imageUrl);
+    e.dataTransfer.effectAllowed = 'copy';
+
+    // 用当前卡片内的 <img> 绘制一个 60x60 的小缩略图作为拖拽预览
+    try {
+      const imgEl = (e.currentTarget as HTMLElement).querySelector('img');
+      if (imgEl) {
+        const size = 60;
+        let canvas = dragGhostRef.current;
+        if (!canvas) {
+          canvas = document.createElement('canvas');
+          dragGhostRef.current = canvas;
+        }
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          // 圆角裁切
+          ctx.clearRect(0, 0, size, size);
+          ctx.beginPath();
+          ctx.roundRect(0, 0, size, size, 10);
+          ctx.clip();
+          ctx.drawImage(imgEl, 0, 0, size, size);
+          // 边框
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(1, 1, size - 2, size - 2, 9);
+          ctx.stroke();
+        }
+        // 将 canvas 临时放到 DOM 中（setDragImage 需要 DOM 内元素）
+        canvas.style.position = 'fixed';
+        canvas.style.top = '-200px';
+        canvas.style.left = '-200px';
+        canvas.style.zIndex = '-1';
+        document.body.appendChild(canvas);
+        e.dataTransfer.setDragImage(canvas, 30, 30);
+        // 下一帧移除
+        requestAnimationFrame(() => canvas && canvas.parentNode?.removeChild(canvas));
+      }
+    } catch {}
+
+    // 通知全局：拖拽开始 → 让 drop zone 出现
+    document.body.classList.add('photo-dragging');
+    window.dispatchEvent(new CustomEvent('photo-drag-state', { detail: { dragging: true } }));
+  };
+
+  const handleDragEnd = () => {
+    document.body.classList.remove('photo-dragging');
+    window.dispatchEvent(new CustomEvent('photo-drag-state', { detail: { dragging: false } }));
+  };
+
   // === Live Photo 状态 ===
   const [isLivePlaying, setIsLivePlaying] = useState(false);
   const liveVideoRef = useRef<HTMLVideoElement>(null);
@@ -78,8 +141,6 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
   const [videoState, setVideoState] = useState<'idle' | 'previewing' | 'playing' | 'paused'>('idle');
   const [isMuted, setIsMuted] = useState(true);
   const [progress, setProgress] = useState(0);
-
-  const isVideo = photo.type === 'video';
 
   // Live Photo 长按处理
   const handleLivePressStart = (e: React.PointerEvent | React.TouchEvent) => {
@@ -180,7 +241,10 @@ const PhotoCard = ({ photo, index, columnCount, t, getFullImageUrl }: {
 
   return (
     <motion.div
-      className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-800/50 shadow-sm hover:shadow-2xl transition-shadow duration-500 border border-gray-100/80 dark:border-gray-700/50"
+      className={`group relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-800/50 shadow-sm hover:shadow-2xl transition-shadow duration-500 border border-gray-100/80 dark:border-gray-700/50 ${canDrag ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      draggable={canDrag}
+      onDragStart={handleDragStart as any}
+      onDragEnd={handleDragEnd}
       initial={{ opacity: 0, y: 24, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ 
