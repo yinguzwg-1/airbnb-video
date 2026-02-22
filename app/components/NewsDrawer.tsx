@@ -21,8 +21,13 @@ const isInAppWebView = () => {
   return !!(window as any).ReactNativeWebView || !!(window as any).JSBridge?.isInApp;
 };
 
+const isMobileBrowser = () => {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 const shouldUseIframe = () => {
-  return process.env.NODE_ENV === 'development' || isInAppWebView();
+  return process.env.NODE_ENV === 'development' || isInAppWebView() || isMobileBrowser();
 };
 
 // 默认尺寸
